@@ -10,7 +10,8 @@ import {
   UserCheck,
   Settings,
   ChevronDown,
-  Menu
+  Menu,
+  Database
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
@@ -32,11 +33,18 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle }) => {
         { label: 'Claim Dinas', path: '/dinas/claim' }
       ]
     },
-    { icon: Users, label: 'Karyawan', path: '/karyawan' },
-    { icon: CheckCircle, label: 'Line Approval', path: '/approval' },
-    { icon: UserCheck, label: 'Manajemen User', path: '/users' },
-    { icon: Settings, label: 'Role Manajemen', path: '/roles' },
-    { icon: Settings, label: 'Pengaturan Aplikasi', path: '/settings' }
+    { 
+      icon: Database, 
+      label: 'Master Data', 
+      path: '/master',
+      submenu: [
+        { label: 'Karyawan', path: '/karyawan' },
+        { label: 'Line Approval', path: '/approval' },
+        { label: 'Manajemen User', path: '/users' },
+        { label: 'Role Manajemen', path: '/roles' },
+        { label: 'Pengaturan Aplikasi', path: '/settings' }
+      ]
+    }
   ];
 
   return (
