@@ -4,27 +4,37 @@ import { Search, Plus, Eye, Edit, Trash2, Download, ArrowUpDown } from 'lucide-r
 import Header from '@/components/Header';
 import Sidebar from '@/components/Sidebar';
 import Footer from '@/components/Footer';
+import KaryawanForm from '@/components/KaryawanForm';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
+import Swal from 'sweetalert2';
 
 const Karyawan = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [departmentFilter, setDepartmentFilter] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
+  const [formState, setFormState] = useState({
+    isOpen: false,
+    mode: 'add' as 'add' | 'edit' | 'view',
+    selectedData: null as any
+  });
 
-  const karyawanData = [
+  const [karyawanData, setKaryawanData] = useState([
     {
       id: 'EMP176',
       name: 'Jesika',
       email: 'tes@company.com',
       phone: '+628562998888',
-      jabatan: 'staff GA',
+      jabatan: 'Staff GA',
       department: 'HR',
       status: 'Aktif',
       tanggalBergabung: '2025-07-03',
-      avatar: 'J'
+      avatar: 'J',
+      grade: 'A'
     },
     {
       id: 'EMP175',
@@ -35,7 +45,8 @@ const Karyawan = () => {
       department: 'Finance',
       status: 'Aktif',
       tanggalBergabung: '2025-06-25',
-      avatar: 'T'
+      avatar: 'T',
+      grade: 'B'
     },
     {
       id: 'EMP1005',
@@ -46,7 +57,8 @@ const Karyawan = () => {
       department: 'HR',
       status: 'Aktif',
       tanggalBergabung: '2025-06-25',
-      avatar: 'TE'
+      avatar: 'TE',
+      grade: 'A'
     },
     {
       id: 'EMP006',
@@ -57,7 +69,8 @@ const Karyawan = () => {
       department: 'Sales',
       status: 'Aktif',
       tanggalBergabung: '2023-02-28',
-      avatar: 'LA'
+      avatar: 'LA',
+      grade: 'C'
     },
     {
       id: 'EMP007',
@@ -68,7 +81,8 @@ const Karyawan = () => {
       department: 'HR',
       status: 'Aktif',
       tanggalBergabung: '2021-12-05',
-      avatar: 'RT'
+      avatar: 'RT',
+      grade: 'B'
     },
     {
       id: 'EMP008',
@@ -79,26 +93,125 @@ const Karyawan = () => {
       department: 'Marketing',
       status: 'Aktif',
       tanggalBergabung: '2022-07-18',
-      avatar: 'ED'
+      avatar: 'ED',
+      grade: 'A'
     }
-  ];
+  ]);
 
   const stats = [
-    { title: 'Total Karyawan', value: '11', color: 'bg-blue-500' },
-    { title: 'Karyawan Aktif', value: '11', color: 'bg-green-500' },
+    { title: 'Total Karyawan', value: karyawanData.length.toString(), color: 'bg-blue-500' },
+    { title: 'Karyawan Aktif', value: karyawanData.filter(k => k.status === 'Aktif').length.toString(), color: 'bg-green-500' },
     { title: 'Departemen', value: '5', color: 'bg-purple-500' },
     { title: 'Bergabung Bulan Ini', value: '1', color: 'bg-orange-500' }
   ];
 
+  const openForm = (mode: 'add' | 'edit' | 'view', data?: any) => {
+    setFormState({
+      isOpen: true,
+      mode,
+      selectedData: data
+    });
+  };
+
+  const closeForm = () => {
+    setFormState({
+      isOpen: false,
+      mode: 'add',
+      selectedData: null
+    });
+  };
+
+  const handleFormSubmit = (formData: any) => {
+    if (formState.mode === 'add') {
+      const newEmployee = {
+        id: `EMP${Date.now()}`,
+        name: formData.nama,
+        email: formData.email,
+        phone: formData.phone,
+        jabatan: formData.posisi,
+        department: formData.departemen,
+        status: formData.status,
+        tanggalBergabung: formData.tanggalBergabung,
+        avatar: formData.nama.split(' ').map((n: string) => n[0]).join('').toUpperCase(),
+        grade: formData.grade
+      };
+      setKaryawanData(prev => [...prev, newEmployee]);
+      
+      Swal.fire({
+        title: 'Berhasil!',
+        text: 'Karyawan berhasil ditambahkan',
+        icon: 'success',
+        confirmButtonColor: '#16a34a'
+      });
+    } else if (formState.mode === 'edit') {
+      setKaryawanData(prev => prev.map(emp => 
+        emp.id === formState.selectedData.id 
+          ? {
+              ...emp,
+              name: formData.nama,
+              email: formData.email,
+              phone: formData.phone,
+              jabatan: formData.posisi,
+              department: formData.departemen,
+              status: formData.status,
+              tanggalBergabung: formData.tanggalBergabung,
+              grade: formData.grade
+            }
+          : emp
+      ));
+      
+      Swal.fire({
+        title: 'Berhasil!',
+        text: 'Data karyawan berhasil diperbarui',
+        icon: 'success',
+        confirmButtonColor: '#16a34a'
+      });
+    }
+  };
+
+  const handleDelete = (employee: any) => {
+    Swal.fire({
+      title: 'Hapus Karyawan?',
+      text: `Apakah Anda yakin ingin menghapus ${employee.name}?`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#dc2626',
+      cancelButtonColor: '#6b7280',
+      confirmButtonText: 'Ya, Hapus',
+      cancelButtonText: 'Batal'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        setKaryawanData(prev => prev.filter(emp => emp.id !== employee.id));
+        
+        Swal.fire({
+          title: 'Terhapus!',
+          text: 'Karyawan berhasil dihapus',
+          icon: 'success',
+          confirmButtonColor: '#16a34a'
+        });
+      }
+    });
+  };
+
+  const filteredData = karyawanData.filter(karyawan => {
+    const matchesSearch = karyawan.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         karyawan.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         karyawan.email.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesDepartment = !departmentFilter || karyawan.department === departmentFilter;
+    const matchesStatus = !statusFilter || karyawan.status === statusFilter;
+    
+    return matchesSearch && matchesDepartment && matchesStatus;
+  });
+
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors w-full">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors flex flex-col">
       <Header />
       
-      <div className="flex w-full">
+      <div className="flex flex-1">
         <Sidebar isOpen={sidebarOpen} onToggle={() => setSidebarOpen(!sidebarOpen)} />
         
-        <div className="flex-1 w-full">
-          <main className="p-6 w-full">
+        <div className="flex-1 flex flex-col">
+          <main className="flex-1 p-6">
             {/* Header Section */}
             <div className="mb-8">
               <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
@@ -111,7 +224,10 @@ const Karyawan = () => {
                     <Download className="w-4 h-4" />
                     Export
                   </Button>
-                  <Button className="flex items-center gap-2 bg-green-600 hover:bg-green-700">
+                  <Button 
+                    className="flex items-center gap-2 bg-green-600 hover:bg-green-700"
+                    onClick={() => openForm('add')}
+                  >
                     <Plus className="w-4 h-4" />
                     Tambah Karyawan
                   </Button>
@@ -193,16 +309,28 @@ const Karyawan = () => {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {karyawanData.map((karyawan) => (
+                    {filteredData.map((karyawan) => (
                       <TableRow key={karyawan.id}>
                         <TableCell>
                           <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center text-white font-medium">
-                              {karyawan.avatar}
-                            </div>
+                            <Avatar className="w-12 h-12">
+                              <AvatarFallback className="bg-blue-500 text-white font-medium">
+                                {karyawan.avatar}
+                              </AvatarFallback>
+                            </Avatar>
                             <div>
                               <p className="font-medium text-gray-900 dark:text-white">{karyawan.name}</p>
-                              <p className="text-sm text-gray-500 dark:text-gray-400">ID: {karyawan.id}</p>
+                              <div className="flex items-center gap-2">
+                                <p className="text-sm text-gray-500 dark:text-gray-400">ID: {karyawan.id}</p>
+                                {karyawan.grade && (
+                                  <Badge 
+                                    variant="secondary" 
+                                    className="text-xs bg-gray-100 text-gray-700 shadow-sm"
+                                  >
+                                    Grade {karyawan.grade}
+                                  </Badge>
+                                )}
+                              </div>
                             </div>
                           </div>
                         </TableCell>
@@ -219,22 +347,42 @@ const Karyawan = () => {
                           </div>
                         </TableCell>
                         <TableCell>
-                          <span className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-medium dark:bg-green-900 dark:text-green-300">
+                          <Badge 
+                            variant={karyawan.status === 'Aktif' ? 'default' : 'secondary'}
+                            className={karyawan.status === 'Aktif' 
+                              ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300' 
+                              : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300'}
+                          >
                             {karyawan.status}
-                          </span>
+                          </Badge>
                         </TableCell>
                         <TableCell className="text-gray-600 dark:text-gray-400">
                           {karyawan.tanggalBergabung}
                         </TableCell>
                         <TableCell>
                           <div className="flex items-center gap-2">
-                            <Button variant="ghost" size="sm" className="p-2">
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              className="p-2"
+                              onClick={() => openForm('view', karyawan)}
+                            >
                               <Eye className="w-4 h-4" />
                             </Button>
-                            <Button variant="ghost" size="sm" className="p-2">
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              className="p-2"
+                              onClick={() => openForm('edit', karyawan)}
+                            >
                               <Edit className="w-4 h-4" />
                             </Button>
-                            <Button variant="ghost" size="sm" className="p-2 text-red-600 hover:text-red-800">
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              className="p-2 text-red-600 hover:text-red-800"
+                              onClick={() => handleDelete(karyawan)}
+                            >
                               <Trash2 className="w-4 h-4" />
                             </Button>
                           </div>
@@ -260,6 +408,15 @@ const Karyawan = () => {
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
         </svg>
       </button>
+
+      {/* Form Modal */}
+      <KaryawanForm
+        isOpen={formState.isOpen}
+        onClose={closeForm}
+        onSubmit={handleFormSubmit}
+        initialData={formState.selectedData}
+        mode={formState.mode}
+      />
     </div>
   );
 };

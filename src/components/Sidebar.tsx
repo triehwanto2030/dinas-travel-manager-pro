@@ -1,20 +1,21 @@
 
-import React from 'react';
-import { NavLink } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Link, useLocation } from 'react-router-dom';
 import { 
-  LayoutDashboard, 
-  MapPin, 
-  ClipboardList, 
+  Home, 
   Users, 
-  CheckCircle, 
-  UserCheck,
-  Settings,
+  CheckSquare, 
+  Settings, 
+  FileText, 
+  CreditCard, 
+  MapPin, 
+  Calendar,
   ChevronDown,
-  Menu,
-  Database
+  ChevronRight,
+  UserPlus,
+  Shield,
+  Cog
 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 
 interface SidebarProps {
   isOpen: boolean;
@@ -22,104 +23,225 @@ interface SidebarProps {
 }
 
 const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle }) => {
+  const location = useLocation();
+  const [expandedMenus, setExpandedMenus] = useState<string[]>(['master-data']);
+
+  useEffect(() => {
+    // Auto-expand menu that contains current route
+    const currentPath = location.pathname;
+    if (currentPath.includes('/karyawan') || 
+        currentPath.includes('/approval') || 
+        currentPath.includes('/user-management') ||
+        currentPath.includes('/role-management') ||
+        currentPath.includes('/app-settings')) {
+      setExpandedMenus(prev => prev.includes('master-data') ? prev : [...prev, 'master-data']);
+    }
+  }, [location.pathname]);
+
+  const toggleMenu = (menuId: string) => {
+    setExpandedMenus(prev => 
+      prev.includes(menuId) 
+        ? prev.filter(id => id !== menuId)
+        : [...prev, menuId]
+    );
+  };
+
   const menuItems = [
-    { icon: LayoutDashboard, label: 'Dashboard', path: '/' },
-    { 
-      icon: MapPin, 
-      label: 'Dinas', 
-      path: '/dinas',
+    {
+      id: 'dashboard',
+      title: 'Dashboard',
+      icon: Home,
+      path: '/',
+      isActive: location.pathname === '/'
+    },
+    {
+      id: 'master-data',
+      title: 'Master Data',
+      icon: FileText,
+      hasSubmenu: true,
+      isExpanded: expandedMenus.includes('master-data'),
       submenu: [
-        { label: 'Perjalanan Dinas', path: '/dinas/perjalanan' },
-        { label: 'Claim Dinas', path: '/dinas/claim' }
+        {
+          title: 'Karyawan',
+          icon: Users,
+          path: '/karyawan',
+          isActive: location.pathname === '/karyawan'
+        },
+        {
+          title: 'Line Approval',
+          icon: CheckSquare,
+          path: '/approval',
+          isActive: location.pathname === '/approval'
+        },
+        {
+          title: 'Manajemen User',
+          icon: UserPlus,
+          path: '/user-management',
+          isActive: location.pathname === '/user-management'
+        },
+        {
+          title: 'Role Manajemen',
+          icon: Shield,
+          path: '/role-management',
+          isActive: location.pathname === '/role-management'
+        },
+        {
+          title: 'Pengaturan Aplikasi',
+          icon: Cog,
+          path: '/app-settings',
+          isActive: location.pathname === '/app-settings'
+        }
       ]
     },
-    { 
-      icon: Database, 
-      label: 'Master Data', 
-      path: '/master',
-      submenu: [
-        { label: 'Karyawan', path: '/karyawan' },
-        { label: 'Line Approval', path: '/approval' },
-        { label: 'Manajemen User', path: '/users' },
-        { label: 'Role Manajemen', path: '/roles' },
-        { label: 'Pengaturan Aplikasi', path: '/settings' }
-      ]
+    {
+      id: 'perjalanan-dinas',
+      title: 'Perjalanan Dinas',
+      icon: MapPin,
+      path: '/perjalanan-dinas',
+      isActive: location.pathname === '/perjalanan-dinas'
+    },
+    {
+      id: 'keuangan',
+      title: 'Keuangan',
+      icon: CreditCard,
+      path: '/keuangan',
+      isActive: location.pathname === '/keuangan'
+    },
+    {
+      id: 'laporan',
+      title: 'Laporan',
+      icon: FileText,
+      path: '/laporan',
+      isActive: location.pathname === '/laporan'
+    },
+    {
+      id: 'kalender',
+      title: 'Kalender',
+      icon: Calendar,
+      path: '/kalender',
+      isActive: location.pathname === '/kalender'
+    },
+    {
+      id: 'pengaturan',
+      title: 'Pengaturan',
+      icon: Settings,
+      path: '/pengaturan',
+      isActive: location.pathname === '/pengaturan'
     }
   ];
 
   return (
     <>
-      {/* Mobile overlay */}
+      {/* Overlay for mobile */}
       {isOpen && (
         <div 
-          className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
+          className="lg:hidden fixed inset-0 bg-black bg-opacity-50 z-30"
           onClick={onToggle}
         />
       )}
-      
+
       {/* Sidebar */}
-      <aside className={`
-        fixed left-0 top-0 h-full bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 z-50
+      <div className={`
+        fixed lg:static inset-y-0 left-0 z-40
+        w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700
         transform transition-transform duration-300 ease-in-out
-        ${isOpen ? 'translate-x-0' : '-translate-x-full'}
-        lg:translate-x-0 lg:static lg:z-auto
-        w-64
+        ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
+        flex flex-col
       `}>
-        <div className="p-4 border-b border-gray-200 dark:border-gray-700 lg:hidden">
-          <Button variant="ghost" size="sm" onClick={onToggle}>
-            <Menu className="w-5 h-5" />
-          </Button>
+        {/* Logo Section */}
+        <div className="p-6 border-b border-gray-200 dark:border-gray-700">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
+              <MapPin className="w-6 h-6 text-white" />
+            </div>
+            <div>
+              <h1 className="text-xl font-bold text-gray-900 dark:text-white">Travel Pro</h1>
+              <p className="text-xs text-gray-500 dark:text-gray-400">Perjalanan Dinas</p>
+            </div>
+          </div>
         </div>
-        
-        <nav className="p-4 space-y-2">
-          {menuItems.map((item, index) => (
-            <div key={index}>
-              {item.submenu ? (
-                <Collapsible>
-                  <CollapsibleTrigger className="flex items-center justify-between w-full p-2 text-left rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
-                    <div className="flex items-center space-x-3">
-                      <item.icon className="w-5 h-5 text-gray-600 dark:text-gray-400" />
-                      <span className="text-sm font-medium text-gray-700 dark:text-gray-300">{item.label}</span>
-                    </div>
-                    <ChevronDown className="w-4 h-4 text-gray-500" />
-                  </CollapsibleTrigger>
-                  <CollapsibleContent className="ml-8 mt-2 space-y-1">
-                    {item.submenu.map((subItem, subIndex) => (
-                      <NavLink
-                        key={subIndex}
-                        to={subItem.path}
-                        className={({ isActive }) =>
-                          `block p-2 text-sm rounded-lg transition-colors ${
-                            isActive
-                              ? 'bg-blue-50 dark:bg-blue-900 text-blue-600 dark:text-blue-400'
-                              : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'
-                          }`
-                        }
-                      >
-                        {subItem.label}
-                      </NavLink>
-                    ))}
-                  </CollapsibleContent>
-                </Collapsible>
-              ) : (
-                <NavLink
-                  to={item.path}
-                  className={({ isActive }) =>
-                    `flex items-center space-x-3 p-2 rounded-lg transition-colors ${
-                      isActive
-                        ? 'bg-blue-50 dark:bg-blue-900 text-blue-600 dark:text-blue-400'
+
+        {/* Navigation */}
+        <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
+          {menuItems.map((item) => (
+            <div key={item.id}>
+              {item.hasSubmenu ? (
+                <div>
+                  <button
+                    onClick={() => toggleMenu(item.id)}
+                    className={`
+                      w-full flex items-center justify-between px-4 py-3 rounded-lg text-sm font-medium transition-colors
+                      ${item.isExpanded 
+                        ? 'bg-blue-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400' 
                         : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
-                    }`
-                  }
+                      }
+                    `}
+                  >
+                    <div className="flex items-center gap-3">
+                      <item.icon className="w-5 h-5" />
+                      <span>{item.title}</span>
+                    </div>
+                    {item.isExpanded ? (
+                      <ChevronDown className="w-4 h-4" />
+                    ) : (
+                      <ChevronRight className="w-4 h-4" />
+                    )}
+                  </button>
+                  
+                  {/* Submenu */}
+                  {item.isExpanded && item.submenu && (
+                    <div className="ml-4 mt-2 space-y-1">
+                      {item.submenu.map((subItem) => (
+                        <Link
+                          key={subItem.path}
+                          to={subItem.path}
+                          className={`
+                            flex items-center gap-3 px-4 py-2 rounded-lg text-sm transition-colors
+                            ${subItem.isActive 
+                              ? 'bg-blue-50 text-blue-700 border-l-4 border-blue-700 dark:bg-blue-900/20 dark:text-blue-400 dark:border-blue-400' 
+                              : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-gray-200'
+                            }
+                          `}
+                        >
+                          <subItem.icon className="w-4 h-4" />
+                          <span>{subItem.title}</span>
+                        </Link>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <Link
+                  to={item.path}
+                  className={`
+                    flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors
+                    ${item.isActive 
+                      ? 'bg-blue-50 text-blue-700 border-l-4 border-blue-700 dark:bg-blue-900/20 dark:text-blue-400 dark:border-blue-400' 
+                      : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+                    }
+                  `}
                 >
                   <item.icon className="w-5 h-5" />
-                  <span className="text-sm font-medium">{item.label}</span>
-                </NavLink>
+                  <span>{item.title}</span>
+                </Link>
               )}
             </div>
           ))}
         </nav>
-      </aside>
+
+        {/* User Profile Section */}
+        <div className="p-4 border-t border-gray-200 dark:border-gray-700">
+          <div className="flex items-center gap-3 p-3 rounded-lg bg-gray-50 dark:bg-gray-700">
+            <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center">
+              <span className="text-white font-medium">A</span>
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium text-gray-900 dark:text-white truncate">Admin User</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400">admin@company.com</p>
+            </div>
+          </div>
+        </div>
+      </div>
     </>
   );
 };
