@@ -32,10 +32,13 @@ const KaryawanForm: React.FC<KaryawanFormProps> = ({
     posisi: initialData?.jabatan || '',
     grade: initialData?.grade || '',
     status: initialData?.status || 'Aktif',
+    namaPerusahaan: initialData?.namaPerusahaan || '',
     foto: null as File | null
   });
 
   const [previewImage, setPreviewImage] = useState<string | null>(null);
+
+  const gradeOptions = ['1A', '1B', '2A', '2B', '2C', '3A', '3B', '3C', '4A', '4B', '4C', '5A', '5B', '5C', '6A', '6B'];
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -126,6 +129,18 @@ const KaryawanForm: React.FC<KaryawanFormProps> = ({
                   </div>
                   
                   <div>
+                    <Label htmlFor="namaPerusahaan">Nama Perusahaan *</Label>
+                    <Input
+                      id="namaPerusahaan"
+                      value={formData.namaPerusahaan}
+                      onChange={(e) => handleInputChange('namaPerusahaan', e.target.value)}
+                      required
+                      readOnly={isReadOnly}
+                      className={isReadOnly ? 'bg-gray-50 dark:bg-gray-700' : ''}
+                    />
+                  </div>
+                  
+                  <div>
                     <Label htmlFor="email">Email *</Label>
                     <Input
                       id="email"
@@ -205,14 +220,20 @@ const KaryawanForm: React.FC<KaryawanFormProps> = ({
                   
                   <div>
                     <Label htmlFor="grade">Grade</Label>
-                    <Input
-                      id="grade"
-                      value={formData.grade}
-                      onChange={(e) => handleInputChange('grade', e.target.value)}
-                      placeholder="Contoh: A, B, C, atau 1, 2, 3"
-                      readOnly={isReadOnly}
-                      className={isReadOnly ? 'bg-gray-50 dark:bg-gray-700' : ''}
-                    />
+                    <Select 
+                      value={formData.grade} 
+                      onValueChange={(value) => handleInputChange('grade', value)}
+                      disabled={isReadOnly}
+                    >
+                      <SelectTrigger className={isReadOnly ? 'bg-gray-50 dark:bg-gray-700' : ''}>
+                        <SelectValue placeholder="Pilih Grade" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {gradeOptions.map((grade) => (
+                          <SelectItem key={grade} value={grade}>{grade}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
                   
                   <div>

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { 
@@ -35,6 +34,10 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle }) => {
         currentPath.includes('/role-management') ||
         currentPath.includes('/app-settings')) {
       setExpandedMenus(prev => prev.includes('master-data') ? prev : [...prev, 'master-data']);
+    }
+    if (currentPath.includes('/perjalanan-dinas') || 
+        currentPath.includes('/claim-perjalanan-dinas')) {
+      setExpandedMenus(prev => prev.includes('dinas') ? prev : [...prev, 'dinas']);
     }
   }, [location.pathname]);
 
@@ -94,39 +97,25 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle }) => {
       ]
     },
     {
-      id: 'perjalanan-dinas',
-      title: 'Perjalanan Dinas',
+      id: 'dinas',
+      title: 'Dinas',
       icon: MapPin,
-      path: '/perjalanan-dinas',
-      isActive: location.pathname === '/perjalanan-dinas'
-    },
-    {
-      id: 'keuangan',
-      title: 'Keuangan',
-      icon: CreditCard,
-      path: '/keuangan',
-      isActive: location.pathname === '/keuangan'
-    },
-    {
-      id: 'laporan',
-      title: 'Laporan',
-      icon: FileText,
-      path: '/laporan',
-      isActive: location.pathname === '/laporan'
-    },
-    {
-      id: 'kalender',
-      title: 'Kalender',
-      icon: Calendar,
-      path: '/kalender',
-      isActive: location.pathname === '/kalender'
-    },
-    {
-      id: 'pengaturan',
-      title: 'Pengaturan',
-      icon: Settings,
-      path: '/pengaturan',
-      isActive: location.pathname === '/pengaturan'
+      hasSubmenu: true,
+      isExpanded: expandedMenus.includes('dinas'),
+      submenu: [
+        {
+          title: 'Perjalanan Dinas',
+          icon: MapPin,
+          path: '/perjalanan-dinas',
+          isActive: location.pathname === '/perjalanan-dinas'
+        },
+        {
+          title: 'Claim Perjalanan Dinas',
+          icon: CreditCard,
+          path: '/claim-perjalanan-dinas',
+          isActive: location.pathname === '/claim-perjalanan-dinas'
+        }
+      ]
     }
   ];
 
