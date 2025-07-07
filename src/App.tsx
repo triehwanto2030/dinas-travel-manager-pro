@@ -8,6 +8,8 @@ import { ThemeProvider } from "@/hooks/useTheme";
 import Dashboard from "./pages/Dashboard";
 import Karyawan from "./pages/Karyawan";
 import LineApproval from "./pages/LineApproval";
+import PerjalananDinas from "./pages/PerjalananDinas";
+import ClaimDinas from "./pages/ClaimDinas";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -21,6 +23,8 @@ const App = () => (
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<Dashboard />} />
+            <Route path="/perjalanan-dinas" element={<PerjalananDinas />} />
+            <Route path="/claim-dinas" element={<ClaimDinas />} />
             <Route path="/karyawan" element={<Karyawan />} />
             <Route path="/approval" element={<LineApproval />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

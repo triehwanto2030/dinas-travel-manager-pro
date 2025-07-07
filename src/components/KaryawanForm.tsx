@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Upload, Calendar, User, Mail, Phone, Building, Award, UserCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { useCompanies } from '@/hooks/useCompanies';
 
 interface KaryawanFormProps {
   isOpen: boolean;
@@ -23,22 +24,54 @@ const KaryawanForm: React.FC<KaryawanFormProps> = ({
   initialData, 
   mode 
 }) => {
+  const { data: companies = [] } = useCompanies();
+  
   const [formData, setFormData] = useState({
-    nama: initialData?.name || '',
-    email: initialData?.email || '',
-    phone: initialData?.phone || '',
-    tanggalBergabung: initialData?.tanggalBergabung || '',
-    departemen: initialData?.department || '',
-    posisi: initialData?.jabatan || '',
-    grade: initialData?.grade || '',
-    status: initialData?.status || 'Aktif',
-    namaPerusahaan: initialData?.namaPerusahaan || '',
+    nama: '',
+    email: '',
+    phone: '',
+    tanggalBergabung: '',
+    departemen: '',
+    posisi: '',
+    grade: '',
+    status: 'Aktif',
+    namaPerusahaan: '',
     foto: null as File | null
   });
 
   const [previewImage, setPreviewImage] = useState<string | null>(null);
 
   const gradeOptions = ['1A', '1B', '2A', '2B', '2C', '3A', '3B', '3C', '4A', '4B', '4C', '5A', '5B', '5C', '6A', '6B'];
+
+  useEffect(() => {
+    if (initialData && isOpen) {
+      setFormData({
+        nama: initialData.name || '',
+        email: initialData.email || '',
+        phone: initialData.phone || '',
+        tanggalBergabung: initialData.join_date || '',
+        departemen: initialData.department || '',
+        posisi: initialData.position || '',
+        grade: initialData.grade || '',
+        status: initialData.status || 'Aktif',
+        namaPerusahaan: initialData.namaPerusahaan || '',
+        foto: null
+      });
+    } else if (!initialData && isOpen) {
+      setFormData({
+        nama: '',
+        email: '',
+        phone: '',
+        tanggalBergabung: '',
+        departemen: '',
+        posisi: '',
+        grade: '',
+        status: 'Aktif',
+        namaPerusahaan: '',
+        foto: null
+      });
+    }
+  }, [initialData, isOpen]);
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -130,14 +163,22 @@ const KaryawanForm: React.FC<KaryawanFormProps> = ({
                   
                   <div>
                     <Label htmlFor="namaPerusahaan">Nama Perusahaan *</Label>
-                    <Input
-                      id="namaPerusahaan"
-                      value={formData.namaPerusahaan}
-                      onChange={(e) => handleInputChange('namaPerusahaan', e.target.value)}
-                      required
-                      readOnly={isReadOnly}
-                      className={isReadOnly ? 'bg-gray-50 dark:bg-gray-700' : ''}
-                    />
+                    <Select 
+                      value={formData.namaPerusahaan} 
+                      onValueChange={(value) => handleInputChange('namaPerusahaan', value)}
+                      disabled={isReadOnly}
+                    >
+                      <SelectTrigger className={isReadOnly ? 'bg-gray-50 dark:bg-gray-700' : ''}>
+                        <SelectValue placeholder="Pilih Perusahaan" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {companies.map((company) => (
+                          <SelectItem key={company.id} value={company.name}>
+                            {company.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
                   
                   <div>
@@ -201,6 +242,7 @@ const KaryawanForm: React.FC<KaryawanFormProps> = ({
                         <SelectItem value="Sales">Sales</SelectItem>
                         <SelectItem value="Marketing">Marketing</SelectItem>
                         <SelectItem value="IT">IT</SelectItem>
+                        <SelectItem value="Operations">Operations</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>

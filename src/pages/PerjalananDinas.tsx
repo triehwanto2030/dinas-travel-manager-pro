@@ -7,21 +7,66 @@ import Footer from '@/components/Footer';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { useLineApprovals } from '@/hooks/useLineApprovals';
+import { Badge } from '@/components/ui/badge';
 
-const LineApproval = () => {
+const PerjalananDinas = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
 
-  const { data: approvalData = [], isLoading } = useLineApprovals();
+  // Mock data - will be replaced with real data from Supabase
+  const perjalananData = [
+    {
+      id: 1,
+      employee: { name: 'Lisa Anderson', id: 'EMP006' },
+      destination: 'Malang',
+      purpose: 'Client Meeting',
+      startDate: '2025-07-06',
+      endDate: '2025-07-08',
+      budget: 1500000,
+      status: 'Approved'
+    },
+    {
+      id: 2,
+      employee: { name: 'Jesika', id: 'EMP176' },
+      destination: 'Jakarta',
+      purpose: 'Training',
+      startDate: '2025-07-04',
+      endDate: '2025-07-06',
+      budget: 2000000,
+      status: 'Approved'
+    },
+    {
+      id: 3,
+      employee: { name: 'John Doe', id: 'EMP001' },
+      destination: 'Surabaya',
+      purpose: 'Project Review',
+      startDate: '2025-07-10',
+      endDate: '2025-07-12',
+      budget: 1800000,
+      status: 'Submitted'
+    }
+  ];
 
-  const filteredData = approvalData.filter(item => 
-    item.companies.name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const getStatusBadge = (status: string) => {
+    const statusConfig = {
+      'Draft': { class: 'bg-gray-100 text-gray-800', label: 'Draft' },
+      'Submitted': { class: 'bg-yellow-100 text-yellow-800', label: 'Submitted' },
+      'Approved': { class: 'bg-green-100 text-green-800', label: 'Approved' },
+      'Rejected': { class: 'bg-red-100 text-red-800', label: 'Rejected' },
+      'Completed': { class: 'bg-blue-100 text-blue-800', label: 'Completed' }
+    };
+    
+    const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.Draft;
+    return <Badge className={config.class}>{config.label}</Badge>;
+  };
 
-  if (isLoading) {
-    return <div>Loading...</div>;
-  }
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('id-ID', {
+      style: 'currency',
+      currency: 'IDR',
+      minimumFractionDigits: 0,
+    }).format(amount);
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors w-full">
@@ -36,8 +81,8 @@ const LineApproval = () => {
             <div className="mb-8">
               <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
                 <div>
-                  <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Line Approval Perusahaan</h1>
-                  <p className="text-gray-600 dark:text-gray-400">Kelola alur persetujuan berdasarkan perusahaan</p>
+                  <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Perjalanan Dinas</h1>
+                  <p className="text-gray-600 dark:text-gray-400">Kelola perjalanan dinas karyawan</p>
                 </div>
                 <div className="flex gap-3 mt-4 md:mt-0">
                   <Button variant="outline" className="flex items-center gap-2">
@@ -48,9 +93,9 @@ const LineApproval = () => {
                     <Download className="w-4 h-4" />
                     Export Excel
                   </Button>
-                  <Button className="flex items-center gap-2 bg-purple-600 hover:bg-purple-700">
+                  <Button className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700">
                     <Plus className="w-4 h-4" />
-                    Tambah Line Approval Perusahaan
+                    Tambah Perjalanan Dinas
                   </Button>
                 </div>
               </div>
@@ -60,7 +105,7 @@ const LineApproval = () => {
             <Card className="bg-white dark:bg-gray-800">
               <CardHeader>
                 <CardTitle className="text-xl font-semibold text-gray-900 dark:text-white">
-                  Daftar Line Approval Perusahaan
+                  Daftar Perjalanan Dinas
                 </CardTitle>
                 
                 {/* Search */}
@@ -69,7 +114,7 @@ const LineApproval = () => {
                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                     <input
                       type="text"
-                      placeholder="Cari perusahaan..."
+                      placeholder="Cari perjalanan dinas..."
                       className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
@@ -82,81 +127,41 @@ const LineApproval = () => {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Nama Perusahaan</TableHead>
-                      <TableHead>Supervisor/Atasan</TableHead>
-                      <TableHead>Staff GA</TableHead>
-                      <TableHead>SPV GA</TableHead>
-                      <TableHead>HR Manager</TableHead>
-                      <TableHead>BOD</TableHead>
-                      <TableHead>Staff FA</TableHead>
+                      <TableHead>Karyawan</TableHead>
+                      <TableHead>Tujuan</TableHead>
+                      <TableHead>Keperluan</TableHead>
+                      <TableHead>Tanggal</TableHead>
+                      <TableHead>Budget</TableHead>
+                      <TableHead>Status</TableHead>
                       <TableHead>Aksi</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {filteredData.map((item) => (
+                    {perjalananData.map((item) => (
                       <TableRow key={item.id}>
                         <TableCell>
-                          <p className="font-medium text-gray-900 dark:text-white">{item.companies.name}</p>
+                          <div>
+                            <p className="font-medium text-gray-900 dark:text-white">{item.employee.name}</p>
+                            <p className="text-sm text-gray-500 dark:text-gray-400">{item.employee.id}</p>
+                          </div>
+                        </TableCell>
+                        <TableCell className="font-medium text-gray-900 dark:text-white">
+                          {item.destination}
+                        </TableCell>
+                        <TableCell className="text-gray-600 dark:text-gray-400">
+                          {item.purpose}
                         </TableCell>
                         <TableCell>
                           <div>
-                            <p className="text-sm font-medium text-gray-900 dark:text-white">
-                              {item.supervisor?.name || '-'}
-                            </p>
-                            <p className="text-xs text-gray-500 dark:text-gray-400">
-                              {item.supervisor?.id || ''}
-                            </p>
+                            <p className="text-sm text-gray-900 dark:text-white">{item.startDate}</p>
+                            <p className="text-sm text-gray-500 dark:text-gray-400">s/d {item.endDate}</p>
                           </div>
                         </TableCell>
-                        <TableCell>
-                          <div>
-                            <p className="text-sm font-medium text-gray-900 dark:text-white">
-                              {item.staff_ga?.name || '-'}
-                            </p>
-                            <p className="text-xs text-gray-500 dark:text-gray-400">
-                              {item.staff_ga?.id || ''}
-                            </p>
-                          </div>
+                        <TableCell className="font-medium text-gray-900 dark:text-white">
+                          {formatCurrency(item.budget)}
                         </TableCell>
                         <TableCell>
-                          <div>
-                            <p className="text-sm font-medium text-gray-900 dark:text-white">
-                              {item.spv_ga?.name || '-'}
-                            </p>
-                            <p className="text-xs text-gray-500 dark:text-gray-400">
-                              {item.spv_ga?.id || ''}
-                            </p>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div>
-                            <p className="text-sm font-medium text-gray-900 dark:text-white">
-                              {item.hr_manager?.name || '-'}
-                            </p>
-                            <p className="text-xs text-gray-500 dark:text-gray-400">
-                              {item.hr_manager?.id || ''}
-                            </p>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div>
-                            <p className="text-sm font-medium text-gray-900 dark:text-white">
-                              {item.bod?.name || '-'}
-                            </p>
-                            <p className="text-xs text-gray-500 dark:text-gray-400">
-                              {item.bod?.id || ''}
-                            </p>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div>
-                            <p className="text-sm font-medium text-gray-900 dark:text-white">
-                              {item.staff_fa?.name || '-'}
-                            </p>
-                            <p className="text-xs text-gray-500 dark:text-gray-400">
-                              {item.staff_fa?.id || ''}
-                            </p>
-                          </div>
+                          {getStatusBadge(item.status)}
                         </TableCell>
                         <TableCell>
                           <div className="flex items-center gap-2">
@@ -196,4 +201,4 @@ const LineApproval = () => {
   );
 };
 
-export default LineApproval;
+export default PerjalananDinas;

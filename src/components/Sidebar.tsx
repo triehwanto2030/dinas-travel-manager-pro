@@ -1,20 +1,9 @@
-import React, { useState, useEffect } from 'react';
+
+import React from 'react';
+import { Home, Plane, Users, Building, ChevronDown, ChevronRight } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
-import { 
-  Home, 
-  Users, 
-  CheckSquare, 
-  Settings, 
-  FileText, 
-  CreditCard, 
-  MapPin, 
-  Calendar,
-  ChevronDown,
-  ChevronRight,
-  UserPlus,
-  Shield,
-  Cog
-} from 'lucide-react';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { useState } from 'react';
 
 interface SidebarProps {
   isOpen: boolean;
@@ -23,212 +12,154 @@ interface SidebarProps {
 
 const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle }) => {
   const location = useLocation();
-  const [expandedMenus, setExpandedMenus] = useState<string[]>(['master-data']);
-
-  useEffect(() => {
-    // Auto-expand menu that contains current route
-    const currentPath = location.pathname;
-    if (currentPath.includes('/karyawan') || 
-        currentPath.includes('/approval') || 
-        currentPath.includes('/user-management') ||
-        currentPath.includes('/role-management') ||
-        currentPath.includes('/app-settings')) {
-      setExpandedMenus(prev => prev.includes('master-data') ? prev : [...prev, 'master-data']);
-    }
-    if (currentPath.includes('/perjalanan-dinas') || 
-        currentPath.includes('/claim-perjalanan-dinas')) {
-      setExpandedMenus(prev => prev.includes('dinas') ? prev : [...prev, 'dinas']);
-    }
-  }, [location.pathname]);
-
-  const toggleMenu = (menuId: string) => {
-    setExpandedMenus(prev => 
-      prev.includes(menuId) 
-        ? prev.filter(id => id !== menuId)
-        : [...prev, menuId]
-    );
-  };
+  const [isDinasOpen, setIsDinasOpen] = useState(false);
+  const [isMasterDataOpen, setIsMasterDataOpen] = useState(false);
 
   const menuItems = [
     {
-      id: 'dashboard',
-      title: 'Dashboard',
       icon: Home,
+      label: 'Dashboard',
       path: '/',
       isActive: location.pathname === '/'
+    }
+  ];
+
+  const dinasSubmenu = [
+    {
+      label: 'Perjalanan Dinas',
+      path: '/perjalanan-dinas',
+      isActive: location.pathname === '/perjalanan-dinas'
     },
     {
-      id: 'master-data',
-      title: 'Master Data',
-      icon: FileText,
-      hasSubmenu: true,
-      isExpanded: expandedMenus.includes('master-data'),
-      submenu: [
-        {
-          title: 'Karyawan',
-          icon: Users,
-          path: '/karyawan',
-          isActive: location.pathname === '/karyawan'
-        },
-        {
-          title: 'Line Approval',
-          icon: CheckSquare,
-          path: '/approval',
-          isActive: location.pathname === '/approval'
-        },
-        {
-          title: 'Manajemen User',
-          icon: UserPlus,
-          path: '/user-management',
-          isActive: location.pathname === '/user-management'
-        },
-        {
-          title: 'Role Manajemen',
-          icon: Shield,
-          path: '/role-management',
-          isActive: location.pathname === '/role-management'
-        },
-        {
-          title: 'Pengaturan Aplikasi',
-          icon: Cog,
-          path: '/app-settings',
-          isActive: location.pathname === '/app-settings'
-        }
-      ]
+      label: 'Claim Perjalanan Dinas',
+      path: '/claim-dinas',
+      isActive: location.pathname === '/claim-dinas'
+    }
+  ];
+
+  const masterDataSubmenu = [
+    {
+      label: 'Karyawan',
+      path: '/karyawan',
+      isActive: location.pathname === '/karyawan'
     },
     {
-      id: 'dinas',
-      title: 'Dinas',
-      icon: MapPin,
-      hasSubmenu: true,
-      isExpanded: expandedMenus.includes('dinas'),
-      submenu: [
-        {
-          title: 'Perjalanan Dinas',
-          icon: MapPin,
-          path: '/perjalanan-dinas',
-          isActive: location.pathname === '/perjalanan-dinas'
-        },
-        {
-          title: 'Claim Perjalanan Dinas',
-          icon: CreditCard,
-          path: '/claim-perjalanan-dinas',
-          isActive: location.pathname === '/claim-perjalanan-dinas'
-        }
-      ]
+      label: 'Line Approval',
+      path: '/approval',
+      isActive: location.pathname === '/approval'
     }
   ];
 
   return (
     <>
-      {/* Overlay for mobile */}
+      {/* Backdrop */}
       {isOpen && (
         <div 
-          className="lg:hidden fixed inset-0 bg-black bg-opacity-50 z-30"
+          className="fixed inset-0 bg-black bg-opacity-50 z-20 lg:hidden"
           onClick={onToggle}
         />
       )}
-
+      
       {/* Sidebar */}
       <div className={`
-        fixed lg:static inset-y-0 left-0 z-40
-        w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700
-        transform transition-transform duration-300 ease-in-out
+        fixed lg:relative inset-y-0 left-0 z-30 w-64 bg-white dark:bg-gray-800 
+        transform transition-transform duration-300 ease-in-out border-r border-gray-200 dark:border-gray-700
         ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
-        flex flex-col
       `}>
-        {/* Logo Section */}
-        <div className="p-6 border-b border-gray-200 dark:border-gray-700">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
-              <MapPin className="w-6 h-6 text-white" />
-            </div>
-            <div>
-              <h1 className="text-xl font-bold text-gray-900 dark:text-white">Travel Pro</h1>
-              <p className="text-xs text-gray-500 dark:text-gray-400">Perjalanan Dinas</p>
-            </div>
+        <div className="flex flex-col h-full">
+          {/* Logo */}
+          <div className="flex items-center justify-center h-16 px-4 border-b border-gray-200 dark:border-gray-700">
+            <h1 className="text-xl font-bold text-gray-900 dark:text-white">Perjalanan Dinas</h1>
           </div>
-        </div>
 
-        {/* Navigation */}
-        <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
-          {menuItems.map((item) => (
-            <div key={item.id}>
-              {item.hasSubmenu ? (
-                <div>
-                  <button
-                    onClick={() => toggleMenu(item.id)}
-                    className={`
-                      w-full flex items-center justify-between px-4 py-3 rounded-lg text-sm font-medium transition-colors
-                      ${item.isExpanded 
-                        ? 'bg-blue-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400' 
-                        : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
-                      }
-                    `}
+          {/* Navigation */}
+          <nav className="flex-1 px-4 py-6 overflow-y-auto">
+            <ul className="space-y-2">
+              {/* Dashboard */}
+              {menuItems.map((item) => (
+                <li key={item.path}>
+                  <Link
+                    to={item.path}
+                    className={`flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors ${
+                      item.isActive
+                        ? 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-200'
+                        : 'text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700'
+                    }`}
+                    onClick={() => window.innerWidth < 1024 && onToggle()}
                   >
-                    <div className="flex items-center gap-3">
-                      <item.icon className="w-5 h-5" />
-                      <span>{item.title}</span>
+                    <item.icon className="w-5 h-5 mr-3" />
+                    {item.label}
+                  </Link>
+                </li>
+              ))}
+
+              {/* Dinas */}
+              <li>
+                <Collapsible open={isDinasOpen} onOpenChange={setIsDinasOpen}>
+                  <CollapsibleTrigger className="flex items-center justify-between w-full px-4 py-3 text-sm font-medium text-gray-700 rounded-lg hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700 transition-colors">
+                    <div className="flex items-center">
+                      <Plane className="w-5 h-5 mr-3" />
+                      Dinas
                     </div>
-                    {item.isExpanded ? (
+                    {isDinasOpen ? (
                       <ChevronDown className="w-4 h-4" />
                     ) : (
                       <ChevronRight className="w-4 h-4" />
                     )}
-                  </button>
-                  
-                  {/* Submenu */}
-                  {item.isExpanded && item.submenu && (
-                    <div className="ml-4 mt-2 space-y-1">
-                      {item.submenu.map((subItem) => (
-                        <Link
-                          key={subItem.path}
-                          to={subItem.path}
-                          className={`
-                            flex items-center gap-3 px-4 py-2 rounded-lg text-sm transition-colors
-                            ${subItem.isActive 
-                              ? 'bg-blue-50 text-blue-700 border-l-4 border-blue-700 dark:bg-blue-900/20 dark:text-blue-400 dark:border-blue-400' 
-                              : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-gray-200'
-                            }
-                          `}
-                        >
-                          <subItem.icon className="w-4 h-4" />
-                          <span>{subItem.title}</span>
-                        </Link>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              ) : (
-                <Link
-                  to={item.path}
-                  className={`
-                    flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors
-                    ${item.isActive 
-                      ? 'bg-blue-50 text-blue-700 border-l-4 border-blue-700 dark:bg-blue-900/20 dark:text-blue-400 dark:border-blue-400' 
-                      : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
-                    }
-                  `}
-                >
-                  <item.icon className="w-5 h-5" />
-                  <span>{item.title}</span>
-                </Link>
-              )}
-            </div>
-          ))}
-        </nav>
+                  </CollapsibleTrigger>
+                  <CollapsibleContent className="ml-8 mt-2 space-y-2">
+                    {dinasSubmenu.map((subItem) => (
+                      <Link
+                        key={subItem.path}
+                        to={subItem.path}
+                        className={`block px-4 py-2 text-sm rounded-lg transition-colors ${
+                          subItem.isActive
+                            ? 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-200'
+                            : 'text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700'
+                        }`}
+                        onClick={() => window.innerWidth < 1024 && onToggle()}
+                      >
+                        {subItem.label}
+                      </Link>
+                    ))}
+                  </CollapsibleContent>
+                </Collapsible>
+              </li>
 
-        {/* User Profile Section */}
-        <div className="p-4 border-t border-gray-200 dark:border-gray-700">
-          <div className="flex items-center gap-3 p-3 rounded-lg bg-gray-50 dark:bg-gray-700">
-            <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center">
-              <span className="text-white font-medium">A</span>
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-gray-900 dark:text-white truncate">Admin User</p>
-              <p className="text-xs text-gray-500 dark:text-gray-400">admin@company.com</p>
-            </div>
-          </div>
+              {/* Master Data */}
+              <li>
+                <Collapsible open={isMasterDataOpen} onOpenChange={setIsMasterDataOpen}>
+                  <CollapsibleTrigger className="flex items-center justify-between w-full px-4 py-3 text-sm font-medium text-gray-700 rounded-lg hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700 transition-colors">
+                    <div className="flex items-center">
+                      <Building className="w-5 h-5 mr-3" />
+                      Master Data
+                    </div>
+                    {isMasterDataOpen ? (
+                      <ChevronDown className="w-4 h-4" />
+                    ) : (
+                      <ChevronRight className="w-4 h-4" />
+                    )}
+                  </CollapsibleTrigger>
+                  <CollapsibleContent className="ml-8 mt-2 space-y-2">
+                    {masterDataSubmenu.map((subItem) => (
+                      <Link
+                        key={subItem.path}
+                        to={subItem.path}
+                        className={`block px-4 py-2 text-sm rounded-lg transition-colors ${
+                          subItem.isActive
+                            ? 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-200'
+                            : 'text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700'
+                        }`}
+                        onClick={() => window.innerWidth < 1024 && onToggle()}
+                      >
+                        {subItem.label}
+                      </Link>
+                    ))}
+                  </CollapsibleContent>
+                </Collapsible>
+              </li>
+            </ul>
+          </nav>
         </div>
       </div>
     </>
