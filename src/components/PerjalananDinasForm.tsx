@@ -13,8 +13,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useEmployees } from '@/hooks/useEmployees';
 import { useLineApprovals } from '@/hooks/useLineApprovals';
+import { useCompanies } from '@/hooks/useCompanies';
 import { cn } from '@/lib/utils';
 
 const formSchema = z.object({
@@ -28,6 +30,7 @@ const formSchema = z.object({
   transportation: z.string().min(1, 'Pilih jenis transportasi'),
   cash_advance: z.number().min(0, 'Cash advance harus lebih dari 0'),
   cost_center: z.string().min(1, 'Pilih cost center'),
+  department: z.string().min(1, 'Pilih departemen'),
   notes: z.string().optional(),
 });
 
@@ -43,7 +46,9 @@ interface PerjalananDinasFormProps {
 const PerjalananDinasForm = ({ isOpen, onClose, mode, data }: PerjalananDinasFormProps) => {
   const { data: employees } = useEmployees();
   const { data: lineApprovals } = useLineApprovals();
+  const { data: companies } = useCompanies();
   const [selectedEmployee, setSelectedEmployee] = useState<any>(null);
+  const [selectedSupervisor, setSelectedSupervisor] = useState<any>(null);
   const [approvalLine, setApprovalLine] = useState<any>(null);
 
   const form = useForm<FormData>({
@@ -57,11 +62,12 @@ const PerjalananDinasForm = ({ isOpen, onClose, mode, data }: PerjalananDinasFor
       transportation: '',
       cash_advance: 0,
       cost_center: '',
+      department: '',
       notes: '',
     },
   });
 
-  // Auto-fill supervisor when employee is selected
+  // Auto-fill supervisor and approval line when employee is selected
   useEffect(() => {
     if (selectedEmployee && lineApprovals) {
       const employeeApproval = lineApprovals.find(
@@ -72,15 +78,37 @@ const PerjalananDinasForm = ({ isOpen, onClose, mode, data }: PerjalananDinasFor
         setApprovalLine(employeeApproval);
         if (employeeApproval.supervisor) {
           form.setValue('supervisor_id', employeeApproval.supervisor.id);
+          setSelectedSupervisor(employeeApproval.supervisor);
         }
       }
+      
+      // Set department from selected employee
+      form.setValue('department', selectedEmployee.department);
+      
+      // Set cost center from employee's company
+      form.setValue('cost_center', selectedEmployee.company_id);
     }
   }, [selectedEmployee, lineApprovals, form]);
+
+  // Update selected supervisor when supervisor is manually changed
+  useEffect(() => {
+    const supervisorId = form.watch('supervisor_id');
+    if (supervisorId && employees) {
+      const supervisor = employees.find(emp => emp.id === supervisorId);
+      setSelectedSupervisor(supervisor);
+    }
+  }, [form.watch('supervisor_id'), employees]);
 
   const handleEmployeeChange = (employeeId: string) => {
     const employee = employees?.find(emp => emp.id === employeeId);
     setSelectedEmployee(employee);
     form.setValue('employee_id', employeeId);
+  };
+
+  const handleSupervisorChange = (supervisorId: string) => {
+    const supervisor = employees?.find(emp => emp.id === supervisorId);
+    setSelectedSupervisor(supervisor);
+    form.setValue('supervisor_id', supervisorId);
   };
 
   const onSubmit = (data: FormData) => {
@@ -90,14 +118,17 @@ const PerjalananDinasForm = ({ isOpen, onClose, mode, data }: PerjalananDinasFor
     onClose();
   };
 
+  const departments = [...new Set(employees?.map(emp => emp.department) || [])];
+
   if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg w-full max-w-6xl max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between p-6 border-b">
           <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
-            Tambah Perjalanan Dinas Baru
+            {mode === 'create' ? 'Tambah Perjalanan Dinas Baru' : 
+             mode === 'edit' ? 'Edit Perjalanan Dinas' : 'Detail Perjalanan Dinas'}
           </h2>
           <Button variant="ghost" size="sm" onClick={onClose}>
             <X className="w-4 h-4" />
@@ -141,13 +172,35 @@ const PerjalananDinasForm = ({ isOpen, onClose, mode, data }: PerjalananDinasFor
                   )}
                 />
 
+                {/* Employee Details Card */}
+                {selectedEmployee && (
+                  <div className="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                    <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Detail Karyawan</h4>
+                    <div className="flex items-start gap-4">
+                      <Avatar className="w-16 h-16">
+                        <AvatarImage src={selectedEmployee.avatar_url} alt={selectedEmployee.name} />
+                        <AvatarFallback className="text-lg">
+                          {selectedEmployee.name.split(' ').map((n: string) => n[0]).join('').substring(0, 2)}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="space-y-1">
+                        <p className="font-medium text-gray-900 dark:text-white">{selectedEmployee.name}</p>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">{selectedEmployee.id} ({selectedEmployee.grade})</p>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">{selectedEmployee.position}</p>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">{selectedEmployee.department}</p>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">{selectedEmployee.companies?.name}</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
                 <FormField
                   control={form.control}
                   name="supervisor_id"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Supervisor/Atasan *</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value}>
+                      <Select onValueChange={handleSupervisorChange} value={field.value}>
                         <FormControl>
                           <SelectTrigger>
                             <SelectValue placeholder="Pilih supervisor/atasan" />
@@ -165,6 +218,28 @@ const PerjalananDinasForm = ({ isOpen, onClose, mode, data }: PerjalananDinasFor
                     </FormItem>
                   )}
                 />
+
+                {/* Supervisor Details Card */}
+                {selectedSupervisor && (
+                  <div className="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                    <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Detail Atasan</h4>
+                    <div className="flex items-start gap-4">
+                      <Avatar className="w-16 h-16">
+                        <AvatarImage src={selectedSupervisor.avatar_url} alt={selectedSupervisor.name} />
+                        <AvatarFallback className="text-lg">
+                          {selectedSupervisor.name.split(' ').map((n: string) => n[0]).join('').substring(0, 2)}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="space-y-1">
+                        <p className="font-medium text-gray-900 dark:text-white">{selectedSupervisor.name}</p>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">{selectedSupervisor.id} ({selectedSupervisor.grade})</p>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">{selectedSupervisor.position}</p>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">{selectedSupervisor.department}</p>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">{selectedSupervisor.companies?.name}</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Detail Perjalanan Section */}
@@ -352,7 +427,7 @@ const PerjalananDinasForm = ({ isOpen, onClose, mode, data }: PerjalananDinasFor
                 <h3 className="text-lg font-medium text-gray-900 dark:text-white">Detail Keuangan</h3>
               </div>
 
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
                 <FormField
                   control={form.control}
                   name="cash_advance"
@@ -389,10 +464,36 @@ const PerjalananDinasForm = ({ isOpen, onClose, mode, data }: PerjalananDinasFor
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="cc-001">Marketing Department</SelectItem>
-                          <SelectItem value="cc-002">Sales Department</SelectItem>
-                          <SelectItem value="cc-003">IT Department</SelectItem>
-                          <SelectItem value="cc-004">HR Department</SelectItem>
+                          {companies?.map((company) => (
+                            <SelectItem key={company.id} value={company.id}>
+                              {company.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="department"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Departemen *</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Pilih departemen..." />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {departments.map((dept) => (
+                            <SelectItem key={dept} value={dept}>
+                              {dept}
+                            </SelectItem>
+                          ))}
                         </SelectContent>
                       </Select>
                       <FormMessage />
@@ -428,22 +529,52 @@ const PerjalananDinasForm = ({ isOpen, onClose, mode, data }: PerjalananDinasFor
                   {approvalLine.supervisor && (
                     <div className="p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
                       <p className="text-sm text-gray-600 dark:text-gray-400">Supervisor</p>
-                      <p className="font-medium">{approvalLine.supervisor.name}</p>
-                      <p className="text-sm text-gray-500">{approvalLine.supervisor.position}</p>
+                      <div className="flex items-center gap-2 mt-2">
+                        <Avatar className="w-8 h-8">
+                          <AvatarImage src={approvalLine.supervisor.avatar_url} />
+                          <AvatarFallback className="text-xs">
+                            {approvalLine.supervisor.name.split(' ').map((n: string) => n[0]).join('').substring(0, 2)}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div>
+                          <p className="font-medium">{approvalLine.supervisor.name}</p>
+                          <p className="text-sm text-gray-500">{approvalLine.supervisor.position}</p>
+                        </div>
+                      </div>
                     </div>
                   )}
                   {approvalLine.hr_manager && (
                     <div className="p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
                       <p className="text-sm text-gray-600 dark:text-gray-400">HR Manager</p>
-                      <p className="font-medium">{approvalLine.hr_manager.name}</p>
-                      <p className="text-sm text-gray-500">{approvalLine.hr_manager.position}</p>
+                      <div className="flex items-center gap-2 mt-2">
+                        <Avatar className="w-8 h-8">
+                          <AvatarImage src={approvalLine.hr_manager.avatar_url} />
+                          <AvatarFallback className="text-xs">
+                            {approvalLine.hr_manager.name.split(' ').map((n: string) => n[0]).join('').substring(0, 2)}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div>
+                          <p className="font-medium">{approvalLine.hr_manager.name}</p>
+                          <p className="text-sm text-gray-500">{approvalLine.hr_manager.position}</p>
+                        </div>
+                      </div>
                     </div>
                   )}
                   {approvalLine.bod && (
                     <div className="p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
                       <p className="text-sm text-gray-600 dark:text-gray-400">BOD</p>
-                      <p className="font-medium">{approvalLine.bod.name}</p>
-                      <p className="text-sm text-gray-500">{approvalLine.bod.position}</p>
+                      <div className="flex items-center gap-2 mt-2">
+                        <Avatar className="w-8 h-8">
+                          <AvatarImage src={approvalLine.bod.avatar_url} />
+                          <AvatarFallback className="text-xs">
+                            {approvalLine.bod.name.split(' ').map((n: string) => n[0]).join('').substring(0, 2)}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div>
+                          <p className="font-medium">{approvalLine.bod.name}</p>
+                          <p className="text-sm text-gray-500">{approvalLine.bod.position}</p>
+                        </div>
+                      </div>
                     </div>
                   )}
                 </div>
@@ -455,8 +586,8 @@ const PerjalananDinasForm = ({ isOpen, onClose, mode, data }: PerjalananDinasFor
               <Button type="button" variant="outline" onClick={onClose}>
                 Batal
               </Button>
-              <Button type="submit" className="bg-blue-600 hover:bg-blue-700">
-                Simpan Perjalanan Dinas
+              <Button type="submit" className="bg-blue-600 hover:bg-blue-700" disabled={mode === 'view'}>
+                {mode === 'create' ? 'Simpan Perjalanan Dinas' : 'Update Perjalanan Dinas'}
               </Button>
             </div>
           </form>
