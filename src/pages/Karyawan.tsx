@@ -70,7 +70,7 @@ const Karyawan = () => {
         }
 
         await createEmployee.mutateAsync({
-          id: `EMP${Date.now()}`,
+          id: formData.id || `EMP${Date.now()}`,
           name: formData.nama,
           email: formData.email,
           phone: formData.phone,
@@ -80,6 +80,7 @@ const Karyawan = () => {
           status: formData.status as 'Aktif' | 'Tidak Aktif',
           grade: formData.grade as any,
           join_date: formData.tanggalBergabung,
+          avatar_url: formData.fotoUrl || null,
         });
 
         toast({
@@ -108,6 +109,7 @@ const Karyawan = () => {
           status: formData.status as 'Aktif' | 'Tidak Aktif',
           grade: formData.grade as any,
           join_date: formData.tanggalBergabung,
+          avatar_url: formData.fotoUrl || null,
         });
 
         toast({
@@ -115,7 +117,9 @@ const Karyawan = () => {
           description: "Data karyawan berhasil diperbarui",
         });
       }
+      closeForm();
     } catch (error) {
+      console.error('Error saving employee:', error);
       toast({
         title: "Error",
         description: "Terjadi kesalahan saat menyimpan data",
@@ -281,23 +285,14 @@ const Karyawan = () => {
                         <TableCell>
                           <div className="flex items-center gap-3">
                             <Avatar className="w-12 h-12">
+                              <AvatarImage src={karyawan.avatar_url || undefined} />
                               <AvatarFallback className="bg-blue-500 text-white font-medium">
                                 {karyawan.name.split(' ').map(n => n[0]).join('').toUpperCase()}
                               </AvatarFallback>
                             </Avatar>
                             <div>
                               <p className="font-medium text-gray-900 dark:text-white">{karyawan.name}</p>
-                              <div className="flex items-center gap-2">
-                                <p className="text-sm text-gray-500 dark:text-gray-400">ID: {karyawan.id}</p>
-                                {karyawan.grade && (
-                                  <Badge 
-                                    variant="secondary" 
-                                    className="text-xs bg-gray-100 text-gray-700 shadow-sm"
-                                  >
-                                    Grade {karyawan.grade}
-                                  </Badge>
-                                )}
-                              </div>
+                              <p className="text-sm text-gray-500 dark:text-gray-400">{karyawan.id} ({karyawan.grade})</p>
                             </div>
                           </div>
                         </TableCell>

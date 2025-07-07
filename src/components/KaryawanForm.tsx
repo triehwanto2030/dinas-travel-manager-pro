@@ -27,6 +27,7 @@ const KaryawanForm: React.FC<KaryawanFormProps> = ({
   const { data: companies = [] } = useCompanies();
   
   const [formData, setFormData] = useState({
+    id: '',
     nama: '',
     email: '',
     phone: '',
@@ -36,7 +37,8 @@ const KaryawanForm: React.FC<KaryawanFormProps> = ({
     grade: '',
     status: 'Aktif',
     namaPerusahaan: '',
-    foto: null as File | null
+    foto: null as File | null,
+    fotoUrl: ''
   });
 
   const [previewImage, setPreviewImage] = useState<string | null>(null);
@@ -46,6 +48,7 @@ const KaryawanForm: React.FC<KaryawanFormProps> = ({
   useEffect(() => {
     if (initialData && isOpen) {
       setFormData({
+        id: initialData.id || '',
         nama: initialData.name || '',
         email: initialData.email || '',
         phone: initialData.phone || '',
@@ -55,10 +58,13 @@ const KaryawanForm: React.FC<KaryawanFormProps> = ({
         grade: initialData.grade || '',
         status: initialData.status || 'Aktif',
         namaPerusahaan: initialData.namaPerusahaan || '',
-        foto: null
+        foto: null,
+        fotoUrl: initialData.avatar_url || ''
       });
+      setPreviewImage(initialData.avatar_url || null);
     } else if (!initialData && isOpen) {
       setFormData({
+        id: '',
         nama: '',
         email: '',
         phone: '',
@@ -68,8 +74,10 @@ const KaryawanForm: React.FC<KaryawanFormProps> = ({
         grade: '',
         status: 'Aktif',
         namaPerusahaan: '',
-        foto: null
+        foto: null,
+        fotoUrl: ''
       });
+      setPreviewImage(null);
     }
   }, [initialData, isOpen]);
 
@@ -82,7 +90,11 @@ const KaryawanForm: React.FC<KaryawanFormProps> = ({
     if (file) {
       setFormData(prev => ({ ...prev, foto: file }));
       const reader = new FileReader();
-      reader.onload = () => setPreviewImage(reader.result as string);
+      reader.onload = () => {
+        const result = reader.result as string;
+        setPreviewImage(result);
+        setFormData(prev => ({ ...prev, fotoUrl: result }));
+      };
       reader.readAsDataURL(file);
     }
   };
@@ -90,7 +102,6 @@ const KaryawanForm: React.FC<KaryawanFormProps> = ({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onSubmit(formData);
-    onClose();
   };
 
   if (!isOpen) return null;
@@ -149,6 +160,19 @@ const KaryawanForm: React.FC<KaryawanFormProps> = ({
               <div>
                 <h3 className="text-lg font-semibold mb-4">Informasi Personal</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="id">ID Karyawan *</Label>
+                    <Input
+                      id="id"
+                      value={formData.id}
+                      onChange={(e) => handleInputChange('id', e.target.value)}
+                      placeholder="EMP001"
+                      required={mode === 'add'}
+                      readOnly={mode === 'edit' || isReadOnly}
+                      className={mode === 'edit' || isReadOnly ? 'bg-gray-50 dark:bg-gray-700' : ''}
+                    />
+                  </div>
+                  
                   <div>
                     <Label htmlFor="nama">Nama Lengkap *</Label>
                     <Input
