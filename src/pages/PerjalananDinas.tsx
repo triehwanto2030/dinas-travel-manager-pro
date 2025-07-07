@@ -4,6 +4,7 @@ import { Search, Plus, Eye, Edit, Trash2, Download, Upload } from 'lucide-react'
 import Header from '@/components/Header';
 import Sidebar from '@/components/Sidebar';
 import Footer from '@/components/Footer';
+import PerjalananDinasForm from '@/components/PerjalananDinasForm';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -12,6 +13,9 @@ import { Badge } from '@/components/ui/badge';
 const PerjalananDinas = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const [formOpen, setFormOpen] = useState(false);
+  const [formMode, setFormMode] = useState<'create' | 'edit' | 'view'>('create');
+  const [selectedData, setSelectedData] = useState<any>(null);
 
   // Mock data - will be replaced with real data from Supabase
   const perjalananData = [
@@ -68,6 +72,24 @@ const PerjalananDinas = () => {
     }).format(amount);
   };
 
+  const handleAddNew = () => {
+    setFormMode('create');
+    setSelectedData(null);
+    setFormOpen(true);
+  };
+
+  const handleEdit = (item: any) => {
+    setFormMode('edit');
+    setSelectedData(item);
+    setFormOpen(true);
+  };
+
+  const handleView = (item: any) => {
+    setFormMode('view');
+    setSelectedData(item);
+    setFormOpen(true);
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors w-full">
       <Header />
@@ -93,7 +115,10 @@ const PerjalananDinas = () => {
                     <Download className="w-4 h-4" />
                     Export Excel
                   </Button>
-                  <Button className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700">
+                  <Button 
+                    onClick={handleAddNew}
+                    className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700"
+                  >
                     <Plus className="w-4 h-4" />
                     Tambah Perjalanan Dinas
                   </Button>
@@ -165,10 +190,20 @@ const PerjalananDinas = () => {
                         </TableCell>
                         <TableCell>
                           <div className="flex items-center gap-2">
-                            <Button variant="ghost" size="sm" className="p-2">
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              className="p-2"
+                              onClick={() => handleView(item)}
+                            >
                               <Eye className="w-4 h-4" />
                             </Button>
-                            <Button variant="ghost" size="sm" className="p-2">
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              className="p-2"
+                              onClick={() => handleEdit(item)}
+                            >
                               <Edit className="w-4 h-4" />
                             </Button>
                             <Button variant="ghost" size="sm" className="p-2 text-red-600 hover:text-red-800">
@@ -197,6 +232,14 @@ const PerjalananDinas = () => {
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
         </svg>
       </button>
+
+      {/* Form Modal */}
+      <PerjalananDinasForm
+        isOpen={formOpen}
+        onClose={() => setFormOpen(false)}
+        mode={formMode}
+        data={selectedData}
+      />
     </div>
   );
 };
