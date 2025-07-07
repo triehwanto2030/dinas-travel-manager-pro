@@ -25,17 +25,18 @@ export const useLineApprovals = () => {
         .from('line_approvals')
         .select(`
           *,
-          companies (*),
-          supervisor:supervisor_id (id, name),
-          staff_ga:staff_ga_id (id, name),
-          spv_ga:spv_ga_id (id, name),
-          hr_manager:hr_manager_id (id, name),
-          bod:bod_id (id, name),
-          staff_fa:staff_fa_id (id, name)
+          companies!inner(*),
+          supervisor:employees!line_approvals_supervisor_id_fkey(id, name, email, position, department, grade),
+          staff_ga:employees!line_approvals_staff_ga_id_fkey(id, name, email, position, department, grade),
+          spv_ga:employees!line_approvals_spv_ga_id_fkey(id, name, email, position, department, grade),
+          hr_manager:employees!line_approvals_hr_manager_id_fkey(id, name, email, position, department, grade),
+          bod:employees!line_approvals_bod_id_fkey(id, name, email, position, department, grade),
+          staff_fa:employees!line_approvals_staff_fa_id_fkey(id, name, email, position, department, grade)
         `)
         .order('created_at', { ascending: false });
 
       if (error) {
+        console.error('Error fetching line approvals:', error);
         throw new Error(error.message);
       }
 
