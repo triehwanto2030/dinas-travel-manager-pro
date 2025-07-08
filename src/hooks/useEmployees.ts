@@ -1,3 +1,4 @@
+
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Tables, TablesInsert, TablesUpdate } from '@/integrations/supabase/types';
@@ -27,11 +28,7 @@ export const useEmployees = () => {
         throw new Error(error.message);
       }
 
-      // Transform the data to match our interface
-      return (data as any[]).map(employee => ({
-        ...employee,
-        supervisor: employee.supervisor && employee.supervisor.length > 0 ? employee.supervisor[0] : undefined
-      })) as EmployeeWithCompany[];
+      return data as EmployeeWithCompany[];
     },
   });
 };
