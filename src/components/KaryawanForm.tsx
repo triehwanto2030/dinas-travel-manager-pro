@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useCompanies } from '@/hooks/useCompanies';
+import { useEmployees } from '@/hooks/useEmployees';
 
 interface KaryawanFormProps {
   isOpen: boolean;
@@ -25,6 +26,7 @@ const KaryawanForm: React.FC<KaryawanFormProps> = ({
   mode 
 }) => {
   const { data: companies = [] } = useCompanies();
+  const { data: employees = [] } = useEmployees();
   
   const [formData, setFormData] = useState({
     id: '',
@@ -37,6 +39,7 @@ const KaryawanForm: React.FC<KaryawanFormProps> = ({
     grade: '',
     status: 'Aktif',
     namaPerusahaan: '',
+    supervisorId: '',
     foto: null as File | null,
     fotoUrl: ''
   });
@@ -44,6 +47,11 @@ const KaryawanForm: React.FC<KaryawanFormProps> = ({
   const [previewImage, setPreviewImage] = useState<string | null>(null);
 
   const gradeOptions = ['1A', '1B', '2A', '2B', '2C', '3A', '3B', '3C', '4A', '4B', '4C', '5A', '5B', '5C', '6A', '6B'];
+
+  // Filter supervisors berdasarkan perusahaan yang dipilih
+  const availableSupervisors = employees.filter(emp => 
+    emp.companies.name === formData.namaPerusahaan && emp.id !== formData.id
+  );
 
   useEffect(() => {
     if (initialData && isOpen) {
@@ -58,6 +66,7 @@ const KaryawanForm: React.FC<KaryawanFormProps> = ({
         grade: initialData.grade || '',
         status: initialData.status || 'Aktif',
         namaPerusahaan: initialData.namaPerusahaan || '',
+        supervisorId: initialData.supervisor_id || '',
         foto: null,
         fotoUrl: initialData.avatar_url || ''
       });
@@ -74,6 +83,7 @@ const KaryawanForm: React.FC<KaryawanFormProps> = ({
         grade: '',
         status: 'Aktif',
         namaPerusahaan: '',
+        supervisorId: '',
         foto: null,
         fotoUrl: ''
       });
@@ -315,6 +325,27 @@ const KaryawanForm: React.FC<KaryawanFormProps> = ({
                       <SelectContent>
                         <SelectItem value="Aktif">Aktif</SelectItem>
                         <SelectItem value="Tidak Aktif">Tidak Aktif</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="md:col-span-2">
+                    <Label htmlFor="supervisorId">Atasan/Supervisor</Label>
+                    <Select 
+                      value={formData.supervisorId} 
+                      onValueChange={(value) => handleInputChange('supervisorId', value)}
+                      disabled={isReadOnly}
+                    >
+                      <SelectTrigger className={isReadOnly ? 'bg-gray-50 dark:bg-gray-700' : ''}>
+                        <SelectValue placeholder="Pilih Atasan" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="">Tidak ada atasan</SelectItem>
+                        {availableSupervisors.map((supervisor) => (
+                          <SelectItem key={supervisor.id} value={supervisor.id}>
+                            {supervisor.name} - {supervisor.position}
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                   </div>

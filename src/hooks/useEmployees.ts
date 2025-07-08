@@ -8,6 +8,7 @@ type Company = Tables<'companies'>;
 
 export interface EmployeeWithCompany extends Employee {
   companies: Company;
+  supervisor?: Employee;
 }
 
 export const useEmployees = () => {
@@ -18,7 +19,8 @@ export const useEmployees = () => {
         .from('employees')
         .select(`
           *,
-          companies (*)
+          companies (*),
+          supervisor:employees!employees_supervisor_id_fkey (*)
         `)
         .order('created_at', { ascending: false });
 
