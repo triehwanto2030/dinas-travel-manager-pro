@@ -81,6 +81,7 @@ const Karyawan = () => {
           grade: formData.grade as any,
           join_date: formData.tanggalBergabung,
           avatar_url: formData.fotoUrl || null,
+          supervisor_id: formData.supervisorId || null,
         });
 
         toast({
@@ -110,6 +111,7 @@ const Karyawan = () => {
           grade: formData.grade as any,
           join_date: formData.tanggalBergabung,
           avatar_url: formData.fotoUrl || null,
+          supervisor_id: formData.supervisorId || null,
         });
 
         toast({
@@ -274,6 +276,7 @@ const Karyawan = () => {
                       <TableHead>Kontak</TableHead>
                       <TableHead>Jabatan</TableHead>
                       <TableHead>Perusahaan</TableHead>
+                      <TableHead>Atasan</TableHead>
                       <TableHead>Status</TableHead>
                       <TableHead>Tanggal Bergabung</TableHead>
                       <TableHead>Aksi</TableHead>
@@ -310,6 +313,20 @@ const Karyawan = () => {
                         </TableCell>
                         <TableCell>
                           <p className="text-sm text-gray-900 dark:text-white">{karyawan.companies.name}</p>
+                        </TableCell>
+                        <TableCell>
+                          {karyawan.supervisor_id ? (
+                            <div>
+                              <p className="text-sm text-gray-900 dark:text-white">
+                                {employees.find(emp => emp.id === karyawan.supervisor_id)?.name || 'Tidak ditemukan'}
+                              </p>
+                              <p className="text-xs text-gray-500 dark:text-gray-400">
+                                {employees.find(emp => emp.id === karyawan.supervisor_id)?.position || ''}
+                              </p>
+                            </div>
+                          ) : (
+                            <p className="text-sm text-gray-500 dark:text-gray-400">Tidak ada atasan</p>
+                          )}
                         </TableCell>
                         <TableCell>
                           <Badge 

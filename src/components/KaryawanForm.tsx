@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useCompanies } from '@/hooks/useCompanies';
+import { useEmployees } from '@/hooks/useEmployees';
 
 interface KaryawanFormProps {
   isOpen: boolean;
@@ -25,6 +26,7 @@ const KaryawanForm: React.FC<KaryawanFormProps> = ({
   mode 
 }) => {
   const { data: companies = [] } = useCompanies();
+  const { data: employees = [] } = useEmployees();
   
   const [formData, setFormData] = useState({
     id: '',
@@ -37,6 +39,7 @@ const KaryawanForm: React.FC<KaryawanFormProps> = ({
     grade: '',
     status: 'Aktif',
     namaPerusahaan: '',
+    supervisorId: '',
     foto: null as File | null,
     fotoUrl: ''
   });
@@ -58,6 +61,7 @@ const KaryawanForm: React.FC<KaryawanFormProps> = ({
         grade: initialData.grade || '',
         status: initialData.status || 'Aktif',
         namaPerusahaan: initialData.namaPerusahaan || '',
+        supervisorId: initialData.supervisor_id || '',
         foto: null,
         fotoUrl: initialData.avatar_url || ''
       });
@@ -74,6 +78,7 @@ const KaryawanForm: React.FC<KaryawanFormProps> = ({
         grade: '',
         status: 'Aktif',
         namaPerusahaan: '',
+        supervisorId: '',
         foto: null,
         fotoUrl: ''
       });
@@ -108,6 +113,12 @@ const KaryawanForm: React.FC<KaryawanFormProps> = ({
 
   const isReadOnly = mode === 'view';
   const title = mode === 'add' ? 'Tambah Karyawan' : mode === 'edit' ? 'Edit Karyawan' : 'Detail Karyawan';
+
+  // Filter employees for supervisor selection - exclude current employee and filter by same company
+  const availableSupervisors = employees.filter(emp => 
+    emp.id !== formData.id && 
+    (formData.namaPerusahaan ? emp.companies.name === formData.namaPerusahaan : true)
+  );
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
@@ -315,6 +326,27 @@ const KaryawanForm: React.FC<KaryawanFormProps> = ({
                       <SelectContent>
                         <SelectItem value="Aktif">Aktif</SelectItem>
                         <SelectItem value="Tidak Aktif">Tidak Aktif</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="md:col-span-2">
+                    <Label htmlFor="supervisorId">Atasan</Label>
+                    <Select 
+                      value={formData.supervisorId} 
+                      onValueChange={(value) => handleInputChange('supervisorId', value)}
+                      disabled={isReadOnly}
+                    >
+                      <SelectTrigger className={isReadOnly ? 'bg-gray-50 dark:bg-gray-700' : ''}>
+                        <SelectValue placeholder="Pilih Atasan" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="">Tidak Ada Atasan</SelectItem>
+                        {availableSupervisors.map((supervisor) => (
+                          <SelectItem key={supervisor.id} value={supervisor.id}>
+                            {supervisor.name} - {supervisor.position}
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                   </div>
