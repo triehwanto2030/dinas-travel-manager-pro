@@ -298,7 +298,7 @@ const KaryawanForm: React.FC<KaryawanFormProps> = ({
                   <div>
                     <Label htmlFor="grade">Grade</Label>
                     <Select 
-                      value={formData.grade} 
+                      value={formData.grade || undefined} 
                       onValueChange={(value) => handleInputChange('grade', value)}
                       disabled={isReadOnly}
                     >
@@ -333,15 +333,15 @@ const KaryawanForm: React.FC<KaryawanFormProps> = ({
                   <div className="md:col-span-2">
                     <Label htmlFor="supervisorId">Atasan</Label>
                     <Select 
-                      value={formData.supervisorId} 
-                      onValueChange={(value) => handleInputChange('supervisorId', value)}
+                      value={formData.supervisorId || "none"} 
+                      onValueChange={(value) => handleInputChange('supervisorId', value === "none" ? "" : value)}
                       disabled={isReadOnly}
                     >
                       <SelectTrigger className={isReadOnly ? 'bg-gray-50 dark:bg-gray-700' : ''}>
                         <SelectValue placeholder="Pilih Atasan" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">Tidak Ada Atasan</SelectItem>
+                        <SelectItem value="none">Tidak Ada Atasan</SelectItem>
                         {availableSupervisors.map((supervisor) => (
                           <SelectItem key={supervisor.id} value={supervisor.id}>
                             {supervisor.name} - {supervisor.position}
