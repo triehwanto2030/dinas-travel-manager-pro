@@ -83,6 +83,7 @@ const LineApproval = () => {
                   <TableHeader>
                     <TableRow>
                       <TableHead>Nama Perusahaan</TableHead>
+                      <TableHead>Supervisor/Atasan</TableHead>
                       <TableHead>Staff GA</TableHead>
                       <TableHead>SPV GA</TableHead>
                       <TableHead>HR Manager</TableHead>
@@ -96,6 +97,16 @@ const LineApproval = () => {
                       <TableRow key={item.id}>
                         <TableCell>
                           <p className="font-medium text-gray-900 dark:text-white">{item.companies.name}</p>
+                        </TableCell>
+                        <TableCell>
+                          <div>
+                            <p className="text-sm font-medium text-gray-900 dark:text-white">
+                              {item.supervisor?.name || '-'}
+                            </p>
+                            <p className="text-xs text-gray-500 dark:text-gray-400">
+                              {item.supervisor?.id || ''}
+                            </p>
+                          </div>
                         </TableCell>
                         <TableCell>
                           <div>

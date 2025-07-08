@@ -106,7 +106,6 @@ export type Database = {
           phone: string | null
           position: string
           status: Database["public"]["Enums"]["status_karyawan"]
-          supervisor_id: string | null
           updated_at: string
         }
         Insert: {
@@ -122,7 +121,6 @@ export type Database = {
           phone?: string | null
           position: string
           status?: Database["public"]["Enums"]["status_karyawan"]
-          supervisor_id?: string | null
           updated_at?: string
         }
         Update: {
@@ -138,7 +136,6 @@ export type Database = {
           phone?: string | null
           position?: string
           status?: Database["public"]["Enums"]["status_karyawan"]
-          supervisor_id?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -147,13 +144,6 @@ export type Database = {
             columns: ["company_id"]
             isOneToOne: false
             referencedRelation: "companies"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "employees_supervisor_id_fkey"
-            columns: ["supervisor_id"]
-            isOneToOne: false
-            referencedRelation: "employees"
             referencedColumns: ["id"]
           },
         ]
