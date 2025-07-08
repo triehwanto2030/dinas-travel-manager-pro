@@ -83,7 +83,9 @@ const PerjalananDinasForm = ({ isOpen, onClose, mode, data }: PerjalananDinasFor
       }
       
       // Set department from selected employee
-      form.setValue('department', selectedEmployee.department);
+      if (selectedEmployee.department) {
+        form.setValue('department', selectedEmployee.department);
+      }
       
       // Set cost center from employee's company
       form.setValue('cost_center', selectedEmployee.company_id);
@@ -118,7 +120,8 @@ const PerjalananDinasForm = ({ isOpen, onClose, mode, data }: PerjalananDinasFor
     onClose();
   };
 
-  const departments = [...new Set(employees?.map(emp => emp.department) || [])];
+  // Filter out empty/undefined departments
+  const departments = [...new Set(employees?.map(emp => emp.department).filter(dept => dept && dept.trim() !== '') || [])];
 
   if (!isOpen) return null;
 
