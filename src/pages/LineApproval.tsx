@@ -4,23 +4,111 @@ import { Search, Plus, Eye, Edit, Trash2, Download, Upload } from 'lucide-react'
 import Header from '@/components/Header';
 import Sidebar from '@/components/Sidebar';
 import Footer from '@/components/Footer';
+import LineApprovalForm from '@/components/LineApprovalForm';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { useLineApprovals } from '@/hooks/useLineApprovals';
+import { useLineApprovals, useCreateLineApproval, useUpdateLineApproval, useDeleteLineApproval } from '@/hooks/useLineApprovals';
+import { useToast } from '@/hooks/use-toast';
+import Swal from 'sweetalert2';
 
 const LineApproval = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const [formState, setFormState] = useState({
+    isOpen: false,
+    mode: 'add' as 'add' | 'edit' | 'view',
+    selectedData: null as any
+  });
 
   const { data: approvalData = [], isLoading } = useLineApprovals();
+  const createLineApproval = useCreateLineApproval();
+  const updateLineApproval = useUpdateLineApproval();
+  const deleteLineApproval = useDeleteLineApproval();
+  const { toast } = useToast();
+
+  const openForm = (mode: 'add' | 'edit' | 'view', data?: any) => {
+    setFormState({
+      isOpen: true,
+      mode,
+      selectedData: data
+    });
+  };
+
+  const closeForm = () => {
+    setFormState({
+      isOpen: false,
+      mode: 'add',
+      selectedData: null
+    });
+  };
+
+  const handleFormSubmit = async (formData: any) => {
+    try {
+      console.log('Form submission data:', formData);
+      
+      if (formState.mode === 'add') {
+        await createLineApproval.mutateAsync(formData);
+        toast({
+          title: "Berhasil!",
+          description: "Line approval berhasil ditambahkan",
+        });
+      } else if (formState.mode === 'edit') {
+        await updateLineApproval.mutateAsync({
+          id: formState.selectedData.id,
+          ...formData
+        });
+        toast({
+          title: "Berhasil!",
+          description: "Line approval berhasil diperbarui",
+        });
+      }
+      closeForm();
+    } catch (error) {
+      console.error('Error saving line approval:', error);
+      toast({
+        title: "Error",
+        description: "Terjadi kesalahan saat menyimpan data",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleDelete = (item: any) => {
+    Swal.fire({
+      title: 'Hapus Line Approval?',
+      text: `Apakah Anda yakin ingin menghapus line approval untuk ${item.companies.name}?`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#dc2626',
+      cancelButtonColor: '#6b7280',
+      confirmButtonText: 'Ya, Hapus',
+      cancelButtonText: 'Batal'
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        try {
+          await deleteLineApproval.mutateAsync(item.id);
+          toast({
+            title: "Terhapus!",
+            description: "Line approval berhasil dihapus",
+          });
+        } catch (error) {
+          toast({
+            title: "Error",
+            description: "Terjadi kesalahan saat menghapus data",
+            variant: "destructive",
+          });
+        }
+      }
+    });
+  };
 
   const filteredData = approvalData.filter(item => 
     item.companies.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   if (isLoading) {
-    return <div>Loading...</div>;
+    return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
   }
 
   return (
@@ -48,7 +136,10 @@ const LineApproval = () => {
                     <Download className="w-4 h-4" />
                     Export Excel
                   </Button>
-                  <Button className="flex items-center gap-2 bg-purple-600 hover:bg-purple-700">
+                  <Button 
+                    className="flex items-center gap-2 bg-purple-600 hover:bg-purple-700"
+                    onClick={() => openForm('add')}
+                  >
                     <Plus className="w-4 h-4" />
                     Tambah Line Approval Perusahaan
                   </Button>
@@ -149,13 +240,28 @@ const LineApproval = () => {
                         </TableCell>
                         <TableCell>
                           <div className="flex items-center gap-2">
-                            <Button variant="ghost" size="sm" className="p-2">
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              className="p-2"
+                              onClick={() => openForm('view', item)}
+                            >
                               <Eye className="w-4 h-4" />
                             </Button>
-                            <Button variant="ghost" size="sm" className="p-2">
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              className="p-2"
+                              onClick={() => openForm('edit', item)}
+                            >
                               <Edit className="w-4 h-4" />
                             </Button>
-                            <Button variant="ghost" size="sm" className="p-2 text-red-600 hover:text-red-800">
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              className="p-2 text-red-600 hover:text-red-800"
+                              onClick={() => handleDelete(item)}
+                            >
                               <Trash2 className="w-4 h-4" />
                             </Button>
                           </div>
@@ -181,6 +287,15 @@ const LineApproval = () => {
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
         </svg>
       </button>
+
+      {/* Form Modal */}
+      <LineApprovalForm
+        isOpen={formState.isOpen}
+        onClose={closeForm}
+        onSubmit={handleFormSubmit}
+        initialData={formState.selectedData}
+        mode={formState.mode}
+      />
     </div>
   );
 };

@@ -36,16 +36,23 @@ export const useCreateEmployee = () => {
 
   return useMutation({
     mutationFn: async (employee: TablesInsert<'employees'>) => {
+      console.log('Creating employee with data:', employee);
+      
       const { data, error } = await supabase
         .from('employees')
         .insert([employee])
-        .select()
+        .select(`
+          *,
+          companies (*)
+        `)
         .single();
 
       if (error) {
+        console.error('Error creating employee:', error);
         throw new Error(error.message);
       }
 
+      console.log('Employee created successfully:', data);
       return data;
     },
     onSuccess: () => {
@@ -59,17 +66,24 @@ export const useUpdateEmployee = () => {
 
   return useMutation({
     mutationFn: async ({ id, ...updates }: TablesUpdate<'employees'> & { id: string }) => {
+      console.log('Updating employee:', id, 'with data:', updates);
+      
       const { data, error } = await supabase
         .from('employees')
         .update(updates)
         .eq('id', id)
-        .select()
+        .select(`
+          *,
+          companies (*)
+        `)
         .single();
 
       if (error) {
+        console.error('Error updating employee:', error);
         throw new Error(error.message);
       }
 
+      console.log('Employee updated successfully:', data);
       return data;
     },
     onSuccess: () => {
@@ -83,14 +97,19 @@ export const useDeleteEmployee = () => {
 
   return useMutation({
     mutationFn: async (id: string) => {
+      console.log('Deleting employee:', id);
+      
       const { error } = await supabase
         .from('employees')
         .delete()
         .eq('id', id);
 
       if (error) {
+        console.error('Error deleting employee:', error);
         throw new Error(error.message);
       }
+
+      console.log('Employee deleted successfully');
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['employees'] });

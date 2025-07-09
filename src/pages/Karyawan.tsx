@@ -58,6 +58,8 @@ const Karyawan = () => {
 
   const handleFormSubmit = async (formData: any) => {
     try {
+      console.log('Form submission data:', formData);
+      
       if (formState.mode === 'add') {
         const company = companies.find(c => c.name === formData.namaPerusahaan);
         if (!company) {
@@ -69,7 +71,7 @@ const Karyawan = () => {
           return;
         }
 
-        await createEmployee.mutateAsync({
+        const employeeData = {
           id: formData.id || `EMP${Date.now()}`,
           name: formData.nama,
           email: formData.email,
@@ -82,7 +84,10 @@ const Karyawan = () => {
           join_date: formData.tanggalBergabung,
           avatar_url: formData.fotoUrl || null,
           supervisor_id: formData.supervisorId || null,
-        });
+        };
+
+        console.log('Creating employee with data:', employeeData);
+        await createEmployee.mutateAsync(employeeData);
 
         toast({
           title: "Berhasil!",
@@ -99,7 +104,7 @@ const Karyawan = () => {
           return;
         }
 
-        await updateEmployee.mutateAsync({
+        const updateData = {
           id: formState.selectedData.id,
           name: formData.nama,
           email: formData.email,
@@ -112,7 +117,10 @@ const Karyawan = () => {
           join_date: formData.tanggalBergabung,
           avatar_url: formData.fotoUrl || null,
           supervisor_id: formData.supervisorId || null,
-        });
+        };
+
+        console.log('Updating employee with data:', updateData);
+        await updateEmployee.mutateAsync(updateData);
 
         toast({
           title: "Berhasil!",
@@ -170,7 +178,7 @@ const Karyawan = () => {
   });
 
   if (isLoading) {
-    return <div>Loading...</div>;
+    return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
   }
 
   return (
