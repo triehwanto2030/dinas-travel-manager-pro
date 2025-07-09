@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Upload, Calendar, User, Mail, Phone, Building, Award, UserCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -7,12 +8,12 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useCompanies } from '@/hooks/useCompanies';
-import { useEmployees } from '@/hooks/useEmployees';
+import { useEmployees, EmployeeFormData } from '@/hooks/useEmployees';
 
 interface KaryawanFormProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (data: any) => void;
+  onSubmit: (data: EmployeeFormData) => void;
   initialData?: any;
   mode: 'add' | 'edit' | 'view';
 }
@@ -27,7 +28,7 @@ const KaryawanForm: React.FC<KaryawanFormProps> = ({
   const { data: companies = [] } = useCompanies();
   const { data: employees = [] } = useEmployees();
   
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<EmployeeFormData>({
     id: '',
     nama: '',
     email: '',
@@ -39,7 +40,6 @@ const KaryawanForm: React.FC<KaryawanFormProps> = ({
     status: 'Aktif',
     namaPerusahaan: '',
     supervisorId: '',
-    foto: null as File | null,
     fotoUrl: ''
   });
 
@@ -64,7 +64,6 @@ const KaryawanForm: React.FC<KaryawanFormProps> = ({
         status: initialData.status || 'Aktif',
         namaPerusahaan: company?.name || '',
         supervisorId: initialData.supervisor_id || '',
-        foto: null,
         fotoUrl: initialData.avatar_url || ''
       });
       setPreviewImage(initialData.avatar_url || null);
@@ -81,21 +80,19 @@ const KaryawanForm: React.FC<KaryawanFormProps> = ({
         status: 'Aktif',
         namaPerusahaan: '',
         supervisorId: '',
-        foto: null,
         fotoUrl: ''
       });
       setPreviewImage(null);
     }
   }, [initialData, isOpen, companies]);
 
-  const handleInputChange = (field: string, value: string) => {
+  const handleInputChange = (field: keyof EmployeeFormData, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      setFormData(prev => ({ ...prev, foto: file }));
       const reader = new FileReader();
       reader.onload = () => {
         const result = reader.result as string;
@@ -108,26 +105,7 @@ const KaryawanForm: React.FC<KaryawanFormProps> = ({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
-    // Prepare data for submission
-    const submitData = {
-      ...formData,
-      // Map form fields to database fields
-      ...(mode === 'add' && { id: formData.id }),
-      nama: formData.nama,
-      email: formData.email,
-      phone: formData.phone,
-      tanggalBergabung: formData.tanggalBergabung,
-      departemen: formData.departemen,
-      posisi: formData.posisi,
-      grade: formData.grade || undefined,
-      status: formData.status as 'Aktif' | 'Tidak Aktif',
-      namaPerusahaan: formData.namaPerusahaan,
-      supervisorId: formData.supervisorId || undefined,
-      fotoUrl: formData.fotoUrl
-    };
-    
-    onSubmit(submitData);
+    onSubmit(formData);
   };
 
   if (!isOpen) return null;
@@ -338,7 +316,7 @@ const KaryawanForm: React.FC<KaryawanFormProps> = ({
                     <Label htmlFor="status">Status Karyawan *</Label>
                     <Select 
                       value={formData.status} 
-                      onValueChange={(value) => handleInputChange('status', value)}
+                      onValueChange={(value) => handleInputChange('status', value as 'Aktif' | 'Tidak Aktif')}
                       disabled={isReadOnly}
                     >
                       <SelectTrigger className={isReadOnly ? 'bg-gray-50 dark:bg-gray-700' : ''}>

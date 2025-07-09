@@ -10,6 +10,22 @@ export interface EmployeeWithCompany extends Employee {
   companies: Company;
 }
 
+// Interface for form data with Indonesian property names
+export interface EmployeeFormData {
+  id: string;
+  nama: string;
+  email: string;
+  phone: string;
+  tanggalBergabung: string;
+  departemen: string;
+  posisi: string;
+  grade?: string;
+  status: 'Aktif' | 'Tidak Aktif';
+  namaPerusahaan: string;
+  supervisorId?: string;
+  fotoUrl?: string;
+}
+
 export const useEmployees = () => {
   return useQuery({
     queryKey: ['employees'],
@@ -35,7 +51,7 @@ export const useCreateEmployee = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (employee: TablesInsert<'employees'>) => {
+    mutationFn: async (employee: EmployeeFormData) => {
       console.log('Creating employee with data:', employee);
       
       // Find company_id based on company name
@@ -50,8 +66,8 @@ export const useCreateEmployee = () => {
         throw new Error('Perusahaan tidak ditemukan');
       }
 
-      // Prepare employee data for database
-      const employeeData = {
+      // Map form data to database schema
+      const employeeData: TablesInsert<'employees'> = {
         id: employee.id,
         name: employee.nama,
         email: employee.email,
@@ -59,7 +75,7 @@ export const useCreateEmployee = () => {
         join_date: employee.tanggalBergabung,
         department: employee.departemen,
         position: employee.posisi,
-        grade: employee.grade,
+        grade: employee.grade as any,
         status: employee.status as 'Aktif' | 'Tidak Aktif',
         company_id: companies.id,
         supervisor_id: employee.supervisorId || null,
@@ -100,11 +116,11 @@ export const useUpdateEmployee = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ id, ...updates }: TablesUpdate<'employees'> & { id: string }) => {
+    mutationFn: async ({ id, ...updates }: { id: string } & Partial<EmployeeFormData>) => {
       console.log('Updating employee:', id, 'with data:', updates);
       
       // Find company_id if namaPerusahaan is provided
-      let company_id = updates.company_id;
+      let company_id;
       if (updates.namaPerusahaan) {
         const { data: companies, error: companyError } = await supabase
           .from('companies')
@@ -119,15 +135,15 @@ export const useUpdateEmployee = () => {
         company_id = companies.id;
       }
 
-      // Prepare update data
-      const updateData: any = {};
+      // Map form data to database schema
+      const updateData: TablesUpdate<'employees'> = {};
       if (updates.nama) updateData.name = updates.nama;
       if (updates.email) updateData.email = updates.email;
       if (updates.phone) updateData.phone = updates.phone;
       if (updates.tanggalBergabung) updateData.join_date = updates.tanggalBergabung;
       if (updates.departemen) updateData.department = updates.departemen;
       if (updates.posisi) updateData.position = updates.posisi;
-      if (updates.grade) updateData.grade = updates.grade;
+      if (updates.grade) updateData.grade = updates.grade as any;
       if (updates.status) updateData.status = updates.status;
       if (company_id) updateData.company_id = company_id;
       if (updates.supervisorId !== undefined) updateData.supervisor_id = updates.supervisorId || null;
