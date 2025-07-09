@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Home, Plane, Users, Building, ChevronDown, ChevronRight, FileText, UserCheck, Settings, Circle } from 'lucide-react';
+import { Home, Plane, Users, Building, ChevronDown, ChevronRight, FileText, UserCheck, Settings, Circle, CheckSquare, Receipt } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { useState } from 'react';
@@ -26,34 +26,52 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle }) => {
 
   const dinasSubmenu = [
     {
+      icon: Plane,
       label: 'Perjalanan Dinas',
       path: '/perjalanan-dinas',
       isActive: location.pathname === '/perjalanan-dinas'
     },
     {
+      icon: CheckSquare,
+      label: 'Approval Perjalanan Dinas',
+      path: '/approval-perjalanan-dinas',
+      isActive: location.pathname === '/approval-perjalanan-dinas'
+    },
+    {
+      icon: Receipt,
       label: 'Claim Dinas',
       path: '/claim-dinas',
       isActive: location.pathname === '/claim-dinas'
+    },
+    {
+      icon: UserCheck,
+      label: 'Approval Claim Dinas',
+      path: '/approval-claim-dinas',
+      isActive: location.pathname === '/approval-claim-dinas'
     }
   ];
 
   const masterDataSubmenu = [
     {
+      icon: Users,
       label: 'Karyawan',
       path: '/karyawan',
       isActive: location.pathname === '/karyawan'
     },
     {
+      icon: FileText,
       label: 'Line Approval',
       path: '/approval',
       isActive: location.pathname === '/approval'
     },
     {
+      icon: UserCheck,
       label: 'Manajemen User',
       path: '/manajemen-user',
       isActive: location.pathname === '/manajemen-user'
     },
     {
+      icon: Settings,
       label: 'Role Manajemen',
       path: '/role-manajemen',
       isActive: location.pathname === '/role-manajemen'
@@ -62,6 +80,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle }) => {
 
   const pengaturanSubmenu = [
     {
+      icon: Settings,
       label: 'Pengaturan Aplikasi',
       path: '/pengaturan-aplikasi',
       isActive: location.pathname === '/pengaturan-aplikasi'
@@ -145,7 +164,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle }) => {
                         }`}
                         onClick={() => window.innerWidth < 1024 && onToggle()}
                       >
-                        <Circle className="w-2 h-2 mr-3 fill-current" />
+                        <subItem.icon className="w-4 h-4 mr-3" />
                         {subItem.label}
                       </Link>
                     ))}
@@ -179,7 +198,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle }) => {
                         }`}
                         onClick={() => window.innerWidth < 1024 && onToggle()}
                       >
-                        <Circle className="w-2 h-2 mr-3 fill-current" />
+                        <subItem.icon className="w-4 h-4 mr-3" />
                         {subItem.label}
                       </Link>
                     ))}
@@ -209,7 +228,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle }) => {
                         }`}
                         onClick={() => window.innerWidth < 1024 && onToggle()}
                       >
-                        <Circle className="w-2 h-2 mr-3 fill-current" />
+                        <subItem.icon className="w-4 h-4 mr-3" />
                         {subItem.label}
                       </Link>
                     ))}

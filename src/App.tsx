@@ -10,6 +10,8 @@ import Karyawan from "./pages/Karyawan";
 import LineApproval from "./pages/LineApproval";
 import PerjalananDinas from "./pages/PerjalananDinas";
 import ClaimDinas from "./pages/ClaimDinas";
+import ApprovalPerjalananDinas from "./pages/ApprovalPerjalananDinas";
+import ApprovalClaimDinas from "./pages/ApprovalClaimDinas";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -24,7 +26,9 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Dashboard />} />
             <Route path="/perjalanan-dinas" element={<PerjalananDinas />} />
+            <Route path="/approval-perjalanan-dinas" element={<ApprovalPerjalananDinas />} />
             <Route path="/claim-dinas" element={<ClaimDinas />} />
+            <Route path="/approval-claim-dinas" element={<ApprovalClaimDinas />} />
             <Route path="/karyawan" element={<Karyawan />} />
             <Route path="/approval" element={<LineApproval />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
