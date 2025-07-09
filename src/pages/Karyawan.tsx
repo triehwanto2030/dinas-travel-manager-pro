@@ -10,7 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { useEmployees, useCreateEmployee, useUpdateEmployee, useDeleteEmployee } from '@/hooks/useEmployees';
+import { useEmployees, useCreateEmployee, useUpdateEmployee, useDeleteEmployee, EmployeeFormData } from '@/hooks/useEmployees';
 import { useCompanies } from '@/hooks/useCompanies';
 import { useToast } from '@/hooks/use-toast';
 import Swal from 'sweetalert2';
@@ -56,71 +56,21 @@ const Karyawan = () => {
     });
   };
 
-  const handleFormSubmit = async (formData: any) => {
+  const handleFormSubmit = async (formData: EmployeeFormData) => {
     try {
       console.log('Form submission data:', formData);
       
       if (formState.mode === 'add') {
-        const company = companies.find(c => c.name === formData.namaPerusahaan);
-        if (!company) {
-          toast({
-            title: "Error",
-            description: "Perusahaan tidak ditemukan",
-            variant: "destructive",
-          });
-          return;
-        }
-
-        const employeeData = {
-          id: formData.id || `EMP${Date.now()}`,
-          name: formData.nama,
-          email: formData.email,
-          phone: formData.phone,
-          position: formData.posisi,
-          department: formData.departemen,
-          company_id: company.id,
-          status: formData.status as 'Aktif' | 'Tidak Aktif',
-          grade: formData.grade as any,
-          join_date: formData.tanggalBergabung,
-          avatar_url: formData.fotoUrl || null,
-          supervisor_id: formData.supervisorId || null,
-        };
-
-        console.log('Creating employee with data:', employeeData);
-        await createEmployee.mutateAsync(employeeData);
+        console.log('Creating employee with form data:', formData);
+        await createEmployee.mutateAsync(formData);
 
         toast({
           title: "Berhasil!",
           description: "Karyawan berhasil ditambahkan",
         });
       } else if (formState.mode === 'edit') {
-        const company = companies.find(c => c.name === formData.namaPerusahaan);
-        if (!company) {
-          toast({
-            title: "Error",
-            description: "Perusahaan tidak ditemukan",
-            variant: "destructive",
-          });
-          return;
-        }
-
-        const updateData = {
-          id: formState.selectedData.id,
-          name: formData.nama,
-          email: formData.email,
-          phone: formData.phone,
-          position: formData.posisi,
-          department: formData.departemen,
-          company_id: company.id,
-          status: formData.status as 'Aktif' | 'Tidak Aktif',
-          grade: formData.grade as any,
-          join_date: formData.tanggalBergabung,
-          avatar_url: formData.fotoUrl || null,
-          supervisor_id: formData.supervisorId || null,
-        };
-
-        console.log('Updating employee with data:', updateData);
-        await updateEmployee.mutateAsync(updateData);
+        console.log('Updating employee with form data:', formData);
+        await updateEmployee.mutateAsync({ id: formState.selectedData.id, ...formData });
 
         toast({
           title: "Berhasil!",
@@ -132,7 +82,7 @@ const Karyawan = () => {
       console.error('Error saving employee:', error);
       toast({
         title: "Error",
-        description: "Terjadi kesalahan saat menyimpan data",
+        description: error instanceof Error ? error.message : "Terjadi kesalahan saat menyimpan data",
         variant: "destructive",
       });
     }
