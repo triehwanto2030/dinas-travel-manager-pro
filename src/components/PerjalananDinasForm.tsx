@@ -76,9 +76,13 @@ const PerjalananDinasForm = ({ isOpen, onClose, mode, data }: PerjalananDinasFor
       
       if (employeeApproval) {
         setApprovalLine(employeeApproval);
-        if (employeeApproval.supervisor) {
-          form.setValue('supervisor_id', employeeApproval.supervisor.id);
-          setSelectedSupervisor(employeeApproval.supervisor);
+        // Set supervisor based on the selected employee's supervisor_id from their employee record
+        if (selectedEmployee.supervisor_id && employees) {
+          const supervisor = employees.find(emp => emp.id === selectedEmployee.supervisor_id);
+          if (supervisor) {
+            form.setValue('supervisor_id', supervisor.id);
+            setSelectedSupervisor(supervisor);
+          }
         }
       }
       
@@ -90,7 +94,7 @@ const PerjalananDinasForm = ({ isOpen, onClose, mode, data }: PerjalananDinasFor
       // Set cost center from employee's company
       form.setValue('cost_center', selectedEmployee.company_id);
     }
-  }, [selectedEmployee, lineApprovals, form]);
+  }, [selectedEmployee, lineApprovals, employees, form]);
 
   // Update selected supervisor when supervisor is manually changed
   useEffect(() => {
@@ -529,19 +533,19 @@ const PerjalananDinasForm = ({ isOpen, onClose, mode, data }: PerjalananDinasFor
               <div className="space-y-4 border-t pt-4">
                 <h3 className="text-lg font-medium text-gray-900 dark:text-white">Line Approval</h3>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  {approvalLine.supervisor && (
+                  {approvalLine.staff_ga && (
                     <div className="p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                      <p className="text-sm text-gray-600 dark:text-gray-400">Supervisor</p>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">Staff GA</p>
                       <div className="flex items-center gap-2 mt-2">
                         <Avatar className="w-8 h-8">
-                          <AvatarImage src={approvalLine.supervisor.avatar_url} />
+                          <AvatarImage src={approvalLine.staff_ga.avatar_url} />
                           <AvatarFallback className="text-xs">
-                            {approvalLine.supervisor.name.split(' ').map((n: string) => n[0]).join('').substring(0, 2)}
+                            {approvalLine.staff_ga.name.split(' ').map((n: string) => n[0]).join('').substring(0, 2)}
                           </AvatarFallback>
                         </Avatar>
                         <div>
-                          <p className="font-medium">{approvalLine.supervisor.name}</p>
-                          <p className="text-sm text-gray-500">{approvalLine.supervisor.position}</p>
+                          <p className="font-medium">{approvalLine.staff_ga.name}</p>
+                          <p className="text-sm text-gray-500">{approvalLine.staff_ga.position}</p>
                         </div>
                       </div>
                     </div>
