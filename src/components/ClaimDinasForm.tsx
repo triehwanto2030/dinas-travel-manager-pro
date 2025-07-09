@@ -8,6 +8,10 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Calendar as CalendarComponent } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
+import { format } from "date-fns";
 import { useToast } from '@/hooks/use-toast';
 
 interface ClaimDinasFormProps {
@@ -17,11 +21,8 @@ interface ClaimDinasFormProps {
 }
 
 const ClaimDinasForm: React.FC<ClaimDinasFormProps> = ({ isOpen, onClose, tripData }) => {
-  const [claimDate, setClaimDate] = useState('');
-  const [claimType, setClaimType] = useState('');
-  const [description, setDescription] = useState('');
   const [expenses, setExpenses] = useState([
-    { date: '', type: '', description: '', amount: 0 }
+    { date: undefined, type: '', description: '', amount: 0 }
   ]);
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -35,10 +36,11 @@ const ClaimDinasForm: React.FC<ClaimDinasFormProps> = ({ isOpen, onClose, tripDa
       grade: '2A',
       position: 'Specialist',
       department: 'Sales',
-      costCenter: 'CC001',
+      company: 'PT Maju Bersama',
       avatar: ''
     },
     destination: 'Malang',
+    purpose: 'Client Meeting & Presentation',
     startDate: '06 Jul 2025',
     endDate: '07 Jul 2025',
     budget: 1500000
@@ -48,6 +50,7 @@ const ClaimDinasForm: React.FC<ClaimDinasFormProps> = ({ isOpen, onClose, tripDa
   const tripInfo = {
     number: `PD${new Date().getFullYear()}${String(new Date().getMonth() + 1).padStart(2, '0')}${String(new Date().getDate()).padStart(2, '0')}01`,
     destination: data.destination,
+    purpose: data.purpose,
     startDate: data.startDate,
     endDate: data.endDate,
     duration: '1 hari',
@@ -63,7 +66,7 @@ const ClaimDinasForm: React.FC<ClaimDinasFormProps> = ({ isOpen, onClose, tripDa
   };
 
   const addExpenseRow = () => {
-    setExpenses([...expenses, { date: '', type: '', description: '', amount: 0 }]);
+    setExpenses([...expenses, { date: undefined, type: '', description: '', amount: 0 }]);
   };
 
   const updateExpense = (index: number, field: string, value: any) => {
@@ -91,7 +94,7 @@ const ClaimDinasForm: React.FC<ClaimDinasFormProps> = ({ isOpen, onClose, tripDa
   const handleSubmit = () => {
     toast({
       title: "Berhasil!",
-      description: "Claim dinas berhasil diajukan",
+      description: "Claim dinas berhasil diajukan dan akan masuk ke proses approval",
     });
     onClose();
   };
@@ -146,7 +149,7 @@ const ClaimDinasForm: React.FC<ClaimDinasFormProps> = ({ isOpen, onClose, tripDa
                     </div>
                     <div>
                       <p className="text-gray-500">Cost Center:</p>
-                      <p className="font-medium">{data.employee.costCenter || 'CC001'}</p>
+                      <p className="font-medium">{data.employee.company} - {data.employee.department}</p>
                     </div>
                   </div>
                 </CardContent>
@@ -163,9 +166,14 @@ const ClaimDinasForm: React.FC<ClaimDinasFormProps> = ({ isOpen, onClose, tripDa
                         <p className="font-medium">{tripInfo.number}</p>
                       </div>
                       <div>
-                        <p className="text-gray-500">Tujuan:</p>
+                        <p className="text-gray-500">Tujuan Dinas:</p>
                         <p className="font-medium">{tripInfo.destination}</p>
                       </div>
+                    </div>
+                    
+                    <div>
+                      <p className="text-gray-500">Keperluan:</p>
+                      <p className="font-medium">{tripInfo.purpose}</p>
                     </div>
                     
                     <div className="grid grid-cols-2 gap-4">
@@ -194,48 +202,6 @@ const ClaimDinasForm: React.FC<ClaimDinasFormProps> = ({ isOpen, onClose, tripDa
               </Card>
             </div>
 
-            {/* Informasi Claim */}
-            <Card>
-              <CardContent className="p-4">
-                <h3 className="font-medium text-gray-900 mb-4">Informasi Claim</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="claimDate">Tanggal Claim</Label>
-                    <Input
-                      id="claimDate"
-                      type="date"
-                      value={claimDate}
-                      onChange={(e) => setClaimDate(e.target.value)}
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="claimType">Jenis Claim</Label>
-                    <Select value={claimType} onValueChange={setClaimType}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Pilih jenis claim" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="mixed">Mixed</SelectItem>
-                        <SelectItem value="transport">Transport</SelectItem>
-                        <SelectItem value="accommodation">Akomodasi</SelectItem>
-                        <SelectItem value="meal">Makan</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="md:col-span-2">
-                    <Label htmlFor="description">Keterangan (Opsional)</Label>
-                    <Textarea
-                      id="description"
-                      placeholder="Catatan tambahan..."
-                      value={description}
-                      onChange={(e) => setDescription(e.target.value)}
-                      rows={3}
-                    />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
             {/* Detail Pengeluaran */}
             <Card>
               <CardContent className="p-4">
@@ -252,11 +218,29 @@ const ClaimDinasForm: React.FC<ClaimDinasFormProps> = ({ isOpen, onClose, tripDa
                     <div key={index} className="grid grid-cols-1 md:grid-cols-12 gap-4 p-4 border rounded-lg">
                       <div className="md:col-span-2">
                         <Label>Tanggal</Label>
-                        <Input
-                          type="date"
-                          value={expense.date}
-                          onChange={(e) => updateExpense(index, 'date', e.target.value)}
-                        />
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <Button
+                              variant="outline"
+                              className={cn(
+                                "w-full justify-start text-left font-normal",
+                                !expense.date && "text-muted-foreground"
+                              )}
+                            >
+                              <Calendar className="mr-2 h-4 w-4" />
+                              {expense.date ? format(expense.date, "dd/MM/yyyy") : "Pilih tanggal"}
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-auto p-0" align="start">
+                            <CalendarComponent
+                              mode="single"
+                              selected={expense.date}
+                              onSelect={(date) => updateExpense(index, 'date', date)}
+                              initialFocus
+                              className="pointer-events-auto"
+                            />
+                          </PopoverContent>
+                        </Popover>
                       </div>
                       <div className="md:col-span-3">
                         <Label>Jenis Biaya</Label>
