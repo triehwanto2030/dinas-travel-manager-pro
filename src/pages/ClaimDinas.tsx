@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Search, Plus, Eye, Edit, Trash2, Download, Upload } from 'lucide-react';
+import { Search, Plus, Eye, Edit, Trash2, Download, Upload, Filter, TrendingDown, TrendingUp, DollarSign } from 'lucide-react';
 import Header from '@/components/Header';
 import Sidebar from '@/components/Sidebar';
 import Footer from '@/components/Footer';
@@ -8,32 +8,16 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useTripClaims } from '@/hooks/useTripClaims';
 
 const ClaimDinas = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
 
-  // Mock data - will be replaced with real data from Supabase
-  const claimData = [
-    {
-      id: 1,
-      employee: { name: 'Lisa Anderson', id: 'EMP006' },
-      trip: { destination: 'Malang', purpose: 'Client Meeting' },
-      totalAmount: 1500000,
-      status: 'Approved',
-      submittedAt: '2025-07-05',
-      approvedAt: '2025-07-06'
-    },
-    {
-      id: 2,
-      employee: { name: 'Jesika', id: 'EMP176' },
-      trip: { destination: 'Jakarta', purpose: 'Training' },
-      totalAmount: 2000000,
-      status: 'Submitted',
-      submittedAt: '2025-07-04',
-      approvedAt: null
-    }
-  ];
+  const { data: claims = [], isLoading } = useTripClaims();
 
   const getStatusBadge = (status: string) => {
     const statusConfig = {
@@ -56,6 +40,40 @@ const ClaimDinas = () => {
     }).format(amount);
   };
 
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('id-ID', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric'
+    });
+  };
+
+  // Calculate statistics
+  const totalClaims = claims.length;
+  const pendingClaims = claims.filter(c => c.status === 'Submitted').length;
+  const approvedClaims = claims.filter(c => c.status === 'Approved').length;
+  const totalAmount = claims.reduce((sum, claim) => sum + claim.total_amount, 0);
+
+  // Filter claims
+  const filteredClaims = claims.filter(claim => {
+    const matchesSearch = claim.employees.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         claim.business_trips.destination.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesStatus = statusFilter === 'all' || claim.status.toLowerCase() === statusFilter.toLowerCase();
+    return matchesSearch && matchesStatus;
+  });
+
+  const generateClaimId = (claim: any) => {
+    const date = new Date(claim.created_at);
+    const timestamp = date.getTime().toString().slice(-6);
+    return `CL-${timestamp}`;
+  };
+
+  const generateTripId = (claim: any) => {
+    const date = new Date(claim.business_trips.created_at);
+    const timestamp = date.getTime().toString().slice(-8);
+    return `PD${timestamp}`;
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors w-full">
       <Header />
@@ -69,23 +87,76 @@ const ClaimDinas = () => {
             <div className="mb-8">
               <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
                 <div>
-                  <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Claim Perjalanan Dinas</h1>
-                  <p className="text-gray-600 dark:text-gray-400">Kelola claim reimbursement perjalanan dinas</p>
+                  <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Claim Dinas</h1>
+                  <p className="text-gray-600 dark:text-gray-400">Kelola pengajuan claim perjalanan dinas</p>
                 </div>
                 <div className="flex gap-3 mt-4 md:mt-0">
                   <Button variant="outline" className="flex items-center gap-2">
-                    <Upload className="w-4 h-4" />
-                    Import Excel
-                  </Button>
-                  <Button variant="outline" className="flex items-center gap-2">
                     <Download className="w-4 h-4" />
-                    Export Excel
-                  </Button>
-                  <Button className="flex items-center gap-2 bg-green-600 hover:bg-green-700">
-                    <Plus className="w-4 h-4" />
-                    Tambah Claim
+                    Export
                   </Button>
                 </div>
+              </div>
+
+              {/* Statistics Cards */}
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+                <Card className="bg-white dark:bg-gray-800">
+                  <CardContent className="p-6">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Total Claim</p>
+                        <p className="text-2xl font-bold text-gray-900 dark:text-white">{totalClaims}</p>
+                      </div>
+                      <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900 rounded-lg flex items-center justify-center">
+                        <TrendingDown className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card className="bg-white dark:bg-gray-800">
+                  <CardContent className="p-6">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Pending</p>
+                        <p className="text-2xl font-bold text-gray-900 dark:text-white">{pendingClaims}</p>
+                      </div>
+                      <div className="w-12 h-12 bg-orange-100 dark:bg-orange-900 rounded-lg flex items-center justify-center">
+                        <TrendingDown className="w-6 h-6 text-orange-600 dark:text-orange-400" />
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card className="bg-white dark:bg-gray-800">
+                  <CardContent className="p-6">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Approved</p>
+                        <p className="text-2xl font-bold text-gray-900 dark:text-white">{approvedClaims}</p>
+                      </div>
+                      <div className="w-12 h-12 bg-green-100 dark:bg-green-900 rounded-lg flex items-center justify-center">
+                        <TrendingUp className="w-6 h-6 text-green-600 dark:text-green-400" />
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card className="bg-white dark:bg-gray-800">
+                  <CardContent className="p-6">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Total Amount</p>
+                        <p className="text-xl font-bold text-gray-900 dark:text-white">
+                          {formatCurrency(totalAmount).replace('IDR', 'Rp')}
+                        </p>
+                      </div>
+                      <div className="w-12 h-12 bg-purple-100 dark:bg-purple-900 rounded-lg flex items-center justify-center">
+                        <TrendingDown className="w-6 h-6 text-purple-600 dark:text-purple-400" />
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
               </div>
             </div>
 
@@ -93,81 +164,128 @@ const ClaimDinas = () => {
             <Card className="bg-white dark:bg-gray-800">
               <CardHeader>
                 <CardTitle className="text-xl font-semibold text-gray-900 dark:text-white">
-                  Daftar Claim Perjalanan Dinas
+                  Daftar Claim Dinas
                 </CardTitle>
                 
-                {/* Search */}
+                {/* Search and Filter */}
                 <div className="flex flex-col md:flex-row gap-4 mt-4">
                   <div className="relative flex-1">
                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                     <input
                       type="text"
-                      placeholder="Cari claim..."
+                      placeholder="Cari claim dinas..."
                       className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
                     />
                   </div>
+                  <div className="flex items-center gap-2">
+                    <Filter className="w-4 h-4 text-gray-400" />
+                    <Select value={statusFilter} onValueChange={setStatusFilter}>
+                      <SelectTrigger className="w-32">
+                        <SelectValue placeholder="Status" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">Semua</SelectItem>
+                        <SelectItem value="submitted">Submitted</SelectItem>
+                        <SelectItem value="approved">Approved</SelectItem>
+                        <SelectItem value="rejected">Rejected</SelectItem>
+                        <SelectItem value="paid">Paid</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
               </CardHeader>
               
               <CardContent>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Karyawan</TableHead>
-                      <TableHead>Perjalanan</TableHead>
-                      <TableHead>Total Klaim</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Tanggal Submit</TableHead>
-                      <TableHead>Tanggal Approve</TableHead>
-                      <TableHead>Aksi</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {claimData.map((item) => (
-                      <TableRow key={item.id}>
-                        <TableCell>
-                          <div>
-                            <p className="font-medium text-gray-900 dark:text-white">{item.employee.name}</p>
-                            <p className="text-sm text-gray-500 dark:text-gray-400">{item.employee.id}</p>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div>
-                            <p className="font-medium text-gray-900 dark:text-white">{item.trip.destination}</p>
-                            <p className="text-sm text-gray-500 dark:text-gray-400">{item.trip.purpose}</p>
-                          </div>
-                        </TableCell>
-                        <TableCell className="font-medium text-gray-900 dark:text-white">
-                          {formatCurrency(item.totalAmount)}
-                        </TableCell>
-                        <TableCell>
-                          {getStatusBadge(item.status)}
-                        </TableCell>
-                        <TableCell className="text-gray-600 dark:text-gray-400">
-                          {item.submittedAt || '-'}
-                        </TableCell>
-                        <TableCell className="text-gray-600 dark:text-gray-400">
-                          {item.approvedAt || '-'}
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-2">
-                            <Button variant="ghost" size="sm" className="p-2">
-                              <Eye className="w-4 h-4" />
-                            </Button>
-                            <Button variant="ghost" size="sm" className="p-2">
-                              <Edit className="w-4 h-4" />
-                            </Button>
-                            <Button variant="ghost" size="sm" className="p-2 text-red-600 hover:text-red-800">
-                              <Trash2 className="w-4 h-4" />
-                            </Button>
-                          </div>
-                        </TableCell>
+                {isLoading ? (
+                  <div className="text-center py-8">
+                    <p className="text-gray-500">Memuat data...</p>
+                  </div>
+                ) : (
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>ID Claim</TableHead>
+                        <TableHead>Karyawan</TableHead>
+                        <TableHead>Tujuan & Alasan</TableHead>
+                        <TableHead>Tanggal Claim</TableHead>
+                        <TableHead>Nominal Bayar/Pengembalian</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead>AKSI</TableHead>
                       </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+                    </TableHeader>
+                    <TableBody>
+                      {filteredClaims.length === 0 ? (
+                        <TableRow>
+                          <TableCell colSpan={7} className="text-center py-8 text-gray-500">
+                            Tidak ada data claim dinas
+                          </TableCell>
+                        </TableRow>
+                      ) : (
+                        filteredClaims.map((claim) => (
+                          <TableRow key={claim.id}>
+                            <TableCell>
+                              <div>
+                                <p className="font-medium text-gray-900 dark:text-white">{generateClaimId(claim)}</p>
+                                <p className="text-sm text-gray-500 dark:text-gray-400">ID Trip: {generateTripId(claim)}</p>
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                              <div className="flex items-center gap-3">
+                                <Avatar className="w-10 h-10">
+                                  <AvatarImage src={claim.employees.avatar_url || undefined} />
+                                  <AvatarFallback className="bg-blue-500 text-white text-sm">
+                                    {claim.employees.name.split(' ').map(n => n[0]).join('').substring(0, 2)}
+                                  </AvatarFallback>
+                                </Avatar>
+                                <div>
+                                  <p className="font-medium text-gray-900 dark:text-white">{claim.employees.name}</p>
+                                  <p className="text-sm text-gray-500 dark:text-gray-400">ID: {claim.employees.id}</p>
+                                </div>
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                              <div>
+                                <p className="font-medium text-gray-900 dark:text-white">{claim.business_trips.destination}</p>
+                                <p className="text-sm text-gray-500 dark:text-gray-400">{claim.business_trips.purpose}</p>
+                              </div>
+                            </TableCell>
+                            <TableCell className="text-gray-600 dark:text-gray-400">
+                              {formatDate(claim.created_at)}
+                            </TableCell>
+                            <TableCell>
+                              <div>
+                                <p className="font-medium text-gray-900 dark:text-white">
+                                  {formatCurrency(claim.total_amount).replace('IDR', 'Rp')}
+                                </p>
+                                <p className="text-sm text-gray-500 dark:text-gray-400">
+                                  {claim.status === 'Submitted' ? 'Pembayaran' : 'Pengembalian'}
+                                </p>
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                              {getStatusBadge(claim.status)}
+                            </TableCell>
+                            <TableCell>
+                              <div className="flex items-center gap-2">
+                                <Button variant="ghost" size="sm" className="p-2 h-8 w-8">
+                                  <Eye className="w-4 h-4" />
+                                </Button>
+                                <Button variant="ghost" size="sm" className="p-2 h-8 w-8">
+                                  <Edit className="w-4 h-4" />
+                                </Button>
+                                <Button variant="ghost" size="sm" className="p-2 h-8 w-8 text-red-600 hover:text-red-800">
+                                  <Trash2 className="w-4 h-4" />
+                                </Button>
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        ))
+                      )}
+                    </TableBody>
+                  </Table>
+                )}
               </CardContent>
             </Card>
           </main>

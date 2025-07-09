@@ -38,9 +38,37 @@ export const useCreateEmployee = () => {
     mutationFn: async (employee: TablesInsert<'employees'>) => {
       console.log('Creating employee with data:', employee);
       
+      // Find company_id based on company name
+      const { data: companies, error: companyError } = await supabase
+        .from('companies')
+        .select('id')
+        .eq('name', employee.namaPerusahaan)
+        .single();
+
+      if (companyError) {
+        console.error('Error finding company:', companyError);
+        throw new Error('Perusahaan tidak ditemukan');
+      }
+
+      // Prepare employee data for database
+      const employeeData = {
+        id: employee.id,
+        name: employee.nama,
+        email: employee.email,
+        phone: employee.phone,
+        join_date: employee.tanggalBergabung,
+        department: employee.departemen,
+        position: employee.posisi,
+        grade: employee.grade,
+        status: employee.status as 'Aktif' | 'Tidak Aktif',
+        company_id: companies.id,
+        supervisor_id: employee.supervisorId || null,
+        avatar_url: employee.fotoUrl || null
+      };
+
       const { data, error } = await supabase
         .from('employees')
-        .insert([employee])
+        .insert([employeeData])
         .select(`
           *,
           companies (*)
@@ -49,6 +77,13 @@ export const useCreateEmployee = () => {
 
       if (error) {
         console.error('Error creating employee:', error);
+        if (error.code === '23505') {
+          if (error.message.includes('email')) {
+            throw new Error('Email sudah digunakan oleh karyawan lain');
+          } else if (error.message.includes('id')) {
+            throw new Error('ID Karyawan sudah digunakan');
+          }
+        }
         throw new Error(error.message);
       }
 
@@ -68,9 +103,39 @@ export const useUpdateEmployee = () => {
     mutationFn: async ({ id, ...updates }: TablesUpdate<'employees'> & { id: string }) => {
       console.log('Updating employee:', id, 'with data:', updates);
       
+      // Find company_id if namaPerusahaan is provided
+      let company_id = updates.company_id;
+      if (updates.namaPerusahaan) {
+        const { data: companies, error: companyError } = await supabase
+          .from('companies')
+          .select('id')
+          .eq('name', updates.namaPerusahaan)
+          .single();
+
+        if (companyError) {
+          console.error('Error finding company:', companyError);
+          throw new Error('Perusahaan tidak ditemukan');
+        }
+        company_id = companies.id;
+      }
+
+      // Prepare update data
+      const updateData: any = {};
+      if (updates.nama) updateData.name = updates.nama;
+      if (updates.email) updateData.email = updates.email;
+      if (updates.phone) updateData.phone = updates.phone;
+      if (updates.tanggalBergabung) updateData.join_date = updates.tanggalBergabung;
+      if (updates.departemen) updateData.department = updates.departemen;
+      if (updates.posisi) updateData.position = updates.posisi;
+      if (updates.grade) updateData.grade = updates.grade;
+      if (updates.status) updateData.status = updates.status;
+      if (company_id) updateData.company_id = company_id;
+      if (updates.supervisorId !== undefined) updateData.supervisor_id = updates.supervisorId || null;
+      if (updates.fotoUrl !== undefined) updateData.avatar_url = updates.fotoUrl || null;
+
       const { data, error } = await supabase
         .from('employees')
-        .update(updates)
+        .update(updateData)
         .eq('id', id)
         .select(`
           *,
@@ -80,6 +145,11 @@ export const useUpdateEmployee = () => {
 
       if (error) {
         console.error('Error updating employee:', error);
+        if (error.code === '23505') {
+          if (error.message.includes('email')) {
+            throw new Error('Email sudah digunakan oleh karyawan lain');
+          }
+        }
         throw new Error(error.message);
       }
 

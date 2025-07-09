@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Upload, Calendar, User, Mail, Phone, Building, Award, UserCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -50,6 +49,9 @@ const KaryawanForm: React.FC<KaryawanFormProps> = ({
 
   useEffect(() => {
     if (initialData && isOpen) {
+      // Find company name from companies data
+      const company = companies.find(c => c.id === initialData.company_id);
+      
       setFormData({
         id: initialData.id || '',
         nama: initialData.name || '',
@@ -60,7 +62,7 @@ const KaryawanForm: React.FC<KaryawanFormProps> = ({
         posisi: initialData.position || '',
         grade: initialData.grade || '',
         status: initialData.status || 'Aktif',
-        namaPerusahaan: initialData.namaPerusahaan || '',
+        namaPerusahaan: company?.name || '',
         supervisorId: initialData.supervisor_id || '',
         foto: null,
         fotoUrl: initialData.avatar_url || ''
@@ -84,7 +86,7 @@ const KaryawanForm: React.FC<KaryawanFormProps> = ({
       });
       setPreviewImage(null);
     }
-  }, [initialData, isOpen]);
+  }, [initialData, isOpen, companies]);
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -106,7 +108,26 @@ const KaryawanForm: React.FC<KaryawanFormProps> = ({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit(formData);
+    
+    // Prepare data for submission
+    const submitData = {
+      ...formData,
+      // Map form fields to database fields
+      ...(mode === 'add' && { id: formData.id }),
+      nama: formData.nama,
+      email: formData.email,
+      phone: formData.phone,
+      tanggalBergabung: formData.tanggalBergabung,
+      departemen: formData.departemen,
+      posisi: formData.posisi,
+      grade: formData.grade || undefined,
+      status: formData.status as 'Aktif' | 'Tidak Aktif',
+      namaPerusahaan: formData.namaPerusahaan,
+      supervisorId: formData.supervisorId || undefined,
+      fotoUrl: formData.fotoUrl
+    };
+    
+    onSubmit(submitData);
   };
 
   if (!isOpen) return null;
@@ -117,7 +138,7 @@ const KaryawanForm: React.FC<KaryawanFormProps> = ({
   // Filter employees for supervisor selection - exclude current employee and filter by same company
   const availableSupervisors = employees.filter(emp => 
     emp.id !== formData.id && 
-    (formData.namaPerusahaan ? emp.companies.name === formData.namaPerusahaan : true)
+    (formData.namaPerusahaan ? emp.companies?.name === formData.namaPerusahaan : true)
   );
 
   return (

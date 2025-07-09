@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Home, Plane, Users, Building, ChevronDown, ChevronRight } from 'lucide-react';
+import { Home, Plane, Users, Building, ChevronDown, ChevronRight, FileText, UserCheck, Settings, Circle } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { useState } from 'react';
@@ -12,8 +12,8 @@ interface SidebarProps {
 
 const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle }) => {
   const location = useLocation();
-  const [isDinasOpen, setIsDinasOpen] = useState(false);
-  const [isMasterDataOpen, setIsMasterDataOpen] = useState(false);
+  const [isDinasOpen, setIsDinasOpen] = useState(true);
+  const [isMasterDataOpen, setIsMasterDataOpen] = useState(true);
 
   const menuItems = [
     {
@@ -31,7 +31,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle }) => {
       isActive: location.pathname === '/perjalanan-dinas'
     },
     {
-      label: 'Claim Perjalanan Dinas',
+      label: 'Claim Dinas',
       path: '/claim-dinas',
       isActive: location.pathname === '/claim-dinas'
     }
@@ -47,6 +47,24 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle }) => {
       label: 'Line Approval',
       path: '/approval',
       isActive: location.pathname === '/approval'
+    },
+    {
+      label: 'Manajemen User',
+      path: '/manajemen-user',
+      isActive: location.pathname === '/manajemen-user'
+    },
+    {
+      label: 'Role Manajemen',
+      path: '/role-manajemen',
+      isActive: location.pathname === '/role-manajemen'
+    }
+  ];
+
+  const pengaturanSubmenu = [
+    {
+      label: 'Pengaturan Aplikasi',
+      path: '/pengaturan-aplikasi',
+      isActive: location.pathname === '/pengaturan-aplikasi'
     }
   ];
 
@@ -69,7 +87,15 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle }) => {
         <div className="flex flex-col h-full">
           {/* Logo */}
           <div className="flex items-center justify-center h-16 px-4 border-b border-gray-200 dark:border-gray-700">
-            <h1 className="text-xl font-bold text-gray-900 dark:text-white">Perjalanan Dinas</h1>
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
+                <Plane className="w-5 h-5 text-white" />
+              </div>
+              <div>
+                <h1 className="text-lg font-bold text-gray-900 dark:text-white">Travel Pro</h1>
+                <p className="text-xs text-gray-500 dark:text-gray-400">Perjalanan Dinas</p>
+              </div>
+            </div>
           </div>
 
           {/* Navigation */}
@@ -112,13 +138,14 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle }) => {
                       <Link
                         key={subItem.path}
                         to={subItem.path}
-                        className={`block px-4 py-2 text-sm rounded-lg transition-colors ${
+                        className={`flex items-center px-4 py-2 text-sm rounded-lg transition-colors ${
                           subItem.isActive
                             ? 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-200'
                             : 'text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700'
                         }`}
                         onClick={() => window.innerWidth < 1024 && onToggle()}
                       >
+                        <Circle className="w-2 h-2 mr-3 fill-current" />
                         {subItem.label}
                       </Link>
                     ))}
@@ -145,13 +172,44 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle }) => {
                       <Link
                         key={subItem.path}
                         to={subItem.path}
-                        className={`block px-4 py-2 text-sm rounded-lg transition-colors ${
+                        className={`flex items-center px-4 py-2 text-sm rounded-lg transition-colors ${
                           subItem.isActive
                             ? 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-200'
                             : 'text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700'
                         }`}
                         onClick={() => window.innerWidth < 1024 && onToggle()}
                       >
+                        <Circle className="w-2 h-2 mr-3 fill-current" />
+                        {subItem.label}
+                      </Link>
+                    ))}
+                  </CollapsibleContent>
+                </Collapsible>
+              </li>
+
+              {/* Pengaturan */}
+              <li>
+                <Collapsible>
+                  <CollapsibleTrigger className="flex items-center justify-between w-full px-4 py-3 text-sm font-medium text-gray-700 rounded-lg hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700 transition-colors">
+                    <div className="flex items-center">
+                      <Settings className="w-5 h-5 mr-3" />
+                      Pengaturan
+                    </div>
+                    <ChevronRight className="w-4 h-4" />
+                  </CollapsibleTrigger>
+                  <CollapsibleContent className="ml-8 mt-2 space-y-2">
+                    {pengaturanSubmenu.map((subItem) => (
+                      <Link
+                        key={subItem.path}
+                        to={subItem.path}
+                        className={`flex items-center px-4 py-2 text-sm rounded-lg transition-colors ${
+                          subItem.isActive
+                            ? 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-200'
+                            : 'text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700'
+                        }`}
+                        onClick={() => window.innerWidth < 1024 && onToggle()}
+                      >
+                        <Circle className="w-2 h-2 mr-3 fill-current" />
                         {subItem.label}
                       </Link>
                     ))}
