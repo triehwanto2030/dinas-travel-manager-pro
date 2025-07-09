@@ -12,6 +12,9 @@ import PerjalananDinas from "./pages/PerjalananDinas";
 import ClaimDinas from "./pages/ClaimDinas";
 import ApprovalPerjalananDinas from "./pages/ApprovalPerjalananDinas";
 import ApprovalClaimDinas from "./pages/ApprovalClaimDinas";
+import ManajemenUser from "./pages/ManajemenUser";
+import RoleManajemen from "./pages/RoleManajemen";
+import PengaturanAplikasi from "./pages/PengaturanAplikasi";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -31,6 +34,9 @@ const App = () => (
             <Route path="/approval-claim-dinas" element={<ApprovalClaimDinas />} />
             <Route path="/karyawan" element={<Karyawan />} />
             <Route path="/approval" element={<LineApproval />} />
+            <Route path="/manajemen-user" element={<ManajemenUser />} />
+            <Route path="/role-manajemen" element={<RoleManajemen />} />
+            <Route path="/pengaturan-aplikasi" element={<PengaturanAplikasi />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

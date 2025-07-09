@@ -27,8 +27,8 @@ const ClaimDinasForm: React.FC<ClaimDinasFormProps> = ({ isOpen, onClose, tripDa
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
-  // Mock trip data
-  const mockTripData = {
+  // Use tripData if provided, otherwise use mock data
+  const data = tripData || {
     employee: {
       name: 'Lisa Anderson',
       id: 'EMP006',
@@ -38,17 +38,21 @@ const ClaimDinasForm: React.FC<ClaimDinasFormProps> = ({ isOpen, onClose, tripDa
       costCenter: 'CC001',
       avatar: ''
     },
-    trip: {
-      number: 'PD25070601',
-      destination: 'Malang',
-      startDate: '06 Jul 2025',
-      endDate: '07 Jul 2025',
-      duration: '1 hari',
-      cashAdvance: 1500000
-    }
+    destination: 'Malang',
+    startDate: '06 Jul 2025',
+    endDate: '07 Jul 2025',
+    budget: 1500000
   };
 
-  const data = tripData || mockTripData;
+  // Create trip info from the data
+  const tripInfo = {
+    number: `PD${new Date().getFullYear()}${String(new Date().getMonth() + 1).padStart(2, '0')}${String(new Date().getDate()).padStart(2, '0')}01`,
+    destination: data.destination,
+    startDate: data.startDate,
+    endDate: data.endDate,
+    duration: '1 hari',
+    cashAdvance: data.budget || 1500000
+  };
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('id-ID', {
@@ -82,7 +86,7 @@ const ClaimDinasForm: React.FC<ClaimDinasFormProps> = ({ isOpen, onClose, tripDa
   };
 
   const totalExpenses = expenses.reduce((sum, expense) => sum + (expense.amount || 0), 0);
-  const remaining = data.trip.cashAdvance - totalExpenses;
+  const remaining = tripInfo.cashAdvance - totalExpenses;
 
   const handleSubmit = () => {
     toast({
@@ -142,7 +146,7 @@ const ClaimDinasForm: React.FC<ClaimDinasFormProps> = ({ isOpen, onClose, tripDa
                     </div>
                     <div>
                       <p className="text-gray-500">Cost Center:</p>
-                      <p className="font-medium">{data.employee.costCenter}</p>
+                      <p className="font-medium">{data.employee.costCenter || 'CC001'}</p>
                     </div>
                   </div>
                 </CardContent>
@@ -156,33 +160,33 @@ const ClaimDinasForm: React.FC<ClaimDinasFormProps> = ({ isOpen, onClose, tripDa
                     <div className="grid grid-cols-2 gap-4">
                       <div>
                         <p className="text-gray-500">No. Perjalanan:</p>
-                        <p className="font-medium">{data.trip.number}</p>
+                        <p className="font-medium">{tripInfo.number}</p>
                       </div>
                       <div>
                         <p className="text-gray-500">Tujuan:</p>
-                        <p className="font-medium">{data.trip.destination}</p>
+                        <p className="font-medium">{tripInfo.destination}</p>
                       </div>
                     </div>
                     
                     <div className="grid grid-cols-2 gap-4">
                       <div>
                         <p className="text-gray-500">Tanggal Berangkat:</p>
-                        <p className="font-medium">{data.trip.startDate}</p>
+                        <p className="font-medium">{tripInfo.startDate}</p>
                       </div>
                       <div>
                         <p className="text-gray-500">Tanggal Pulang:</p>
-                        <p className="font-medium">{data.trip.endDate}</p>
+                        <p className="font-medium">{tripInfo.endDate}</p>
                       </div>
                     </div>
                     
                     <div className="grid grid-cols-2 gap-4">
                       <div>
                         <p className="text-gray-500">Lama Perjalanan:</p>
-                        <p className="font-medium">{data.trip.duration}</p>
+                        <p className="font-medium">{tripInfo.duration}</p>
                       </div>
                       <div>
                         <p className="text-gray-500">Cash Advance:</p>
-                        <p className="font-medium">{formatCurrency(data.trip.cashAdvance)}</p>
+                        <p className="font-medium">{formatCurrency(tripInfo.cashAdvance)}</p>
                       </div>
                     </div>
                   </div>
@@ -300,7 +304,7 @@ const ClaimDinasForm: React.FC<ClaimDinasFormProps> = ({ isOpen, onClose, tripDa
                 <div className="mt-6 grid grid-cols-3 gap-4 p-4 bg-gray-50 rounded-lg">
                   <div className="text-center">
                     <p className="text-sm text-gray-500">Cash Advance</p>
-                    <p className="text-lg font-semibold text-blue-600">{formatCurrency(data.trip.cashAdvance)}</p>
+                    <p className="text-lg font-semibold text-blue-600">{formatCurrency(tripInfo.cashAdvance)}</p>
                   </div>
                   <div className="text-center">
                     <p className="text-sm text-gray-500">Total Biaya</p>
