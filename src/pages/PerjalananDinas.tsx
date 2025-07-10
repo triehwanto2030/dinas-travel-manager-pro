@@ -110,18 +110,39 @@ const PerjalananDinas = () => {
 
   // Filter business trips based on search term, status, and department
   const filteredTrips = businessTrips?.filter(trip => {
-    const matchesSearch = trip.employees.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         trip.destination.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         trip.purpose.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch = trip.employees?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         trip.destination?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         trip.purpose?.toLowerCase().includes(searchTerm.toLowerCase());
     
     const matchesStatus = statusFilter === 'all' || trip.status === statusFilter;
-    const matchesDepartment = departmentFilter === 'all' || trip.employees.department === departmentFilter;
+    const matchesDepartment = departmentFilter === 'all' || trip.employees?.department === departmentFilter;
     
     return matchesSearch && matchesStatus && matchesDepartment;
   }) || [];
 
-  // Get unique departments for filter
-  const departments = [...new Set(businessTrips?.map(trip => trip.employees.department) || [])];
+  // Get unique departments for filter - filter out empty/null values
+  const departments = [...new Set(
+    businessTrips?.map(trip => trip.employees?.department).filter(dept => dept && dept.trim() !== '') || []
+  )];
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors w-full">
+        <Header />
+        <div className="flex w-full">
+          <Sidebar isOpen={sidebarOpen} onToggle={() => setSidebarOpen(!sidebarOpen)} />
+          <div className="flex-1 w-full">
+            <main className="p-6 w-full">
+              <div className="flex justify-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+              </div>
+            </main>
+            <Footer />
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors w-full">
@@ -206,134 +227,128 @@ const PerjalananDinas = () => {
               </CardHeader>
               
               <CardContent>
-                {isLoading ? (
-                  <div className="flex justify-center py-8">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-                  </div>
-                ) : (
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>ID Perjalanan</TableHead>
-                        <TableHead>Karyawan</TableHead>
-                        <TableHead>Jabatan</TableHead>
-                        <TableHead>Tujuan</TableHead>
-                        <TableHead>Periode</TableHead>
-                        <TableHead>Status</TableHead>
-                        <TableHead>Cash Advance</TableHead>
-                        <TableHead>AKSI</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {filteredTrips.map((item, index) => (
-                        <TableRow key={item.id}>
-                          <TableCell className="font-medium text-gray-900 dark:text-white">
-                            {generateTripId(item.created_at, index)}
-                          </TableCell>
-                          <TableCell>
-                            <div className="flex items-center space-x-3">
-                              <Avatar className="w-8 h-8">
-                                <AvatarImage src={item.employees.avatar_url || ''} />
-                                <AvatarFallback className="bg-blue-100 text-blue-600 text-xs">
-                                  {item.employees.name.split(' ').map(n => n[0]).join('')}
-                                </AvatarFallback>
-                              </Avatar>
-                              <div>
-                                <p className="font-medium text-gray-900 dark:text-white">{item.employees.name}</p>
-                                <p className="text-sm text-gray-500 dark:text-gray-400">
-                                  ID: {item.employees.id} 
-                                  <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs ml-2">
-                                    {item.employees.grade}
-                                  </span>
-                                </p>
-                              </div>
-                            </div>
-                          </TableCell>
-                          <TableCell>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>ID Perjalanan</TableHead>
+                      <TableHead>Karyawan</TableHead>
+                      <TableHead>Jabatan</TableHead>
+                      <TableHead>Tujuan</TableHead>
+                      <TableHead>Periode</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Cash Advance</TableHead>
+                      <TableHead>AKSI</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredTrips.map((item, index) => (
+                      <TableRow key={item.id}>
+                        <TableCell className="font-medium text-gray-900 dark:text-white">
+                          {generateTripId(item.created_at, index)}
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center space-x-3">
+                            <Avatar className="w-8 h-8">
+                              <AvatarImage src={item.employees?.avatar_url || ''} />
+                              <AvatarFallback className="bg-blue-100 text-blue-600 text-xs">
+                                {item.employees?.name?.split(' ').map(n => n[0]).join('') || 'N/A'}
+                              </AvatarFallback>
+                            </Avatar>
                             <div>
-                              <p className="font-medium text-gray-900 dark:text-white">{item.employees.position}</p>
-                              <p className="text-sm text-gray-500 dark:text-gray-400">{item.employees.department}</p>
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            <div>
-                              <p className="font-medium text-gray-900 dark:text-white">{item.destination}</p>
-                              <p className="text-sm text-gray-500 dark:text-gray-400">{item.purpose}</p>
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            <div>
-                              <p className="text-sm text-gray-900 dark:text-white">
-                                {new Date(item.start_date).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' })}
-                              </p>
+                              <p className="font-medium text-gray-900 dark:text-white">{item.employees?.name || 'N/A'}</p>
                               <p className="text-sm text-gray-500 dark:text-gray-400">
-                                s/d {new Date(item.end_date).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' })}
+                                ID: {item.employees?.id || 'N/A'} 
+                                <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs ml-2">
+                                  {item.employees?.grade || 'N/A'}
+                                </span>
                               </p>
                             </div>
-                          </TableCell>
-                          <TableCell>
-                            {getStatusBadge(item.status)}
-                          </TableCell>
-                          <TableCell className="font-medium text-gray-900 dark:text-white">
-                            {item.estimated_budget ? formatCurrency(item.estimated_budget) : '-'}
-                          </TableCell>
-                          <TableCell>
-                            <div className="flex items-center gap-1">
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div>
+                            <p className="font-medium text-gray-900 dark:text-white">{item.employees?.position || 'N/A'}</p>
+                            <p className="text-sm text-gray-500 dark:text-gray-400">{item.employees?.department || 'N/A'}</p>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div>
+                            <p className="font-medium text-gray-900 dark:text-white">{item.destination}</p>
+                            <p className="text-sm text-gray-500 dark:text-gray-400">{item.purpose}</p>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div>
+                            <p className="text-sm text-gray-900 dark:text-white">
+                              {new Date(item.start_date).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' })}
+                            </p>
+                            <p className="text-sm text-gray-500 dark:text-gray-400">
+                              s/d {new Date(item.end_date).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' })}
+                            </p>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          {getStatusBadge(item.status)}
+                        </TableCell>
+                        <TableCell className="font-medium text-gray-900 dark:text-white">
+                          {item.estimated_budget ? formatCurrency(item.estimated_budget) : '-'}
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-1">
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              className="p-2"
+                              onClick={() => handleView(item)}
+                              title="Lihat Detail"
+                            >
+                              <Eye className="w-4 h-4" />
+                            </Button>
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              className="p-2"
+                              onClick={() => handleEdit(item)}
+                              title="Edit"
+                            >
+                              <Edit className="w-4 h-4" />
+                            </Button>
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              className="p-2 text-red-600 hover:text-red-800"
+                              onClick={() => handleDelete(item)}
+                              title="Hapus"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                            {item.status === 'Approved' && (
                               <Button 
                                 variant="ghost" 
                                 size="sm" 
-                                className="p-2"
-                                onClick={() => handleView(item)}
-                                title="Lihat Detail"
+                                className="p-2 text-green-600 hover:text-green-800"
+                                onClick={() => handleClaim(item)}
+                                title="Claim Dinas"
                               >
-                                <Eye className="w-4 h-4" />
+                                <Receipt className="w-4 h-4" />
                               </Button>
-                              <Button 
-                                variant="ghost" 
-                                size="sm" 
-                                className="p-2"
-                                onClick={() => handleEdit(item)}
-                                title="Edit"
-                              >
-                                <Edit className="w-4 h-4" />
-                              </Button>
-                              <Button 
-                                variant="ghost" 
-                                size="sm" 
-                                className="p-2 text-red-600 hover:text-red-800"
-                                onClick={() => handleDelete(item)}
-                                title="Hapus"
-                              >
-                                <Trash2 className="w-4 h-4" />
-                              </Button>
-                              {item.status === 'Approved' && (
-                                <Button 
-                                  variant="ghost" 
-                                  size="sm" 
-                                  className="p-2 text-green-600 hover:text-green-800"
-                                  onClick={() => handleClaim(item)}
-                                  title="Claim Dinas"
-                                >
-                                  <Receipt className="w-4 h-4" />
-                                </Button>
-                              )}
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                      {filteredTrips.length === 0 && !isLoading && (
-                        <TableRow>
-                          <TableCell colSpan={8} className="text-center py-8 text-gray-500">
-                            {searchTerm || statusFilter !== 'all' || departmentFilter !== 'all' 
-                              ? 'Tidak ada data yang sesuai dengan filter'
-                              : 'Belum ada data perjalanan dinas'
-                            }
-                          </TableCell>
-                        </TableRow>
-                      )}
-                    </TableBody>
-                  </Table>
-                )}
+                            )}
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                    {filteredTrips.length === 0 && (
+                      <TableRow>
+                        <TableCell colSpan={8} className="text-center py-8 text-gray-500">
+                          {searchTerm || statusFilter !== 'all' || departmentFilter !== 'all' 
+                            ? 'Tidak ada data yang sesuai dengan filter'
+                            : 'Belum ada data perjalanan dinas'
+                          }
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
               </CardContent>
             </Card>
           </main>
