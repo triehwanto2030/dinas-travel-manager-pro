@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
+import { useBusinessTrips } from '@/hooks/useBusinessTrips';
 
 const PerjalananDinas = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -19,39 +20,7 @@ const PerjalananDinas = () => {
   const [formMode, setFormMode] = useState<'create' | 'edit' | 'view'>('create');
   const [selectedData, setSelectedData] = useState<any>(null);
 
-  // Mock data - will be replaced with real data from Supabase
-  const perjalananData = [
-    {
-      id: 1,
-      employee: { name: 'Lisa Anderson', id: 'EMP006' },
-      destination: 'Malang',
-      purpose: 'Client Meeting',
-      startDate: '2025-07-06',
-      endDate: '2025-07-08',
-      budget: 1500000,
-      status: 'Approved'
-    },
-    {
-      id: 2,
-      employee: { name: 'Jesika', id: 'EMP176' },
-      destination: 'Jakarta',
-      purpose: 'Training',
-      startDate: '2025-07-04',
-      endDate: '2025-07-06',
-      budget: 2000000,
-      status: 'Approved'
-    },
-    {
-      id: 3,
-      employee: { name: 'John Doe', id: 'EMP001' },
-      destination: 'Surabaya',
-      purpose: 'Project Review',
-      startDate: '2025-07-10',
-      endDate: '2025-07-12',
-      budget: 1800000,
-      status: 'Submitted'
-    }
-  ];
+  const { data: businessTrips, isLoading } = useBusinessTrips();
 
   const getStatusBadge = (status: string) => {
     const statusConfig = {
@@ -96,6 +65,13 @@ const PerjalananDinas = () => {
     setSelectedData(item);
     setClaimFormOpen(true);
   };
+
+  // Filter business trips based on search term
+  const filteredTrips = businessTrips?.filter(trip => 
+    trip.employees.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    trip.destination.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    trip.purpose.toLowerCase().includes(searchTerm.toLowerCase())
+  ) || [];
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors w-full">
@@ -156,83 +132,96 @@ const PerjalananDinas = () => {
               </CardHeader>
               
               <CardContent>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Karyawan</TableHead>
-                      <TableHead>Tujuan</TableHead>
-                      <TableHead>Keperluan</TableHead>
-                      <TableHead>Tanggal</TableHead>
-                      <TableHead>Budget</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Aksi</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {perjalananData.map((item) => (
-                      <TableRow key={item.id}>
-                        <TableCell>
-                          <div>
-                            <p className="font-medium text-gray-900 dark:text-white">{item.employee.name}</p>
-                            <p className="text-sm text-gray-500 dark:text-gray-400">{item.employee.id}</p>
-                          </div>
-                        </TableCell>
-                        <TableCell className="font-medium text-gray-900 dark:text-white">
-                          {item.destination}
-                        </TableCell>
-                        <TableCell className="text-gray-600 dark:text-gray-400">
-                          {item.purpose}
-                        </TableCell>
-                        <TableCell>
-                          <div>
-                            <p className="text-sm text-gray-900 dark:text-white">{item.startDate}</p>
-                            <p className="text-sm text-gray-500 dark:text-gray-400">s/d {item.endDate}</p>
-                          </div>
-                        </TableCell>
-                        <TableCell className="font-medium text-gray-900 dark:text-white">
-                          {formatCurrency(item.budget)}
-                        </TableCell>
-                        <TableCell>
-                          {getStatusBadge(item.status)}
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-2">
-                            <Button 
-                              variant="ghost" 
-                              size="sm" 
-                              className="p-2"
-                              onClick={() => handleView(item)}
-                            >
-                              <Eye className="w-4 h-4" />
-                            </Button>
-                            <Button 
-                              variant="ghost" 
-                              size="sm" 
-                              className="p-2"
-                              onClick={() => handleEdit(item)}
-                            >
-                              <Edit className="w-4 h-4" />
-                            </Button>
-                            {item.status === 'Approved' && (
+                {isLoading ? (
+                  <div className="flex justify-center py-8">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                  </div>
+                ) : (
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Karyawan</TableHead>
+                        <TableHead>Tujuan</TableHead>
+                        <TableHead>Keperluan</TableHead>
+                        <TableHead>Tanggal</TableHead>
+                        <TableHead>Budget</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead>Aksi</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {filteredTrips.map((item) => (
+                        <TableRow key={item.id}>
+                          <TableCell>
+                            <div>
+                              <p className="font-medium text-gray-900 dark:text-white">{item.employees.name}</p>
+                              <p className="text-sm text-gray-500 dark:text-gray-400">{item.employees.id}</p>
+                            </div>
+                          </TableCell>
+                          <TableCell className="font-medium text-gray-900 dark:text-white">
+                            {item.destination}
+                          </TableCell>
+                          <TableCell className="text-gray-600 dark:text-gray-400">
+                            {item.purpose}
+                          </TableCell>
+                          <TableCell>
+                            <div>
+                              <p className="text-sm text-gray-900 dark:text-white">{item.start_date}</p>
+                              <p className="text-sm text-gray-500 dark:text-gray-400">s/d {item.end_date}</p>
+                            </div>
+                          </TableCell>
+                          <TableCell className="font-medium text-gray-900 dark:text-white">
+                            {item.estimated_budget ? formatCurrency(item.estimated_budget) : '-'}
+                          </TableCell>
+                          <TableCell>
+                            {getStatusBadge(item.status)}
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex items-center gap-2">
                               <Button 
                                 variant="ghost" 
                                 size="sm" 
-                                className="p-2 text-green-600 hover:text-green-800"
-                                onClick={() => handleClaim(item)}
-                                title="Claim Dinas"
+                                className="p-2"
+                                onClick={() => handleView(item)}
                               >
-                                <Receipt className="w-4 h-4" />
+                                <Eye className="w-4 h-4" />
                               </Button>
-                            )}
-                            <Button variant="ghost" size="sm" className="p-2 text-red-600 hover:text-red-800">
-                              <Trash2 className="w-4 h-4" />
-                            </Button>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+                              <Button 
+                                variant="ghost" 
+                                size="sm" 
+                                className="p-2"
+                                onClick={() => handleEdit(item)}
+                              >
+                                <Edit className="w-4 h-4" />
+                              </Button>
+                              {item.status === 'Approved' && (
+                                <Button 
+                                  variant="ghost" 
+                                  size="sm" 
+                                  className="p-2 text-green-600 hover:text-green-800"
+                                  onClick={() => handleClaim(item)}
+                                  title="Claim Dinas"
+                                >
+                                  <Receipt className="w-4 h-4" />
+                                </Button>
+                              )}
+                              <Button variant="ghost" size="sm" className="p-2 text-red-600 hover:text-red-800">
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                      {filteredTrips.length === 0 && !isLoading && (
+                        <TableRow>
+                          <TableCell colSpan={7} className="text-center py-8 text-gray-500">
+                            {searchTerm ? 'Tidak ada data yang sesuai dengan pencarian' : 'Belum ada data perjalanan dinas'}
+                          </TableCell>
+                        </TableRow>
+                      )}
+                    </TableBody>
+                  </Table>
+                )}
               </CardContent>
             </Card>
           </main>

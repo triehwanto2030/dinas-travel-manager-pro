@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -17,7 +16,9 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useEmployees } from '@/hooks/useEmployees';
 import { useLineApprovals } from '@/hooks/useLineApprovals';
 import { useCompanies } from '@/hooks/useCompanies';
+import { useCreateBusinessTrip, useUpdateBusinessTrip } from '@/hooks/useBusinessTrips';
 import { cn } from '@/lib/utils';
+import { toast } from 'sonner';
 
 const formSchema = z.object({
   employee_id: z.string().min(1, 'Pilih karyawan'),
@@ -47,9 +48,12 @@ const PerjalananDinasForm = ({ isOpen, onClose, mode, data }: PerjalananDinasFor
   const { data: employees } = useEmployees();
   const { data: lineApprovals } = useLineApprovals();
   const { data: companies } = useCompanies();
+  const createBusinessTrip = useCreateBusinessTrip();
+  const updateBusinessTrip = useUpdateBusinessTrip();
+  
   const [selectedEmployee, setSelectedEmployee] = useState<any>(null);
   const [selectedSupervisor, setSelectedSupervisor] = useState<any>(null);
-  const [approvalLine, setApprovalLine] = useState<any>(null);
+  const [approvalHierarchy, setApprovalHierarchy] = useState<any>(null);
 
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
@@ -67,22 +71,37 @@ const PerjalananDinasForm = ({ isOpen, onClose, mode, data }: PerjalananDinasFor
     },
   });
 
-  // Auto-fill supervisor and approval line when employee is selected
+  // Build approval hierarchy based on selected employee and supervisor
   useEffect(() => {
-    if (selectedEmployee && lineApprovals) {
+    if (selectedEmployee && selectedSupervisor && lineApprovals && employees) {
       const employeeApproval = lineApprovals.find(
         (approval) => approval.company_id === selectedEmployee.company_id
       );
       
       if (employeeApproval) {
-        setApprovalLine(employeeApproval);
-        // Set supervisor based on the selected employee's supervisor_id from their employee record
-        if (selectedEmployee.supervisor_id && employees) {
-          const supervisor = employees.find(emp => emp.id === selectedEmployee.supervisor_id);
-          if (supervisor) {
-            form.setValue('supervisor_id', supervisor.id);
-            setSelectedSupervisor(supervisor);
-          }
+        // Build hierarchy: Supervisor -> Staff GA -> HR Manager -> BOD -> Staff FA
+        const hierarchy = {
+          supervisor: selectedSupervisor,
+          staff_ga: employeeApproval.staff_ga_id ? employees.find(emp => emp.id === employeeApproval.staff_ga_id) : null,
+          hr_manager: employeeApproval.hr_manager_id ? employees.find(emp => emp.id === employeeApproval.hr_manager_id) : null,
+          bod: employeeApproval.bod_id ? employees.find(emp => emp.id === employeeApproval.bod_id) : null,
+          staff_fa: employeeApproval.staff_fa_id ? employees.find(emp => emp.id === employeeApproval.staff_fa_id) : null
+        };
+        
+        setApprovalHierarchy(hierarchy);
+      }
+    }
+  }, [selectedEmployee, selectedSupervisor, lineApprovals, employees]);
+
+  // Auto-fill supervisor and approval line when employee is selected
+  useEffect(() => {
+    if (selectedEmployee && employees) {
+      // Set supervisor based on the selected employee's supervisor_id
+      if (selectedEmployee.supervisor_id) {
+        const supervisor = employees.find(emp => emp.id === selectedEmployee.supervisor_id);
+        if (supervisor) {
+          form.setValue('supervisor_id', supervisor.id);
+          setSelectedSupervisor(supervisor);
         }
       }
       
@@ -94,7 +113,7 @@ const PerjalananDinasForm = ({ isOpen, onClose, mode, data }: PerjalananDinasFor
       // Set cost center from employee's company
       form.setValue('cost_center', selectedEmployee.company_id);
     }
-  }, [selectedEmployee, lineApprovals, employees, form]);
+  }, [selectedEmployee, employees, form]);
 
   // Update selected supervisor when supervisor is manually changed
   useEffect(() => {
@@ -117,11 +136,24 @@ const PerjalananDinasForm = ({ isOpen, onClose, mode, data }: PerjalananDinasFor
     form.setValue('supervisor_id', supervisorId);
   };
 
-  const onSubmit = (data: FormData) => {
-    console.log('Form data:', data);
-    console.log('Approval line:', approvalLine);
-    // Here you would typically save the data to Supabase
-    onClose();
+  const onSubmit = async (formData: FormData) => {
+    try {
+      console.log('Form data:', formData);
+      console.log('Approval hierarchy:', approvalHierarchy);
+      
+      if (mode === 'create') {
+        await createBusinessTrip.mutateAsync(formData);
+        toast.success('Perjalanan dinas berhasil dibuat dan diajukan');
+      } else if (mode === 'edit' && data?.id) {
+        await updateBusinessTrip.mutateAsync({ id: data.id, ...formData });
+        toast.success('Perjalanan dinas berhasil diupdate');
+      }
+      
+      onClose();
+    } catch (error) {
+      console.error('Error submitting form:', error);
+      toast.error(error instanceof Error ? error.message : 'Terjadi kesalahan saat menyimpan data');
+    }
   };
 
   // Filter out empty/undefined departments
@@ -529,57 +561,91 @@ const PerjalananDinasForm = ({ isOpen, onClose, mode, data }: PerjalananDinasFor
             </div>
 
             {/* Approval Line Preview */}
-            {approvalLine && (
+            {approvalHierarchy && (
               <div className="space-y-4 border-t pt-4">
                 <h3 className="text-lg font-medium text-gray-900 dark:text-white">Line Approval</h3>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  {approvalLine.staff_ga && (
+                <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+                  {approvalHierarchy.supervisor && (
+                    <div className="p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                      <p className="text-sm text-gray-600 dark:text-gray-400">Atasan</p>
+                      <div className="flex items-center gap-2 mt-2">
+                        <Avatar className="w-8 h-8">
+                          <AvatarImage src={approvalHierarchy.supervisor.avatar_url} />
+                          <AvatarFallback className="text-xs">
+                            {approvalHierarchy.supervisor.name.split(' ').map((n: string) => n[0]).join('').substring(0, 2)}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div>
+                          <p className="font-medium">{approvalHierarchy.supervisor.name}</p>
+                          <p className="text-sm text-gray-500">{approvalHierarchy.supervisor.position}</p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                  {approvalHierarchy.staff_ga && (
                     <div className="p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
                       <p className="text-sm text-gray-600 dark:text-gray-400">Staff GA</p>
                       <div className="flex items-center gap-2 mt-2">
                         <Avatar className="w-8 h-8">
-                          <AvatarImage src={approvalLine.staff_ga.avatar_url} />
+                          <AvatarImage src={approvalHierarchy.staff_ga.avatar_url} />
                           <AvatarFallback className="text-xs">
-                            {approvalLine.staff_ga.name.split(' ').map((n: string) => n[0]).join('').substring(0, 2)}
+                            {approvalHierarchy.staff_ga.name.split(' ').map((n: string) => n[0]).join('').substring(0, 2)}
                           </AvatarFallback>
                         </Avatar>
                         <div>
-                          <p className="font-medium">{approvalLine.staff_ga.name}</p>
-                          <p className="text-sm text-gray-500">{approvalLine.staff_ga.position}</p>
+                          <p className="font-medium">{approvalHierarchy.staff_ga.name}</p>
+                          <p className="text-sm text-gray-500">{approvalHierarchy.staff_ga.position}</p>
                         </div>
                       </div>
                     </div>
                   )}
-                  {approvalLine.hr_manager && (
+                  {approvalHierarchy.hr_manager && (
                     <div className="p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
                       <p className="text-sm text-gray-600 dark:text-gray-400">HR Manager</p>
                       <div className="flex items-center gap-2 mt-2">
                         <Avatar className="w-8 h-8">
-                          <AvatarImage src={approvalLine.hr_manager.avatar_url} />
+                          <AvatarImage src={approvalHierarchy.hr_manager.avatar_url} />
                           <AvatarFallback className="text-xs">
-                            {approvalLine.hr_manager.name.split(' ').map((n: string) => n[0]).join('').substring(0, 2)}
+                            {approvalHierarchy.hr_manager.name.split(' ').map((n: string) => n[0]).join('').substring(0, 2)}
                           </AvatarFallback>
                         </Avatar>
                         <div>
-                          <p className="font-medium">{approvalLine.hr_manager.name}</p>
-                          <p className="text-sm text-gray-500">{approvalLine.hr_manager.position}</p>
+                          <p className="font-medium">{approvalHierarchy.hr_manager.name}</p>
+                          <p className="text-sm text-gray-500">{approvalHierarchy.hr_manager.position}</p>
                         </div>
                       </div>
                     </div>
                   )}
-                  {approvalLine.bod && (
+                  {approvalHierarchy.bod && (
                     <div className="p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
                       <p className="text-sm text-gray-600 dark:text-gray-400">BOD</p>
                       <div className="flex items-center gap-2 mt-2">
                         <Avatar className="w-8 h-8">
-                          <AvatarImage src={approvalLine.bod.avatar_url} />
+                          <AvatarImage src={approvalHierarchy.bod.avatar_url} />
                           <AvatarFallback className="text-xs">
-                            {approvalLine.bod.name.split(' ').map((n: string) => n[0]).join('').substring(0, 2)}
+                            {approvalHierarchy.bod.name.split(' ').map((n: string) => n[0]).join('').substring(0, 2)}
                           </AvatarFallback>
                         </Avatar>
                         <div>
-                          <p className="font-medium">{approvalLine.bod.name}</p>
-                          <p className="text-sm text-gray-500">{approvalLine.bod.position}</p>
+                          <p className="font-medium">{approvalHierarchy.bod.name}</p>
+                          <p className="text-sm text-gray-500">{approvalHierarchy.bod.position}</p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                  {approvalHierarchy.staff_fa && (
+                    <div className="p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                      <p className="text-sm text-gray-600 dark:text-gray-400">Staff FA</p>
+                      <div className="flex items-center gap-2 mt-2">
+                        <Avatar className="w-8 h-8">
+                          <AvatarImage src={approvalHierarchy.staff_fa.avatar_url} />
+                          <AvatarFallback className="text-xs">
+                            {approvalHierarchy.staff_fa.name.split(' ').map((n: string) => n[0]).join('').substring(0, 2)}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div>
+                          <p className="font-medium">{approvalHierarchy.staff_fa.name}</p>
+                          <p className="text-sm text-gray-500">{approvalHierarchy.staff_fa.position}</p>
                         </div>
                       </div>
                     </div>
@@ -593,8 +659,17 @@ const PerjalananDinasForm = ({ isOpen, onClose, mode, data }: PerjalananDinasFor
               <Button type="button" variant="outline" onClick={onClose}>
                 Batal
               </Button>
-              <Button type="submit" className="bg-blue-600 hover:bg-blue-700" disabled={mode === 'view'}>
-                {mode === 'create' ? 'Simpan Perjalanan Dinas' : 'Update Perjalanan Dinas'}
+              <Button 
+                type="submit" 
+                className="bg-blue-600 hover:bg-blue-700" 
+                disabled={mode === 'view' || createBusinessTrip.isPending || updateBusinessTrip.isPending}
+              >
+                {createBusinessTrip.isPending || updateBusinessTrip.isPending 
+                  ? 'Menyimpan...' 
+                  : mode === 'create' 
+                    ? 'Simpan Perjalanan Dinas' 
+                    : 'Update Perjalanan Dinas'
+                }
               </Button>
             </div>
           </form>
