@@ -175,11 +175,33 @@ const PerjalananDinasForm = ({ isOpen, onClose, mode, data }: PerjalananDinasFor
       console.log('Form data:', formData);
       console.log('Approval hierarchy:', approvalHierarchy);
       
+      // Ensure required fields are present
+      if (!formData.employee_id || !formData.start_date || !formData.end_date) {
+        toast.error('Data yang diperlukan tidak lengkap');
+        return;
+      }
+
+      // Create properly typed business trip data
+      const businessTripData = {
+        employee_id: formData.employee_id,
+        supervisor_id: formData.supervisor_id,
+        destination: formData.destination,
+        start_date: formData.start_date,
+        end_date: formData.end_date,
+        purpose: formData.purpose,
+        accommodation: formData.accommodation,
+        transportation: formData.transportation,
+        cash_advance: formData.cash_advance,
+        cost_center: formData.cost_center,
+        department: formData.department,
+        notes: formData.notes,
+      };
+      
       if (mode === 'create') {
-        await createBusinessTrip.mutateAsync(formData);
+        await createBusinessTrip.mutateAsync(businessTripData);
         toast.success('Perjalanan dinas berhasil dibuat dan diajukan');
       } else if (mode === 'edit' && data?.id) {
-        await updateBusinessTrip.mutateAsync({ id: data.id, ...formData });
+        await updateBusinessTrip.mutateAsync({ id: data.id, ...businessTripData });
         toast.success('Perjalanan dinas berhasil diupdate');
       }
       
