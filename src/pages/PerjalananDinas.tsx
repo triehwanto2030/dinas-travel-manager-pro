@@ -11,7 +11,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useBusinessTrips, useUpdateBusinessTrip } from '@/hooks/useBusinessTrips';
+import { useBusinessTrips, useUpdateBusinessTrip, useDeleteBusinessTrip } from '@/hooks/useBusinessTrips';
 import { useToast } from '@/hooks/use-toast';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
@@ -25,9 +25,14 @@ const PerjalananDinas = () => {
   const [formMode, setFormMode] = useState<'create' | 'edit' | 'view'>('create');
   const [selectedData, setSelectedData] = useState<any>(null);
 
-  const { data: businessTrips, isLoading } = useBusinessTrips();
+  const { data: businessTrips, isLoading, error } = useBusinessTrips();
   const updateBusinessTrip = useUpdateBusinessTrip();
+  const deleteBusinessTrip = useDeleteBusinessTrip();
   const { toast } = useToast();
+
+  console.log('Business trips data in PerjalananDinas:', businessTrips);
+  console.log('Loading state:', isLoading);
+  console.log('Error state:', error);
 
   const getStatusBadge = (status: string) => {
     const statusConfig = {
@@ -86,6 +91,7 @@ const PerjalananDinas = () => {
       });
       return;
     }
+    console.log('Opening claim form for:', item);
     setSelectedData(item);
     setClaimFormOpen(true);
   };
@@ -93,7 +99,7 @@ const PerjalananDinas = () => {
   const handleDelete = async (item: any) => {
     if (window.confirm('Apakah Anda yakin ingin menghapus perjalanan dinas ini?')) {
       try {
-        // Here you would implement delete functionality
+        await deleteBusinessTrip.mutateAsync(item.id);
         toast({
           title: "Berhasil!",
           description: "Perjalanan dinas berhasil dihapus",
@@ -110,12 +116,14 @@ const PerjalananDinas = () => {
 
   // Filter business trips based on search term, status, and department
   const filteredTrips = businessTrips?.filter(trip => {
-    const matchesSearch = trip.employees?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    if (!trip.employees) return false;
+    
+    const matchesSearch = trip.employees.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          trip.destination?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          trip.purpose?.toLowerCase().includes(searchTerm.toLowerCase());
     
     const matchesStatus = statusFilter === 'all' || trip.status === statusFilter;
-    const matchesDepartment = departmentFilter === 'all' || trip.employees?.department === departmentFilter;
+    const matchesDepartment = departmentFilter === 'all' || trip.employees.department === departmentFilter;
     
     return matchesSearch && matchesStatus && matchesDepartment;
   }) || [];
@@ -124,6 +132,28 @@ const PerjalananDinas = () => {
   const departments = [...new Set(
     businessTrips?.map(trip => trip.employees?.department).filter(dept => dept && dept.trim() !== '') || []
   )];
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors w-full">
+        <Header />
+        <div className="flex w-full">
+          <Sidebar isOpen={sidebarOpen} onToggle={() => setSidebarOpen(!sidebarOpen)} />
+          <div className="flex-1 w-full">
+            <main className="p-6 w-full">
+              <div className="text-center py-8">
+                <p className="text-red-600">Error loading data: {error.message}</p>
+                <Button onClick={() => window.location.reload()} className="mt-4">
+                  Refresh Page
+                </Button>
+              </div>
+            </main>
+            <Footer />
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (isLoading) {
     return (
@@ -212,17 +242,19 @@ const PerjalananDinas = () => {
                   </Select>
 
                   {/* Department Filter */}
-                  <Select value={departmentFilter} onValueChange={setDepartmentFilter}>
-                    <SelectTrigger className="w-48">
-                      <SelectValue placeholder="Departemen" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">Semua Departemen</SelectItem>
-                      {departments.map(dept => (
-                        <SelectItem key={dept} value={dept}>{dept}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  {departments.length > 0 && (
+                    <Select value={departmentFilter} onValueChange={setDepartmentFilter}>
+                      <SelectTrigger className="w-48">
+                        <SelectValue placeholder="Departemen" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">Semua Departemen</SelectItem>
+                        {departments.map(dept => (
+                          <SelectItem key={dept} value={dept}>{dept}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
                 </div>
               </CardHeader>
               

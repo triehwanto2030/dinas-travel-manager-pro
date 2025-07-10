@@ -19,9 +19,13 @@ const ApprovalPerjalananDinas = () => {
   const [statusFilter, setStatusFilter] = useState('Submitted');
   const [departmentFilter, setDepartmentFilter] = useState('all');
 
-  const { data: businessTrips, isLoading } = useBusinessTrips();
+  const { data: businessTrips, isLoading, error } = useBusinessTrips();
   const updateBusinessTrip = useUpdateBusinessTrip();
   const { toast } = useToast();
+
+  console.log('Business trips data:', businessTrips);
+  console.log('Loading state:', isLoading);
+  console.log('Error state:', error);
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('id-ID', {
@@ -55,20 +59,10 @@ const ApprovalPerjalananDinas = () => {
 
   const handleApprove = async (item: any) => {
     try {
+      console.log('Approving trip:', item.id);
       await updateBusinessTrip.mutateAsync({
         id: item.id,
-        employee_id: item.employee_id,
-        destination: item.destination,
-        start_date: new Date(item.start_date),
-        end_date: new Date(item.end_date),
-        purpose: item.purpose,
-        accommodation: item.accommodation || '',
-        transportation: item.transportation || '',
-        cash_advance: item.estimated_budget || 0,
-        cost_center: item.company_id,
-        department: item.employees.department,
-        supervisor_id: item.employees.supervisor_id,
-        notes: item.notes
+        status: 'Approved'
       });
       
       toast({
@@ -76,6 +70,7 @@ const ApprovalPerjalananDinas = () => {
         description: "Perjalanan dinas telah disetujui",
       });
     } catch (error) {
+      console.error('Error approving trip:', error);
       toast({
         title: "Error!",
         description: "Gagal menyetujui perjalanan dinas",
@@ -86,20 +81,10 @@ const ApprovalPerjalananDinas = () => {
 
   const handleReject = async (item: any) => {
     try {
+      console.log('Rejecting trip:', item.id);
       await updateBusinessTrip.mutateAsync({
         id: item.id,
-        employee_id: item.employee_id,
-        destination: item.destination,
-        start_date: new Date(item.start_date),
-        end_date: new Date(item.end_date),
-        purpose: item.purpose,
-        accommodation: item.accommodation || '',
-        transportation: item.transportation || '',
-        cash_advance: item.estimated_budget || 0,
-        cost_center: item.company_id,
-        department: item.employees.department,
-        supervisor_id: item.employees.supervisor_id,
-        notes: item.notes
+        status: 'Rejected'
       });
       
       toast({
@@ -108,6 +93,7 @@ const ApprovalPerjalananDinas = () => {
         variant: "destructive",
       });
     } catch (error) {
+      console.error('Error rejecting trip:', error);
       toast({
         title: "Error!",
         description: "Gagal menolak perjalanan dinas",
@@ -117,15 +103,17 @@ const ApprovalPerjalananDinas = () => {
   };
 
   const handleView = (item: any) => {
-    // Show detail modal or navigate to detail page
     console.log('View item:', item);
+    // TODO: Implement view modal
   };
 
   // Filter business trips based on search term, status, and department
   const filteredTrips = businessTrips?.filter(trip => {
-    const matchesSearch = trip.employees.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         trip.destination.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         trip.purpose.toLowerCase().includes(searchTerm.toLowerCase());
+    if (!trip.employees) return false;
+    
+    const matchesSearch = trip.employees.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         trip.destination?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         trip.purpose?.toLowerCase().includes(searchTerm.toLowerCase());
     
     const matchesStatus = statusFilter === 'all' || trip.status === statusFilter;
     const matchesDepartment = departmentFilter === 'all' || trip.employees.department === departmentFilter;
@@ -133,19 +121,40 @@ const ApprovalPerjalananDinas = () => {
     return matchesSearch && matchesStatus && matchesDepartment;
   }) || [];
 
-  // Get unique departments for filter
-  const departments = [...new Set(businessTrips?.map(trip => trip.employees.department) || [])];
+  // Get unique departments for filter - filter out empty/null values
+  const departments = [...new Set(
+    businessTrips?.map(trip => trip.employees?.department).filter(dept => dept && dept.trim() !== '') || []
+  )];
 
   // Calculate stats
   const pendingCount = businessTrips?.filter(trip => trip.status === 'Submitted').length || 0;
   const approvedTodayCount = businessTrips?.filter(trip => {
     const today = new Date().toDateString();
-    return trip.status === 'Approved' && new Date(trip.updated_at).toDateString() === today;
+    return trip.status === 'Approved' && new Date(trip.updated_at || trip.created_at).toDateString() === today;
   }).length || 0;
   const rejectedTodayCount = businessTrips?.filter(trip => {
     const today = new Date().toDateString();
-    return trip.status === 'Rejected' && new Date(trip.updated_at).toDateString() === today;
+    return trip.status === 'Rejected' && new Date(trip.updated_at || trip.created_at).toDateString() === today;
   }).length || 0;
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors w-full">
+        <Header />
+        <div className="flex w-full">
+          <Sidebar isOpen={sidebarOpen} onToggle={() => setSidebarOpen(!sidebarOpen)} />
+          <div className="flex-1 w-full">
+            <main className="p-6 w-full">
+              <div className="text-center py-8">
+                <p className="text-red-600">Error loading data: {error.message}</p>
+              </div>
+            </main>
+            <Footer />
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors w-full">
@@ -287,17 +296,17 @@ const ApprovalPerjalananDinas = () => {
                           <TableCell>
                             <div className="flex items-center space-x-3">
                               <Avatar className="w-8 h-8">
-                                <AvatarImage src={item.employees.avatar_url || ''} />
+                                <AvatarImage src={item.employees?.avatar_url || ''} />
                                 <AvatarFallback className="bg-blue-100 text-blue-600 text-xs">
-                                  {item.employees.name.split(' ').map(n => n[0]).join('')}
+                                  {item.employees?.name?.split(' ').map(n => n[0]).join('') || 'N/A'}
                                 </AvatarFallback>
                               </Avatar>
                               <div>
-                                <p className="font-medium text-gray-900 dark:text-white">{item.employees.name}</p>
+                                <p className="font-medium text-gray-900 dark:text-white">{item.employees?.name || 'N/A'}</p>
                                 <p className="text-sm text-gray-500 dark:text-gray-400">
-                                  ID: {item.employees.id} 
+                                  ID: {item.employees?.id || 'N/A'} 
                                   <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs ml-2">
-                                    {item.employees.grade}
+                                    {item.employees?.grade || 'N/A'}
                                   </span>
                                 </p>
                               </div>
@@ -305,8 +314,8 @@ const ApprovalPerjalananDinas = () => {
                           </TableCell>
                           <TableCell>
                             <div>
-                              <p className="font-medium text-gray-900 dark:text-white">{item.employees.position}</p>
-                              <p className="text-sm text-gray-500 dark:text-gray-400">{item.employees.department}</p>
+                              <p className="font-medium text-gray-900 dark:text-white">{item.employees?.position || 'N/A'}</p>
+                              <p className="text-sm text-gray-500 dark:text-gray-400">{item.employees?.department || 'N/A'}</p>
                             </div>
                           </TableCell>
                           <TableCell>

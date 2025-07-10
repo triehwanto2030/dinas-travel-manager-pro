@@ -32,6 +32,8 @@ export const useBusinessTrips = () => {
   return useQuery({
     queryKey: ['business_trips'],
     queryFn: async (): Promise<BusinessTripWithRelations[]> => {
+      console.log('Fetching business trips...');
+      
       const { data, error } = await supabase
         .from('business_trips')
         .select(`
@@ -44,9 +46,11 @@ export const useBusinessTrips = () => {
         .order('created_at', { ascending: false });
 
       if (error) {
+        console.error('Error fetching business trips:', error);
         throw new Error(error.message);
       }
 
+      console.log('Business trips fetched:', data);
       return data as BusinessTripWithRelations[];
     },
   });
@@ -68,7 +72,7 @@ export const useCreateBusinessTrip = () => {
         end_date: tripData.end_date.toISOString().split('T')[0],
         purpose: tripData.purpose,
         estimated_budget: tripData.cash_advance,
-        status: 'Submitted' as any
+        status: 'Submitted' as any // Change default status to Submitted
       };
 
       const { data, error } = await supabase
@@ -101,15 +105,22 @@ export const useUpdateBusinessTrip = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ id, ...updates }: { id: string } & Partial<BusinessTripFormData>) => {
-      console.log('Updating business trip:', id, 'with data:', updates);
+    mutationFn: async ({ id, status, ...updates }: { id: string; status?: string } & Partial<BusinessTripFormData>) => {
+      console.log('Updating business trip:', id, 'with status:', status, 'and data:', updates);
       
       const updateData: TablesUpdate<'business_trips'> = {};
+      
+      // Handle status update
+      if (status) {
+        updateData.status = status as any;
+      }
+      
+      // Handle other updates
       if (updates.destination) updateData.destination = updates.destination;
       if (updates.start_date) updateData.start_date = updates.start_date.toISOString().split('T')[0];
       if (updates.end_date) updateData.end_date = updates.end_date.toISOString().split('T')[0];
       if (updates.purpose) updateData.purpose = updates.purpose;
-      if (updates.cash_advance) updateData.estimated_budget = updates.cash_advance;
+      if (updates.cash_advance !== undefined) updateData.estimated_budget = updates.cash_advance;
       if (updates.cost_center) updateData.company_id = updates.cost_center;
 
       const { data, error } = await supabase
@@ -132,6 +143,32 @@ export const useUpdateBusinessTrip = () => {
 
       console.log('Business trip updated successfully:', data);
       return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['business_trips'] });
+    },
+  });
+};
+
+export const useDeleteBusinessTrip = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (id: string) => {
+      console.log('Deleting business trip:', id);
+      
+      const { error } = await supabase
+        .from('business_trips')
+        .delete()
+        .eq('id', id);
+
+      if (error) {
+        console.error('Error deleting business trip:', error);
+        throw new Error(error.message || 'Gagal menghapus perjalanan dinas');
+      }
+
+      console.log('Business trip deleted successfully');
+      return { id };
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['business_trips'] });
