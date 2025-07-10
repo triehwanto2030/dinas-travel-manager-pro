@@ -13,6 +13,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { useToast } from '@/hooks/use-toast';
+import { useCreateTripClaim } from '@/hooks/useTripClaims';
 
 interface ClaimDinasFormProps {
   isOpen: boolean;
@@ -27,35 +28,66 @@ const ClaimDinasForm: React.FC<ClaimDinasFormProps> = ({ isOpen, onClose, tripDa
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
+  const createTripClaim = useCreateTripClaim();
 
-  // Use tripData if provided, otherwise use mock data
-  const data = tripData || {
-    employee: {
-      name: 'Lisa Anderson',
-      id: 'EMP006',
-      grade: '2A',
-      position: 'Specialist',
-      department: 'Sales',
-      company: 'PT Maju Bersama',
-      avatar: ''
-    },
-    destination: 'Malang',
-    purpose: 'Client Meeting & Presentation',
-    startDate: '06 Jul 2025',
-    endDate: '07 Jul 2025',
-    budget: 1500000
-  };
+  // Early return if form is not open
+  if (!isOpen) return null;
+
+  // Handle case when tripData is not provided or incomplete
+  if (!tripData) {
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+        <div className="bg-white rounded-lg max-w-md w-full p-6">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-semibold text-gray-900">Error</h2>
+            <Button variant="ghost" size="sm" onClick={onClose}>
+              <X className="w-5 h-5" />
+            </Button>
+          </div>
+          <p className="text-gray-600 mb-4">Data perjalanan dinas tidak ditemukan.</p>
+          <Button onClick={onClose} className="w-full">
+            Tutup
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  // Safely extract data from tripData
+  const employee = tripData.employees || {};
+  const destination = tripData.destination || 'N/A';
+  const purpose = tripData.purpose || 'N/A';
+  const startDate = tripData.start_date ? new Date(tripData.start_date).toLocaleDateString('id-ID', { 
+    day: '2-digit', 
+    month: 'short', 
+    year: 'numeric' 
+  }) : 'N/A';
+  const endDate = tripData.end_date ? new Date(tripData.end_date).toLocaleDateString('id-ID', { 
+    day: '2-digit', 
+    month: 'short', 
+    year: 'numeric' 
+  }) : 'N/A';
+  const estimatedBudget = tripData.estimated_budget || 0;
 
   // Create trip info from the data
   const tripInfo = {
-    number: `PD${new Date().getFullYear()}${String(new Date().getMonth() + 1).padStart(2, '0')}${String(new Date().getDate()).padStart(2, '0')}01`,
-    destination: data.destination,
-    purpose: data.purpose,
-    startDate: data.startDate,
-    endDate: data.endDate,
-    duration: '1 hari',
-    cashAdvance: data.budget || 1500000
+    number: `PD${new Date(tripData.created_at).getFullYear()}${String(new Date(tripData.created_at).getMonth() + 1).padStart(2, '0')}${String(new Date(tripData.created_at).getDate()).padStart(2, '0')}01`,
+    destination: destination,
+    purpose: purpose,
+    startDate: startDate,
+    endDate: endDate,
+    duration: calculateDuration(tripData.start_date, tripData.end_date),
+    cashAdvance: estimatedBudget
   };
+
+  function calculateDuration(start: string, end: string): string {
+    if (!start || !end) return '0 hari';
+    const startDate = new Date(start);
+    const endDate = new Date(end);
+    const diffTime = Math.abs(endDate.getTime() - startDate.getTime());
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    return `${diffDays} hari`;
+  }
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('id-ID', {
@@ -91,15 +123,45 @@ const ClaimDinasForm: React.FC<ClaimDinasFormProps> = ({ isOpen, onClose, tripDa
   const totalExpenses = expenses.reduce((sum, expense) => sum + (expense.amount || 0), 0);
   const remaining = tripInfo.cashAdvance - totalExpenses;
 
-  const handleSubmit = () => {
-    toast({
-      title: "Berhasil!",
-      description: "Claim dinas berhasil diajukan dan akan masuk ke proses approval",
-    });
-    onClose();
-  };
+  const handleSubmit = async () => {
+    try {
+      // Validate expenses
+      const validExpenses = expenses.filter(exp => exp.type && exp.description && exp.amount > 0);
+      
+      if (validExpenses.length === 0) {
+        toast({
+          title: "Error!",
+          description: "Minimal harus ada satu pengeluaran yang valid",
+          variant: "destructive",
+        });
+        return;
+      }
 
-  if (!isOpen) return null;
+      // Create claim data
+      const claimData = {
+        employee_id: tripData.employee_id,
+        trip_id: tripData.id,
+        total_amount: totalExpenses,
+        status: 'Submitted' as const,
+        submitted_at: new Date().toISOString()
+      };
+
+      await createTripClaim.mutateAsync(claimData);
+
+      toast({
+        title: "Berhasil!",
+        description: "Claim dinas berhasil diajukan dan akan masuk ke proses approval",
+      });
+      onClose();
+    } catch (error) {
+      console.error('Error creating claim:', error);
+      toast({
+        title: "Error!",
+        description: "Gagal mengajukan claim dinas",
+        variant: "destructive",
+      });
+    }
+  };
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
@@ -125,31 +187,38 @@ const ClaimDinasForm: React.FC<ClaimDinasFormProps> = ({ isOpen, onClose, tripDa
                   <h3 className="font-medium text-gray-900 mb-4">Informasi Karyawan</h3>
                   <div className="flex items-center space-x-4 mb-4">
                     <Avatar className="w-16 h-16">
-                      <AvatarImage src={data.employee.avatar} />
-                      <AvatarFallback>{data.employee.name.split(' ').map((n: string) => n[0]).join('')}</AvatarFallback>
+                      <AvatarImage src={employee.avatar_url || ''} />
+                      <AvatarFallback>
+                        {employee.name ? employee.name.split(' ').map((n: string) => n[0]).join('').substring(0, 2) : 'N/A'}
+                      </AvatarFallback>
                     </Avatar>
                     <div>
-                      <h4 className="font-medium text-gray-900">{data.employee.name}</h4>
-                      <p className="text-sm text-gray-500">NIK: {data.employee.id} <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs ml-2">{data.employee.grade}</span></p>
+                      <h4 className="font-medium text-gray-900">{employee.name || 'N/A'}</h4>
+                      <p className="text-sm text-gray-500">
+                        NIK: {employee.id || 'N/A'} 
+                        <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs ml-2">
+                          {employee.grade || 'N/A'}
+                        </span>
+                      </p>
                     </div>
                   </div>
                   
                   <div className="grid grid-cols-2 gap-4 text-sm">
                     <div>
                       <p className="text-gray-500">Grade:</p>
-                      <p className="font-medium">{data.employee.grade}</p>
+                      <p className="font-medium">{employee.grade || 'N/A'}</p>
                     </div>
                     <div>
                       <p className="text-gray-500">Jabatan:</p>
-                      <p className="font-medium">{data.employee.position}</p>
+                      <p className="font-medium">{employee.position || 'N/A'}</p>
                     </div>
                     <div>
                       <p className="text-gray-500">Departemen:</p>
-                      <p className="font-medium">{data.employee.department}</p>
+                      <p className="font-medium">{employee.department || 'N/A'}</p>
                     </div>
                     <div>
                       <p className="text-gray-500">Cost Center:</p>
-                      <p className="font-medium">{data.employee.company} - {data.employee.department}</p>
+                      <p className="font-medium">{employee.companies?.name || 'N/A'} - {employee.department || 'N/A'}</p>
                     </div>
                   </div>
                 </CardContent>
@@ -353,8 +422,12 @@ const ClaimDinasForm: React.FC<ClaimDinasFormProps> = ({ isOpen, onClose, tripDa
           <Button variant="outline" onClick={onClose}>
             Batal
           </Button>
-          <Button onClick={handleSubmit} className="bg-blue-600 hover:bg-blue-700">
-            Ajukan Claim
+          <Button 
+            onClick={handleSubmit} 
+            className="bg-blue-600 hover:bg-blue-700"
+            disabled={createTripClaim.isPending}
+          >
+            {createTripClaim.isPending ? 'Mengajukan...' : 'Ajukan Claim'}
           </Button>
         </div>
       </div>

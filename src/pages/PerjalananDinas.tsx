@@ -91,7 +91,7 @@ const PerjalananDinas = () => {
       });
       return;
     }
-    console.log('Opening claim form for:', item);
+    console.log('Opening claim form for trip:', item);
     setSelectedData(item);
     setClaimFormOpen(true);
   };
