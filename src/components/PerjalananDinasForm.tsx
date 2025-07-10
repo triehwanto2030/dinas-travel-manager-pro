@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -16,7 +17,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useEmployees } from '@/hooks/useEmployees';
 import { useLineApprovals } from '@/hooks/useLineApprovals';
 import { useCompanies } from '@/hooks/useCompanies';
-import { useCreateBusinessTrip, useUpdateBusinessTrip } from '@/hooks/useBusinessTrips';
+import { useCreateBusinessTrip, useUpdateBusinessTrip, BusinessTripWithRelations } from '@/hooks/useBusinessTrips';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 
@@ -41,7 +42,7 @@ interface PerjalananDinasFormProps {
   isOpen: boolean;
   onClose: () => void;
   mode: 'create' | 'edit' | 'view';
-  data?: any;
+  data?: BusinessTripWithRelations;
 }
 
 const PerjalananDinasForm = ({ isOpen, onClose, mode, data }: PerjalananDinasFormProps) => {
@@ -70,6 +71,39 @@ const PerjalananDinasForm = ({ isOpen, onClose, mode, data }: PerjalananDinasFor
       notes: '',
     },
   });
+
+  // Populate form when in edit mode
+  useEffect(() => {
+    if (mode === 'edit' && data && employees) {
+      const employee = employees.find(emp => emp.id === data.employee_id);
+      if (employee) {
+        setSelectedEmployee(employee);
+        form.setValue('employee_id', data.employee_id);
+        form.setValue('destination', data.destination);
+        form.setValue('start_date', new Date(data.start_date));
+        form.setValue('end_date', new Date(data.end_date));
+        form.setValue('purpose', data.purpose);
+        form.setValue('cost_center', data.company_id);
+        form.setValue('cash_advance', data.estimated_budget || 0);
+        
+        // Set accommodation and transportation to default values if not available
+        form.setValue('accommodation', 'hotel');
+        form.setValue('transportation', 'flight');
+        
+        if (employee.department) {
+          form.setValue('department', employee.department);
+        }
+        
+        if (employee.supervisor_id) {
+          const supervisor = employees.find(emp => emp.id === employee.supervisor_id);
+          if (supervisor) {
+            setSelectedSupervisor(supervisor);
+            form.setValue('supervisor_id', supervisor.id);
+          }
+        }
+      }
+    }
+  }, [mode, data, employees, form]);
 
   // Build approval hierarchy based on selected employee and supervisor
   useEffect(() => {
@@ -192,7 +226,7 @@ const PerjalananDinasForm = ({ isOpen, onClose, mode, data }: PerjalananDinasFor
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Pilih Karyawan *</FormLabel>
-                      <Select onValueChange={handleEmployeeChange} value={field.value}>
+                      <Select onValueChange={handleEmployeeChange} value={field.value} disabled={mode === 'view'}>
                         <FormControl>
                           <SelectTrigger>
                             <SelectValue placeholder="Pilih karyawan" />
@@ -239,7 +273,7 @@ const PerjalananDinasForm = ({ isOpen, onClose, mode, data }: PerjalananDinasFor
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Supervisor/Atasan *</FormLabel>
-                      <Select onValueChange={handleSupervisorChange} value={field.value}>
+                      <Select onValueChange={handleSupervisorChange} value={field.value} disabled={mode === 'view'}>
                         <FormControl>
                           <SelectTrigger>
                             <SelectValue placeholder="Pilih supervisor/atasan" />
@@ -297,7 +331,7 @@ const PerjalananDinasForm = ({ isOpen, onClose, mode, data }: PerjalananDinasFor
                     <FormItem>
                       <FormLabel>Tujuan *</FormLabel>
                       <FormControl>
-                        <Input placeholder="Contoh: Jakarta, Surabaya, Bali" {...field} />
+                        <Input placeholder="Contoh: Jakarta, Surabaya, Bali" {...field} readOnly={mode === 'view'} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -320,6 +354,7 @@ const PerjalananDinasForm = ({ isOpen, onClose, mode, data }: PerjalananDinasFor
                                   "w-full pl-3 text-left font-normal",
                                   !field.value && "text-muted-foreground"
                                 )}
+                                disabled={mode === 'view'}
                               >
                                 {field.value ? (
                                   format(field.value, "dd/MM/yyyy")
@@ -361,6 +396,7 @@ const PerjalananDinasForm = ({ isOpen, onClose, mode, data }: PerjalananDinasFor
                                   "w-full pl-3 text-left font-normal",
                                   !field.value && "text-muted-foreground"
                                 )}
+                                disabled={mode === 'view'}
                               >
                                 {field.value ? (
                                   format(field.value, "dd/MM/yyyy")
@@ -399,6 +435,7 @@ const PerjalananDinasForm = ({ isOpen, onClose, mode, data }: PerjalananDinasFor
                           placeholder="Jelaskan tujuan perjalanan dinas..."
                           className="min-h-[80px]"
                           {...field}
+                          readOnly={mode === 'view'}
                         />
                       </FormControl>
                       <FormMessage />
@@ -412,7 +449,7 @@ const PerjalananDinasForm = ({ isOpen, onClose, mode, data }: PerjalananDinasFor
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Akomodasi *</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value}>
+                      <Select onValueChange={field.onChange} value={field.value} disabled={mode === 'view'}>
                         <FormControl>
                           <SelectTrigger>
                             <SelectValue placeholder="Pilih jenis akomodasi..." />
@@ -436,7 +473,7 @@ const PerjalananDinasForm = ({ isOpen, onClose, mode, data }: PerjalananDinasFor
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Transportasi *</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value}>
+                      <Select onValueChange={field.onChange} value={field.value} disabled={mode === 'view'}>
                         <FormControl>
                           <SelectTrigger>
                             <SelectValue placeholder="Pilih jenis transportasi..." />
@@ -483,6 +520,7 @@ const PerjalananDinasForm = ({ isOpen, onClose, mode, data }: PerjalananDinasFor
                             field.onChange(parseInt(value) || 0);
                           }}
                           value={field.value ? `Rp ${field.value.toLocaleString('id-ID')}` : ''}
+                          readOnly={mode === 'view'}
                         />
                       </FormControl>
                       <FormMessage />
@@ -496,7 +534,7 @@ const PerjalananDinasForm = ({ isOpen, onClose, mode, data }: PerjalananDinasFor
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Cost Center *</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value}>
+                      <Select onValueChange={field.onChange} value={field.value} disabled={mode === 'view'}>
                         <FormControl>
                           <SelectTrigger>
                             <SelectValue placeholder="Pilih perusahaan..." />
@@ -521,7 +559,7 @@ const PerjalananDinasForm = ({ isOpen, onClose, mode, data }: PerjalananDinasFor
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Departemen *</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value}>
+                      <Select onValueChange={field.onChange} value={field.value} disabled={mode === 'view'}>
                         <FormControl>
                           <SelectTrigger>
                             <SelectValue placeholder="Pilih departemen..." />
@@ -552,6 +590,7 @@ const PerjalananDinasForm = ({ isOpen, onClose, mode, data }: PerjalananDinasFor
                         placeholder="Catatan atau informasi tambahan..."
                         className="min-h-[80px]"
                         {...field}
+                        readOnly={mode === 'view'}
                       />
                     </FormControl>
                     <FormMessage />
@@ -659,18 +698,20 @@ const PerjalananDinasForm = ({ isOpen, onClose, mode, data }: PerjalananDinasFor
               <Button type="button" variant="outline" onClick={onClose}>
                 Batal
               </Button>
-              <Button 
-                type="submit" 
-                className="bg-blue-600 hover:bg-blue-700" 
-                disabled={mode === 'view' || createBusinessTrip.isPending || updateBusinessTrip.isPending}
-              >
-                {createBusinessTrip.isPending || updateBusinessTrip.isPending 
-                  ? 'Menyimpan...' 
-                  : mode === 'create' 
-                    ? 'Simpan Perjalanan Dinas' 
-                    : 'Update Perjalanan Dinas'
-                }
-              </Button>
+              {mode !== 'view' && (
+                <Button 
+                  type="submit" 
+                  className="bg-blue-600 hover:bg-blue-700" 
+                  disabled={createBusinessTrip.isPending || updateBusinessTrip.isPending}
+                >
+                  {createBusinessTrip.isPending || updateBusinessTrip.isPending 
+                    ? 'Menyimpan...' 
+                    : mode === 'create' 
+                      ? 'Simpan Perjalanan Dinas' 
+                      : 'Update Perjalanan Dinas'
+                  }
+                </Button>
+              )}
             </div>
           </form>
         </Form>
