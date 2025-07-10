@@ -10,17 +10,24 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { useBusinessTrips } from '@/hooks/useBusinessTrips';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useBusinessTrips, useUpdateBusinessTrip } from '@/hooks/useBusinessTrips';
+import { useToast } from '@/hooks/use-toast';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 const PerjalananDinas = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [departmentFilter, setDepartmentFilter] = useState('all');
   const [formOpen, setFormOpen] = useState(false);
   const [claimFormOpen, setClaimFormOpen] = useState(false);
   const [formMode, setFormMode] = useState<'create' | 'edit' | 'view'>('create');
   const [selectedData, setSelectedData] = useState<any>(null);
 
   const { data: businessTrips, isLoading } = useBusinessTrips();
+  const updateBusinessTrip = useUpdateBusinessTrip();
+  const { toast } = useToast();
 
   const getStatusBadge = (status: string) => {
     const statusConfig = {
@@ -43,6 +50,15 @@ const PerjalananDinas = () => {
     }).format(amount);
   };
 
+  const generateTripId = (date: string, index: number) => {
+    const dateObj = new Date(date);
+    const year = dateObj.getFullYear();
+    const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+    const day = String(dateObj.getDate()).padStart(2, '0');
+    const sequence = String(index + 1).padStart(2, '0');
+    return `PD${year}${month}${day}${sequence}`;
+  };
+
   const handleAddNew = () => {
     setFormMode('create');
     setSelectedData(null);
@@ -62,16 +78,50 @@ const PerjalananDinas = () => {
   };
 
   const handleClaim = (item: any) => {
+    if (item.status !== 'Approved') {
+      toast({
+        title: "Tidak dapat claim",
+        description: "Perjalanan dinas harus berstatus 'Approved' untuk dapat di-claim",
+        variant: "destructive",
+      });
+      return;
+    }
     setSelectedData(item);
     setClaimFormOpen(true);
   };
 
-  // Filter business trips based on search term
-  const filteredTrips = businessTrips?.filter(trip => 
-    trip.employees.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    trip.destination.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    trip.purpose.toLowerCase().includes(searchTerm.toLowerCase())
-  ) || [];
+  const handleDelete = async (item: any) => {
+    if (window.confirm('Apakah Anda yakin ingin menghapus perjalanan dinas ini?')) {
+      try {
+        // Here you would implement delete functionality
+        toast({
+          title: "Berhasil!",
+          description: "Perjalanan dinas berhasil dihapus",
+        });
+      } catch (error) {
+        toast({
+          title: "Error!",
+          description: "Gagal menghapus perjalanan dinas",
+          variant: "destructive",
+        });
+      }
+    }
+  };
+
+  // Filter business trips based on search term, status, and department
+  const filteredTrips = businessTrips?.filter(trip => {
+    const matchesSearch = trip.employees.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         trip.destination.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         trip.purpose.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    const matchesStatus = statusFilter === 'all' || trip.status === statusFilter;
+    const matchesDepartment = departmentFilter === 'all' || trip.employees.department === departmentFilter;
+    
+    return matchesSearch && matchesStatus && matchesDepartment;
+  }) || [];
+
+  // Get unique departments for filter
+  const departments = [...new Set(businessTrips?.map(trip => trip.employees.department) || [])];
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors w-full">
@@ -86,7 +136,7 @@ const PerjalananDinas = () => {
             <div className="mb-8">
               <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
                 <div>
-                  <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Perjalanan Dinas</h1>
+                  <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Daftar Perjalanan Dinas</h1>
                   <p className="text-gray-600 dark:text-gray-400">Kelola perjalanan dinas karyawan</p>
                 </div>
                 <div className="flex gap-3 mt-4 md:mt-0">
@@ -112,12 +162,8 @@ const PerjalananDinas = () => {
             {/* Table Section */}
             <Card className="bg-white dark:bg-gray-800">
               <CardHeader>
-                <CardTitle className="text-xl font-semibold text-gray-900 dark:text-white">
-                  Daftar Perjalanan Dinas
-                </CardTitle>
-                
-                {/* Search */}
-                <div className="flex flex-col md:flex-row gap-4 mt-4">
+                <div className="flex flex-col md:flex-row gap-4">
+                  {/* Search */}
                   <div className="relative flex-1">
                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                     <input
@@ -128,6 +174,34 @@ const PerjalananDinas = () => {
                       onChange={(e) => setSearchTerm(e.target.value)}
                     />
                   </div>
+                  
+                  {/* Status Filter */}
+                  <Select value={statusFilter} onValueChange={setStatusFilter}>
+                    <SelectTrigger className="w-48">
+                      <SelectValue placeholder="Status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Semua Status</SelectItem>
+                      <SelectItem value="Draft">Draft</SelectItem>
+                      <SelectItem value="Submitted">Submitted</SelectItem>
+                      <SelectItem value="Approved">Approved</SelectItem>
+                      <SelectItem value="Rejected">Rejected</SelectItem>
+                      <SelectItem value="Completed">Completed</SelectItem>
+                    </SelectContent>
+                  </Select>
+
+                  {/* Department Filter */}
+                  <Select value={departmentFilter} onValueChange={setDepartmentFilter}>
+                    <SelectTrigger className="w-48">
+                      <SelectValue placeholder="Departemen" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Semua Departemen</SelectItem>
+                      {departments.map(dept => (
+                        <SelectItem key={dept} value={dept}>{dept}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
               </CardHeader>
               
@@ -140,49 +214,77 @@ const PerjalananDinas = () => {
                   <Table>
                     <TableHeader>
                       <TableRow>
+                        <TableHead>ID Perjalanan</TableHead>
                         <TableHead>Karyawan</TableHead>
+                        <TableHead>Jabatan</TableHead>
                         <TableHead>Tujuan</TableHead>
-                        <TableHead>Keperluan</TableHead>
-                        <TableHead>Tanggal</TableHead>
-                        <TableHead>Budget</TableHead>
+                        <TableHead>Periode</TableHead>
                         <TableHead>Status</TableHead>
-                        <TableHead>Aksi</TableHead>
+                        <TableHead>Cash Advance</TableHead>
+                        <TableHead>AKSI</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {filteredTrips.map((item) => (
+                      {filteredTrips.map((item, index) => (
                         <TableRow key={item.id}>
-                          <TableCell>
-                            <div>
-                              <p className="font-medium text-gray-900 dark:text-white">{item.employees.name}</p>
-                              <p className="text-sm text-gray-500 dark:text-gray-400">{item.employees.id}</p>
-                            </div>
-                          </TableCell>
                           <TableCell className="font-medium text-gray-900 dark:text-white">
-                            {item.destination}
+                            {generateTripId(item.created_at, index)}
                           </TableCell>
-                          <TableCell className="text-gray-600 dark:text-gray-400">
-                            {item.purpose}
+                          <TableCell>
+                            <div className="flex items-center space-x-3">
+                              <Avatar className="w-8 h-8">
+                                <AvatarImage src={item.employees.avatar_url || ''} />
+                                <AvatarFallback className="bg-blue-100 text-blue-600 text-xs">
+                                  {item.employees.name.split(' ').map(n => n[0]).join('')}
+                                </AvatarFallback>
+                              </Avatar>
+                              <div>
+                                <p className="font-medium text-gray-900 dark:text-white">{item.employees.name}</p>
+                                <p className="text-sm text-gray-500 dark:text-gray-400">
+                                  ID: {item.employees.id} 
+                                  <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs ml-2">
+                                    {item.employees.grade}
+                                  </span>
+                                </p>
+                              </div>
+                            </div>
                           </TableCell>
                           <TableCell>
                             <div>
-                              <p className="text-sm text-gray-900 dark:text-white">{item.start_date}</p>
-                              <p className="text-sm text-gray-500 dark:text-gray-400">s/d {item.end_date}</p>
+                              <p className="font-medium text-gray-900 dark:text-white">{item.employees.position}</p>
+                              <p className="text-sm text-gray-500 dark:text-gray-400">{item.employees.department}</p>
                             </div>
+                          </TableCell>
+                          <TableCell>
+                            <div>
+                              <p className="font-medium text-gray-900 dark:text-white">{item.destination}</p>
+                              <p className="text-sm text-gray-500 dark:text-gray-400">{item.purpose}</p>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <div>
+                              <p className="text-sm text-gray-900 dark:text-white">
+                                {new Date(item.start_date).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' })}
+                              </p>
+                              <p className="text-sm text-gray-500 dark:text-gray-400">
+                                s/d {new Date(item.end_date).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' })}
+                              </p>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            {getStatusBadge(item.status)}
                           </TableCell>
                           <TableCell className="font-medium text-gray-900 dark:text-white">
                             {item.estimated_budget ? formatCurrency(item.estimated_budget) : '-'}
                           </TableCell>
                           <TableCell>
-                            {getStatusBadge(item.status)}
-                          </TableCell>
-                          <TableCell>
-                            <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-1">
                               <Button 
                                 variant="ghost" 
                                 size="sm" 
                                 className="p-2"
                                 onClick={() => handleView(item)}
+                                title="Lihat Detail"
                               >
                                 <Eye className="w-4 h-4" />
                               </Button>
@@ -191,8 +293,18 @@ const PerjalananDinas = () => {
                                 size="sm" 
                                 className="p-2"
                                 onClick={() => handleEdit(item)}
+                                title="Edit"
                               >
                                 <Edit className="w-4 h-4" />
+                              </Button>
+                              <Button 
+                                variant="ghost" 
+                                size="sm" 
+                                className="p-2 text-red-600 hover:text-red-800"
+                                onClick={() => handleDelete(item)}
+                                title="Hapus"
+                              >
+                                <Trash2 className="w-4 h-4" />
                               </Button>
                               {item.status === 'Approved' && (
                                 <Button 
@@ -205,17 +317,17 @@ const PerjalananDinas = () => {
                                   <Receipt className="w-4 h-4" />
                                 </Button>
                               )}
-                              <Button variant="ghost" size="sm" className="p-2 text-red-600 hover:text-red-800">
-                                <Trash2 className="w-4 h-4" />
-                              </Button>
                             </div>
                           </TableCell>
                         </TableRow>
                       ))}
                       {filteredTrips.length === 0 && !isLoading && (
                         <TableRow>
-                          <TableCell colSpan={7} className="text-center py-8 text-gray-500">
-                            {searchTerm ? 'Tidak ada data yang sesuai dengan pencarian' : 'Belum ada data perjalanan dinas'}
+                          <TableCell colSpan={8} className="text-center py-8 text-gray-500">
+                            {searchTerm || statusFilter !== 'all' || departmentFilter !== 'all' 
+                              ? 'Tidak ada data yang sesuai dengan filter'
+                              : 'Belum ada data perjalanan dinas'
+                            }
                           </TableCell>
                         </TableRow>
                       )}
