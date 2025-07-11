@@ -1,7 +1,6 @@
 
-
 import React, { useState } from 'react';
-import { Search, Plus, Eye, Edit, Trash2, Calendar, MapPin, User, Building, FileText } from 'lucide-react';
+import { Search, Plus, Eye, Edit, Trash2, Calendar, MapPin, User, Building } from 'lucide-react';
 import Header from '@/components/Header';
 import Sidebar from '@/components/Sidebar';
 import Footer from '@/components/Footer';
@@ -124,33 +123,6 @@ const PerjalananDinas = () => {
     }
   };
 
-  const handleCreateClaim = (item: any) => {
-    Swal.fire({
-      title: 'Buat Klaim Perjalanan Dinas',
-      text: `Apakah Anda ingin membuat klaim untuk perjalanan dinas ke ${item.destination}?`,
-      icon: 'question',
-      showCancelButton: true,
-      confirmButtonColor: '#3b82f6',
-      cancelButtonColor: '#6b7280',
-      confirmButtonText: 'Ya, Buat Klaim!',
-      cancelButtonText: 'Batal'
-    }).then((result) => {
-      if (result.isConfirmed) {
-        // Navigate to claim form or open claim dialog
-        // You can implement this based on your routing structure
-        window.location.href = '/claim-dinas';
-        
-        Swal.fire({
-          title: 'Berhasil!',
-          text: 'Mengarahkan ke halaman klaim...',
-          icon: 'success',
-          timer: 1500,
-          showConfirmButton: false
-        });
-      }
-    });
-  };
-
   // Filter business trips - only show approved, rejected, or completed
   const filteredTrips = businessTrips?.filter(trip => {
     if (!trip.employees) return false;
@@ -238,20 +210,18 @@ const PerjalananDinas = () => {
                       Tambah Perjalanan Dinas
                     </Button>
                   </DialogTrigger>
-                  <DialogContent className="max-w-6xl max-h-[95vh] overflow-hidden">
+                  <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
                     <DialogHeader>
                       <DialogTitle>
                         {editingTrip ? 'Edit Perjalanan Dinas' : 'Tambah Perjalanan Dinas Baru'}
                       </DialogTitle>
                     </DialogHeader>
-                    <div className="overflow-y-auto max-h-[85vh] px-1">
-                      <PerjalananDinasForm 
-                        isOpen={isDialogOpen}
-                        onClose={() => setIsDialogOpen(false)}
-                        mode={editingTrip ? 'edit' : 'create'}
-                        data={editingTrip}
-                      />
-                    </div>
+                    <PerjalananDinasForm 
+                      isOpen={isDialogOpen}
+                      onClose={() => setIsDialogOpen(false)}
+                      mode={editingTrip ? 'edit' : 'create'}
+                      data={editingTrip}
+                    />
                   </DialogContent>
                 </Dialog>
               </div>
@@ -442,17 +412,6 @@ const PerjalananDinas = () => {
                               >
                                 <Edit className="w-4 h-4" />
                               </Button>
-                              {(item.status === 'Approved' || item.status === 'Completed') && (
-                                <Button 
-                                  variant="ghost" 
-                                  size="sm" 
-                                  className="p-2 text-green-600 hover:text-green-800"
-                                  onClick={() => handleCreateClaim(item)}
-                                  title="Buat Klaim"
-                                >
-                                  <FileText className="w-4 h-4" />
-                                </Button>
-                              )}
                               <Button 
                                 variant="ghost" 
                                 size="sm" 
@@ -502,4 +461,3 @@ const PerjalananDinas = () => {
 };
 
 export default PerjalananDinas;
-
