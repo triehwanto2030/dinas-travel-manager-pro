@@ -1,16 +1,19 @@
 
 import React from 'react';
-import { Home, Plane, Users, Building, ChevronDown, ChevronRight, FileText, UserCheck, Settings, Circle, CheckSquare, Receipt } from 'lucide-react';
+import { Home, Plane, Users, Building, ChevronDown, ChevronRight, FileText, UserCheck, Settings, Circle, CheckSquare, Receipt, ChevronLeft } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { useState } from 'react';
+import { Button } from '@/components/ui/button';
 
 interface SidebarProps {
   isOpen: boolean;
   onToggle: () => void;
+  isCollapsed?: boolean;
+  onToggleCollapse?: () => void;
 }
 
-const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle }) => {
+const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle, isCollapsed = false, onToggleCollapse }) => {
   const location = useLocation();
   const [isDinasOpen, setIsDinasOpen] = useState(true);
   const [isMasterDataOpen, setIsMasterDataOpen] = useState(true);
@@ -99,144 +102,246 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle }) => {
       
       {/* Sidebar */}
       <div className={`
-        fixed lg:relative inset-y-0 left-0 z-30 w-64 bg-white dark:bg-gray-800 
-        transform transition-transform duration-300 ease-in-out border-r border-gray-200 dark:border-gray-700
+        fixed lg:relative inset-y-0 left-0 z-30 bg-white dark:bg-gray-800 
+        transform transition-all duration-300 ease-in-out border-r border-gray-200 dark:border-gray-700
         ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
+        ${isCollapsed ? 'w-16' : 'w-64'}
       `}>
         <div className="flex flex-col h-full">
           {/* Logo */}
-          <div className="flex items-center justify-center h-16 px-4 border-b border-gray-200 dark:border-gray-700">
-            <div className="flex items-center gap-2">
+          <div className="flex items-center justify-between h-16 px-4 border-b border-gray-200 dark:border-gray-700">
+            <div className={`flex items-center gap-2 ${isCollapsed ? 'justify-center' : ''}`}>
               <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
                 <Plane className="w-5 h-5 text-white" />
               </div>
-              <div>
-                <h1 className="text-lg font-bold text-gray-900 dark:text-white">Travel Pro</h1>
-                <p className="text-xs text-gray-500 dark:text-gray-400">Perjalanan Dinas</p>
-              </div>
+              {!isCollapsed && (
+                <div>
+                  <h1 className="text-lg font-bold text-gray-900 dark:text-white">Travel Pro</h1>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">Perjalanan Dinas</p>
+                </div>
+              )}
             </div>
+            {!isCollapsed && onToggleCollapse && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={onToggleCollapse}
+                className="hidden lg:flex rounded-full p-1 h-8 w-8"
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </Button>
+            )}
           </div>
 
           {/* Navigation */}
-          <nav className="flex-1 px-4 py-6 overflow-y-auto">
+          <nav className="flex-1 px-2 py-6 overflow-y-auto">
             <ul className="space-y-2">
               {/* Dashboard */}
               {menuItems.map((item) => (
                 <li key={item.path}>
                   <Link
                     to={item.path}
-                    className={`flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors ${
+                    className={`flex items-center px-3 py-3 text-sm font-medium rounded-lg transition-colors ${
                       item.isActive
                         ? 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-200'
                         : 'text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700'
-                    }`}
+                    } ${isCollapsed ? 'justify-center' : ''}`}
                     onClick={() => window.innerWidth < 1024 && onToggle()}
+                    title={isCollapsed ? item.label : ''}
                   >
-                    <item.icon className="w-5 h-5 mr-3" />
-                    {item.label}
+                    <item.icon className={`w-5 h-5 ${isCollapsed ? '' : 'mr-3'}`} />
+                    {!isCollapsed && item.label}
                   </Link>
                 </li>
               ))}
 
               {/* Dinas */}
               <li>
-                <Collapsible open={isDinasOpen} onOpenChange={setIsDinasOpen}>
-                  <CollapsibleTrigger className="flex items-center justify-between w-full px-4 py-3 text-sm font-medium text-gray-700 rounded-lg hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700 transition-colors">
+                <Collapsible open={isDinasOpen && !isCollapsed} onOpenChange={setIsDinasOpen}>
+                  <CollapsibleTrigger className={`flex items-center justify-between w-full px-3 py-3 text-sm font-medium text-gray-700 rounded-lg hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700 transition-colors ${isCollapsed ? 'justify-center' : ''}`}>
                     <div className="flex items-center">
-                      <Plane className="w-5 h-5 mr-3" />
-                      Dinas
+                      <Plane className={`w-5 h-5 ${isCollapsed ? '' : 'mr-3'}`} />
+                      {!isCollapsed && 'Dinas'}
                     </div>
-                    {isDinasOpen ? (
-                      <ChevronDown className="w-4 h-4" />
-                    ) : (
-                      <ChevronRight className="w-4 h-4" />
+                    {!isCollapsed && (
+                      isDinasOpen ? (
+                        <ChevronDown className="w-4 h-4" />
+                      ) : (
+                        <ChevronRight className="w-4 h-4" />
+                      )
                     )}
                   </CollapsibleTrigger>
-                  <CollapsibleContent className="ml-8 mt-2 space-y-2">
+                  {!isCollapsed && (
+                    <CollapsibleContent className="ml-8 mt-2 space-y-2">
+                      {dinasSubmenu.map((subItem) => (
+                        <Link
+                          key={subItem.path}
+                          to={subItem.path}
+                          className={`flex items-center px-4 py-2 text-sm rounded-lg transition-colors ${
+                            subItem.isActive
+                              ? 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-200'
+                              : 'text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700'
+                          }`}
+                          onClick={() => window.innerWidth < 1024 && onToggle()}
+                        >
+                          <subItem.icon className="w-4 h-4 mr-3" />
+                          {subItem.label}
+                        </Link>
+                      ))}
+                    </CollapsibleContent>
+                  )}
+                </Collapsible>
+
+                {/* Collapsed menu items */}
+                {isCollapsed && (
+                  <div className="mt-2 space-y-1">
                     {dinasSubmenu.map((subItem) => (
                       <Link
                         key={subItem.path}
                         to={subItem.path}
-                        className={`flex items-center px-4 py-2 text-sm rounded-lg transition-colors ${
+                        className={`flex items-center justify-center px-3 py-2 text-sm rounded-lg transition-colors ${
                           subItem.isActive
                             ? 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-200'
                             : 'text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700'
                         }`}
+                        title={subItem.label}
                         onClick={() => window.innerWidth < 1024 && onToggle()}
                       >
-                        <subItem.icon className="w-4 h-4 mr-3" />
-                        {subItem.label}
+                        <subItem.icon className="w-4 h-4" />
                       </Link>
                     ))}
-                  </CollapsibleContent>
-                </Collapsible>
+                  </div>
+                )}
               </li>
 
               {/* Master Data */}
               <li>
-                <Collapsible open={isMasterDataOpen} onOpenChange={setIsMasterDataOpen}>
-                  <CollapsibleTrigger className="flex items-center justify-between w-full px-4 py-3 text-sm font-medium text-gray-700 rounded-lg hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700 transition-colors">
+                <Collapsible open={isMasterDataOpen && !isCollapsed} onOpenChange={setIsMasterDataOpen}>
+                  <CollapsibleTrigger className={`flex items-center justify-between w-full px-3 py-3 text-sm font-medium text-gray-700 rounded-lg hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700 transition-colors ${isCollapsed ? 'justify-center' : ''}`}>
                     <div className="flex items-center">
-                      <Building className="w-5 h-5 mr-3" />
-                      Master Data
+                      <Building className={`w-5 h-5 ${isCollapsed ? '' : 'mr-3'}`} />
+                      {!isCollapsed && 'Master Data'}
                     </div>
-                    {isMasterDataOpen ? (
-                      <ChevronDown className="w-4 h-4" />
-                    ) : (
-                      <ChevronRight className="w-4 h-4" />
+                    {!isCollapsed && (
+                      isMasterDataOpen ? (
+                        <ChevronDown className="w-4 h-4" />
+                      ) : (
+                        <ChevronRight className="w-4 h-4" />
+                      )
                     )}
                   </CollapsibleTrigger>
-                  <CollapsibleContent className="ml-8 mt-2 space-y-2">
+                  {!isCollapsed && (
+                    <CollapsibleContent className="ml-8 mt-2 space-y-2">
+                      {masterDataSubmenu.map((subItem) => (
+                        <Link
+                          key={subItem.path}
+                          to={subItem.path}
+                          className={`flex items-center px-4 py-2 text-sm rounded-lg transition-colors ${
+                            subItem.isActive
+                              ? 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-200'
+                              : 'text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700'
+                          }`}
+                          onClick={() => window.innerWidth < 1024 && onToggle()}
+                        >
+                          <subItem.icon className="w-4 h-4 mr-3" />
+                          {subItem.label}
+                        </Link>
+                      ))}
+                    </CollapsibleContent>
+                  )}
+                </Collapsible>
+
+                {/* Collapsed menu items */}
+                {isCollapsed && (
+                  <div className="mt-2 space-y-1">
                     {masterDataSubmenu.map((subItem) => (
                       <Link
                         key={subItem.path}
                         to={subItem.path}
-                        className={`flex items-center px-4 py-2 text-sm rounded-lg transition-colors ${
+                        className={`flex items-center justify-center px-3 py-2 text-sm rounded-lg transition-colors ${
                           subItem.isActive
                             ? 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-200'
                             : 'text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700'
                         }`}
+                        title={subItem.label}
                         onClick={() => window.innerWidth < 1024 && onToggle()}
                       >
-                        <subItem.icon className="w-4 h-4 mr-3" />
-                        {subItem.label}
+                        <subItem.icon className="w-4 h-4" />
                       </Link>
                     ))}
-                  </CollapsibleContent>
-                </Collapsible>
+                  </div>
+                )}
               </li>
 
               {/* Pengaturan */}
               <li>
                 <Collapsible>
-                  <CollapsibleTrigger className="flex items-center justify-between w-full px-4 py-3 text-sm font-medium text-gray-700 rounded-lg hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700 transition-colors">
+                  <CollapsibleTrigger className={`flex items-center justify-between w-full px-3 py-3 text-sm font-medium text-gray-700 rounded-lg hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700 transition-colors ${isCollapsed ? 'justify-center' : ''}`}>
                     <div className="flex items-center">
-                      <Settings className="w-5 h-5 mr-3" />
-                      Pengaturan
+                      <Settings className={`w-5 h-5 ${isCollapsed ? '' : 'mr-3'}`} />
+                      {!isCollapsed && 'Pengaturan'}
                     </div>
-                    <ChevronRight className="w-4 h-4" />
+                    {!isCollapsed && <ChevronRight className="w-4 h-4" />}
                   </CollapsibleTrigger>
-                  <CollapsibleContent className="ml-8 mt-2 space-y-2">
+                  {!isCollapsed && (
+                    <CollapsibleContent className="ml-8 mt-2 space-y-2">
+                      {pengaturanSubmenu.map((subItem) => (
+                        <Link
+                          key={subItem.path}
+                          to={subItem.path}
+                          className={`flex items-center px-4 py-2 text-sm rounded-lg transition-colors ${
+                            subItem.isActive
+                              ? 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-200'
+                              : 'text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700'
+                          }`}
+                          onClick={() => window.innerWidth < 1024 && onToggle()}
+                        >
+                          <subItem.icon className="w-4 h-4 mr-3" />
+                          {subItem.label}
+                        </Link>
+                      ))}
+                    </CollapsibleContent>
+                  )}
+                </Collapsible>
+
+                {/* Collapsed menu items */}
+                {isCollapsed && (
+                  <div className="mt-2 space-y-1">
                     {pengaturanSubmenu.map((subItem) => (
                       <Link
                         key={subItem.path}
                         to={subItem.path}
-                        className={`flex items-center px-4 py-2 text-sm rounded-lg transition-colors ${
+                        className={`flex items-center justify-center px-3 py-2 text-sm rounded-lg transition-colors ${
                           subItem.isActive
                             ? 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-200'
                             : 'text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700'
                         }`}
+                        title={subItem.label}
                         onClick={() => window.innerWidth < 1024 && onToggle()}
                       >
-                        <subItem.icon className="w-4 h-4 mr-3" />
-                        {subItem.label}
+                        <subItem.icon className="w-4 h-4" />
                       </Link>
                     ))}
-                  </CollapsibleContent>
-                </Collapsible>
+                  </div>
+                )}
               </li>
             </ul>
           </nav>
+
+          {/* Collapse toggle for desktop */}
+          {isCollapsed && onToggleCollapse && (
+            <div className="hidden lg:block p-2 border-t border-gray-200 dark:border-gray-700">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={onToggleCollapse}
+                className="w-full rounded-full p-2"
+                title="Expand sidebar"
+              >
+                <ChevronRight className="w-4 h-4" />
+              </Button>
+            </div>
+          )}
         </div>
       </div>
     </>

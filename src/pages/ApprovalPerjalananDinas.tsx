@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Search, Eye, Check, X, Calendar, MapPin, User, Building } from 'lucide-react';
+import { Search, Eye, Check, X, Calendar, MapPin, User, Building, ChevronLeft, ChevronRight } from 'lucide-react';
 import Header from '@/components/Header';
 import Sidebar from '@/components/Sidebar';
 import Footer from '@/components/Footer';
@@ -11,18 +11,22 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useBusinessTrips, useUpdateBusinessTrip } from '@/hooks/useBusinessTrips';
+import { useLineApprovals } from '@/hooks/useLineApprovals';
 import Swal from 'sweetalert2';
 
 const ApprovalPerjalananDinas = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('Submitted');
   const [departmentFilter, setDepartmentFilter] = useState('all');
 
   const { data: businessTrips, isLoading, error } = useBusinessTrips();
+  const { data: lineApprovals } = useLineApprovals();
   const updateBusinessTrip = useUpdateBusinessTrip();
 
   console.log('Business trips data:', businessTrips);
+  console.log('Line approvals data:', lineApprovals);
   console.log('Loading state:', isLoading);
   console.log('Error state:', error);
 
@@ -46,7 +50,9 @@ const ApprovalPerjalananDinas = () => {
   const getStatusBadge = (status: string) => {
     const statusConfig = {
       'Draft': { class: 'bg-gray-100 text-gray-800', label: 'Draft' },
-      'Submitted': { class: 'bg-yellow-100 text-yellow-800', label: 'Submitted' },
+      'Submitted': { class: 'bg-yellow-100 text-yellow-800', label: 'Menunggu Supervisor' },
+      'Supervisor Approved': { class: 'bg-blue-100 text-blue-800', label: 'Menunggu HR Manager' },
+      'HR Manager Approved': { class: 'bg-purple-100 text-purple-800', label: 'Menunggu Staff FA' },
       'Approved': { class: 'bg-green-100 text-green-800', label: 'Approved' },
       'Rejected': { class: 'bg-red-100 text-red-800', label: 'Rejected' },
       'Completed': { class: 'bg-blue-100 text-blue-800', label: 'Completed' }
@@ -56,10 +62,41 @@ const ApprovalPerjalananDinas = () => {
     return <Badge className={config.class}>{config.label}</Badge>;
   };
 
+  const getNextApprovalStatus = (currentStatus: string, cashAdvance: number) => {
+    console.log('Getting next status for:', currentStatus, 'Cash advance:', cashAdvance);
+    
+    switch (currentStatus) {
+      case 'Submitted':
+        return 'Supervisor Approved';
+      case 'Supervisor Approved':
+        return 'HR Manager Approved';
+      case 'HR Manager Approved':
+        return cashAdvance > 0 ? 'Approved' : 'Approved'; // Staff FA approval for cash advance
+      default:
+        return 'Approved';
+    }
+  };
+
+  const getCurrentApprovalLevel = (status: string) => {
+    switch (status) {
+      case 'Submitted':
+        return 'Supervisor';
+      case 'Supervisor Approved':
+        return 'HR Manager';
+      case 'HR Manager Approved':
+        return 'Staff FA';
+      default:
+        return 'Unknown';
+    }
+  };
+
   const handleApprove = async (item: any) => {
+    const currentLevel = getCurrentApprovalLevel(item.status);
+    const nextStatus = getNextApprovalStatus(item.status, item.estimated_budget || 0);
+    
     const result = await Swal.fire({
-      title: 'Setujui Perjalanan Dinas?',
-      text: `Apakah Anda yakin ingin menyetujui perjalanan dinas ke ${item.destination}?`,
+      title: `Setujui Perjalanan Dinas?`,
+      text: `Apakah Anda yakin ingin menyetujui perjalanan dinas ke ${item.destination} sebagai ${currentLevel}?`,
       icon: 'question',
       showCancelButton: true,
       confirmButtonColor: '#22c55e',
@@ -70,15 +107,19 @@ const ApprovalPerjalananDinas = () => {
 
     if (result.isConfirmed) {
       try {
-        console.log('Approving trip:', item.id);
+        console.log('Approving trip:', item.id, 'Next status:', nextStatus);
         await updateBusinessTrip.mutateAsync({
           id: item.id,
-          status: 'Approved'
+          status: nextStatus
         });
+        
+        const isFullyApproved = nextStatus === 'Approved';
         
         Swal.fire({
           title: 'Berhasil!',
-          text: 'Perjalanan dinas telah disetujui',
+          text: isFullyApproved 
+            ? 'Perjalanan dinas telah disetujui sepenuhnya' 
+            : `Perjalanan dinas telah disetujui di level ${currentLevel}`,
           icon: 'success',
           timer: 2000,
           showConfirmButton: false
@@ -96,6 +137,8 @@ const ApprovalPerjalananDinas = () => {
   };
 
   const handleReject = async (item: any) => {
+    const currentLevel = getCurrentApprovalLevel(item.status);
+    
     const { value: reason } = await Swal.fire({
       title: 'Tolak Perjalanan Dinas',
       text: `Masukkan alasan penolakan untuk perjalanan dinas ke ${item.destination}:`,
@@ -123,7 +166,7 @@ const ApprovalPerjalananDinas = () => {
         
         Swal.fire({
           title: 'Berhasil!',
-          text: 'Perjalanan dinas telah ditolak',
+          text: `Perjalanan dinas telah ditolak di level ${currentLevel}`,
           icon: 'success',
           timer: 2000,
           showConfirmButton: false
@@ -142,15 +185,28 @@ const ApprovalPerjalananDinas = () => {
 
   const handleView = (item: any) => {
     console.log('View item:', item);
-    // TODO: Implement view modal
+    Swal.fire({
+      title: 'Detail Perjalanan Dinas',
+      html: `
+        <div class="text-left space-y-2">
+          <p><strong>Karyawan:</strong> ${item.employees?.name}</p>
+          <p><strong>Tujuan:</strong> ${item.destination}</p>
+          <p><strong>Tujuan:</strong> ${item.purpose}</p>
+          <p><strong>Tanggal:</strong> ${new Date(item.start_date).toLocaleDateString('id-ID')} - ${new Date(item.end_date).toLocaleDateString('id-ID')}</p>
+          <p><strong>Cash Advance:</strong> ${item.estimated_budget ? formatCurrency(item.estimated_budget) : '-'}</p>
+          <p><strong>Status:</strong> ${item.status}</p>
+        </div>
+      `,
+      confirmButtonText: 'Tutup'
+    });
   };
 
-  // Filter business trips - only show Draft and Submitted status for approval
+  // Filter business trips - only show trips that need approval
   const filteredTrips = businessTrips?.filter(trip => {
     if (!trip.employees) return false;
     
-    // Only show trips that need approval (Draft or Submitted)
-    const pendingStatuses = ['Draft', 'Submitted'];
+    // Only show trips that need approval
+    const pendingStatuses = ['Submitted', 'Supervisor Approved', 'HR Manager Approved'];
     if (!pendingStatuses.includes(trip.status)) return false;
     
     const matchesSearch = trip.employees.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -163,13 +219,13 @@ const ApprovalPerjalananDinas = () => {
     return matchesSearch && matchesStatus && matchesDepartment;
   }) || [];
 
-  // Get unique departments for filter - filter out empty/null values
+  // Get unique departments for filter
   const departments = [...new Set(
     businessTrips?.map(trip => trip.employees?.department).filter(dept => dept && dept.trim() !== '') || []
   )];
 
-  // Calculate stats - only count pending approvals
-  const pendingCount = businessTrips?.filter(trip => ['Draft', 'Submitted'].includes(trip.status)).length || 0;
+  // Calculate stats
+  const pendingCount = businessTrips?.filter(trip => ['Submitted', 'Supervisor Approved', 'HR Manager Approved'].includes(trip.status)).length || 0;
   const approvedTodayCount = businessTrips?.filter(trip => {
     const today = new Date().toDateString();
     return trip.status === 'Approved' && new Date(trip.updated_at || trip.created_at).toDateString() === today;
@@ -182,9 +238,14 @@ const ApprovalPerjalananDinas = () => {
   if (error) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors w-full">
-        <Header />
+        <Header onToggleSidebar={() => setSidebarOpen(!sidebarOpen)} />
         <div className="flex w-full">
-          <Sidebar isOpen={sidebarOpen} onToggle={() => setSidebarOpen(!sidebarOpen)} />
+          <Sidebar 
+            isOpen={sidebarOpen} 
+            onToggle={() => setSidebarOpen(!sidebarOpen)}
+            isCollapsed={sidebarCollapsed}
+            onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
+          />
           <div className="flex-1 w-full">
             <main className="p-6 w-full">
               <div className="text-center py-8">
@@ -200,10 +261,15 @@ const ApprovalPerjalananDinas = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors w-full">
-      <Header />
+      <Header onToggleSidebar={() => setSidebarOpen(!sidebarOpen)} />
       
       <div className="flex w-full">
-        <Sidebar isOpen={sidebarOpen} onToggle={() => setSidebarOpen(!sidebarOpen)} />
+        <Sidebar 
+          isOpen={sidebarOpen} 
+          onToggle={() => setSidebarOpen(!sidebarOpen)}
+          isCollapsed={sidebarCollapsed}
+          onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
+        />
         
         <div className="flex-1 w-full">
           <main className="p-6 w-full">
@@ -289,8 +355,9 @@ const ApprovalPerjalananDinas = () => {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">Semua Status</SelectItem>
-                      <SelectItem value="Draft">Draft</SelectItem>
-                      <SelectItem value="Submitted">Submitted</SelectItem>
+                      <SelectItem value="Submitted">Menunggu Supervisor</SelectItem>
+                      <SelectItem value="Supervisor Approved">Menunggu HR Manager</SelectItem>
+                      <SelectItem value="HR Manager Approved">Menunggu Staff FA</SelectItem>
                     </SelectContent>
                   </Select>
 
@@ -320,11 +387,12 @@ const ApprovalPerjalananDinas = () => {
                       <TableRow>
                         <TableHead>ID Perjalanan</TableHead>
                         <TableHead>Karyawan</TableHead>
-                        <TableHead>Jabatan</TableHead>
+                        <TableHead>Perusahaan</TableHead>
                         <TableHead>Tujuan</TableHead>
                         <TableHead>Periode</TableHead>
                         <TableHead>Status</TableHead>
                         <TableHead>Cash Advance</TableHead>
+                        <TableHead>Level Approval</TableHead>
                         <TableHead>AKSI</TableHead>
                       </TableRow>
                     </TableHeader>
@@ -345,19 +413,13 @@ const ApprovalPerjalananDinas = () => {
                               <div>
                                 <p className="font-medium text-gray-900 dark:text-white">{item.employees?.name || 'N/A'}</p>
                                 <p className="text-sm text-gray-500 dark:text-gray-400">
-                                  ID: {item.employees?.id || 'N/A'} 
-                                  <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs ml-2">
-                                    {item.employees?.grade || 'N/A'}
-                                  </span>
+                                  {item.employees?.position || 'N/A'} - {item.employees?.department || 'N/A'}
                                 </p>
                               </div>
                             </div>
                           </TableCell>
                           <TableCell>
-                            <div>
-                              <p className="font-medium text-gray-900 dark:text-white">{item.employees?.position || 'N/A'}</p>
-                              <p className="text-sm text-gray-500 dark:text-gray-400">{item.employees?.department || 'N/A'}</p>
-                            </div>
+                            <p className="font-medium text-gray-900 dark:text-white">{item.employees?.companies?.name || 'N/A'}</p>
                           </TableCell>
                           <TableCell>
                             <div>
@@ -380,6 +442,11 @@ const ApprovalPerjalananDinas = () => {
                           </TableCell>
                           <TableCell className="font-medium text-gray-900 dark:text-white">
                             {item.estimated_budget ? formatCurrency(item.estimated_budget) : '-'}
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant="outline" className="text-xs">
+                              {getCurrentApprovalLevel(item.status)}
+                            </Badge>
                           </TableCell>
                           <TableCell>
                             <div className="flex items-center gap-1">
@@ -418,7 +485,7 @@ const ApprovalPerjalananDinas = () => {
                       ))}
                       {filteredTrips.length === 0 && !isLoading && (
                         <TableRow>
-                          <TableCell colSpan={8} className="text-center py-8 text-gray-500">
+                          <TableCell colSpan={9} className="text-center py-8 text-gray-500">
                             {searchTerm || statusFilter !== 'all' || departmentFilter !== 'all'
                               ? 'Tidak ada data yang sesuai dengan filter'
                               : 'Tidak ada perjalanan dinas yang menunggu approval'
