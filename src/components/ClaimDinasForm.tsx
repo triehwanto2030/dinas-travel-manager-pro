@@ -14,6 +14,7 @@ import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { useToast } from '@/hooks/use-toast';
 import { useCreateTripClaim } from '@/hooks/useTripClaims';
+import { useUpdateBusinessTrip } from '@/hooks/useBusinessTrips';
 
 interface ClaimDinasFormProps {
   isOpen: boolean;
@@ -26,9 +27,11 @@ const ClaimDinasForm: React.FC<ClaimDinasFormProps> = ({ isOpen, onClose, tripDa
     { date: undefined, type: '', description: '', amount: 0 }
   ]);
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
   const createTripClaim = useCreateTripClaim();
+  const updateBusinessTrip = useUpdateBusinessTrip();
 
   // Early return if form is not open
   if (!isOpen) return null;
@@ -125,6 +128,7 @@ const ClaimDinasForm: React.FC<ClaimDinasFormProps> = ({ isOpen, onClose, tripDa
 
   const handleSubmit = async () => {
     try {
+      setIsSubmitting(true);
       console.log('Starting claim submission...');
       console.log('Trip data:', tripData);
       console.log('Expenses:', expenses);
@@ -155,6 +159,12 @@ const ClaimDinasForm: React.FC<ClaimDinasFormProps> = ({ isOpen, onClose, tripDa
       const result = await createTripClaim.mutateAsync(claimData);
       console.log('Claim submission result:', result);
 
+      // Update business trip status to "Completed"
+      await updateBusinessTrip.mutateAsync({
+        id: tripData.id,
+        status: 'Completed'
+      });
+
       toast({
         title: "Berhasil!",
         description: "Claim dinas berhasil diajukan dan akan masuk ke proses approval",
@@ -168,8 +178,13 @@ const ClaimDinasForm: React.FC<ClaimDinasFormProps> = ({ isOpen, onClose, tripDa
         description: `Gagal mengajukan claim dinas: ${error instanceof Error ? error.message : 'Unknown error'}`,
         variant: "destructive",
       });
+    } finally {
+      setIsSubmitting(false);
     }
   };
+
+  // Check if claim button should be disabled
+  const isClaimDisabled = isSubmitting || createTripClaim.isPending || updateBusinessTrip.isPending;
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
@@ -180,7 +195,7 @@ const ClaimDinasForm: React.FC<ClaimDinasFormProps> = ({ isOpen, onClose, tripDa
             <h2 className="text-xl font-semibold text-gray-900">Buat Claim Perjalanan Dinas</h2>
             <h3 className="text-lg text-gray-700 mt-1">Detail Perjalanan Dinas & Klaim</h3>
           </div>
-          <Button variant="ghost" size="sm" onClick={onClose}>
+          <Button variant="ghost" size="sm" onClick={onClose} disabled={isClaimDisabled}>
             <X className="w-5 h-5" />
           </Button>
         </div>
@@ -285,7 +300,7 @@ const ClaimDinasForm: React.FC<ClaimDinasFormProps> = ({ isOpen, onClose, tripDa
               <CardContent className="p-4">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="font-medium text-gray-900">Detail Pengeluaran</h3>
-                  <Button variant="outline" size="sm" onClick={addExpenseRow}>
+                  <Button variant="outline" size="sm" onClick={addExpenseRow} disabled={isClaimDisabled}>
                     <Plus className="w-4 h-4 mr-2" />
                     Tambah Baris
                   </Button>
@@ -304,6 +319,7 @@ const ClaimDinasForm: React.FC<ClaimDinasFormProps> = ({ isOpen, onClose, tripDa
                                 "w-full justify-start text-left font-normal",
                                 !expense.date && "text-muted-foreground"
                               )}
+                              disabled={isClaimDisabled}
                             >
                               <Calendar className="mr-2 h-4 w-4" />
                               {expense.date ? format(expense.date, "dd/MM/yyyy") : "Pilih tanggal"}
@@ -322,7 +338,11 @@ const ClaimDinasForm: React.FC<ClaimDinasFormProps> = ({ isOpen, onClose, tripDa
                       </div>
                       <div className="md:col-span-3">
                         <Label>Jenis Biaya</Label>
-                        <Select value={expense.type} onValueChange={(value) => updateExpense(index, 'type', value)}>
+                        <Select 
+                          value={expense.type} 
+                          onValueChange={(value) => updateExpense(index, 'type', value)}
+                          disabled={isClaimDisabled}
+                        >
                           <SelectTrigger>
                             <SelectValue placeholder="Pilih jenis biaya" />
                           </SelectTrigger>
@@ -340,6 +360,7 @@ const ClaimDinasForm: React.FC<ClaimDinasFormProps> = ({ isOpen, onClose, tripDa
                           placeholder="Detail pengeluaran..."
                           value={expense.description}
                           onChange={(e) => updateExpense(index, 'description', e.target.value)}
+                          disabled={isClaimDisabled}
                         />
                       </div>
                       <div className="md:col-span-2">
@@ -349,11 +370,17 @@ const ClaimDinasForm: React.FC<ClaimDinasFormProps> = ({ isOpen, onClose, tripDa
                           placeholder="0"
                           value={expense.amount || ''}
                           onChange={(e) => updateExpense(index, 'amount', Number(e.target.value))}
+                          disabled={isClaimDisabled}
                         />
                       </div>
                       <div className="md:col-span-1 flex items-end">
                         {expenses.length > 1 && (
-                          <Button variant="ghost" size="sm" onClick={() => removeExpense(index)}>
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            onClick={() => removeExpense(index)}
+                            disabled={isClaimDisabled}
+                          >
                             <X className="w-4 h-4" />
                           </Button>
                         )}
@@ -389,8 +416,11 @@ const ClaimDinasForm: React.FC<ClaimDinasFormProps> = ({ isOpen, onClose, tripDa
                 <h3 className="font-medium text-gray-900 mb-4">Upload Bukti (Struk/Receipt)</h3>
                 
                 <div 
-                  className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center cursor-pointer hover:border-gray-400 transition-colors"
-                  onClick={() => fileInputRef.current?.click()}
+                  className={cn(
+                    "border-2 border-dashed border-gray-300 rounded-lg p-8 text-center transition-colors",
+                    isClaimDisabled ? "cursor-not-allowed opacity-50" : "cursor-pointer hover:border-gray-400"
+                  )}
+                  onClick={() => !isClaimDisabled && fileInputRef.current?.click()}
                 >
                   <Upload className="w-12 h-12 text-gray-400 mx-auto mb-4" />
                   <p className="text-gray-600 mb-2">Klik untuk upload atau drag & drop file</p>
@@ -403,6 +433,7 @@ const ClaimDinasForm: React.FC<ClaimDinasFormProps> = ({ isOpen, onClose, tripDa
                     accept=".png,.jpg,.jpeg,.pdf"
                     onChange={handleFileUpload}
                     className="hidden"
+                    disabled={isClaimDisabled}
                   />
                 </div>
 
@@ -413,7 +444,12 @@ const ClaimDinasForm: React.FC<ClaimDinasFormProps> = ({ isOpen, onClose, tripDa
                       {uploadedFiles.map((file, index) => (
                         <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded">
                           <span className="text-sm text-gray-700">{file.name}</span>
-                          <Button variant="ghost" size="sm" onClick={() => removeFile(index)}>
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            onClick={() => removeFile(index)}
+                            disabled={isClaimDisabled}
+                          >
                             <X className="w-4 h-4" />
                           </Button>
                         </div>
@@ -428,15 +464,19 @@ const ClaimDinasForm: React.FC<ClaimDinasFormProps> = ({ isOpen, onClose, tripDa
 
         {/* Fixed Footer with proper spacing */}
         <div className="flex items-center justify-end gap-4 p-6 border-t bg-gray-50 flex-shrink-0">
-          <Button variant="outline" onClick={onClose} disabled={createTripClaim.isPending}>
+          <Button 
+            variant="outline" 
+            onClick={onClose} 
+            disabled={isClaimDisabled}
+          >
             Batal
           </Button>
           <Button 
             onClick={handleSubmit} 
             className="bg-blue-600 hover:bg-blue-700 min-w-[140px]"
-            disabled={createTripClaim.isPending}
+            disabled={isClaimDisabled}
           >
-            {createTripClaim.isPending ? 'Mengajukan...' : 'Ajukan Claim'}
+            {isSubmitting ? 'Mengajukan...' : 'Ajukan Claim'}
           </Button>
         </div>
       </div>

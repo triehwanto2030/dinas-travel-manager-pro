@@ -8,26 +8,38 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
+import { useTripClaims, useUpdateTripClaim } from '@/hooks/useTripClaims';
 
 const ApprovalClaimDinas = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [rejectReason, setRejectReason] = useState('');
+  const [selectedClaimId, setSelectedClaimId] = useState<string | null>(null);
+  const [isRejectDialogOpen, setIsRejectDialogOpen] = useState(false);
   const { toast } = useToast();
 
-  // Mock data - akan diganti dengan real data dari Supabase
-  const pendingClaims = [
-    {
-      id: 1,
-      employee: { name: 'Lisa Anderson', id: 'EMP006' },
-      tripNumber: 'PD25070601',
-      destination: 'Malang',
-      claimDate: '2025-07-09',
-      totalAmount: 1450000,
-      status: 'Submitted',
-      submittedAt: '2025-07-09'
-    }
-  ];
+  const { data: claims = [], isLoading } = useTripClaims();
+  const updateTripClaim = useUpdateTripClaim();
+
+  const getStatusBadge = (status: string) => {
+    const statusConfig = {
+      'Draft': { class: 'bg-gray-100 text-gray-800', label: 'Draft' },
+      'Submitted': { class: 'bg-yellow-100 text-yellow-800', label: 'Menunggu Approval' },
+      'Approved': { class: 'bg-green-100 text-green-800', label: 'Approved' },
+      'Rejected': { class: 'bg-red-100 text-red-800', label: 'Rejected' },
+      'Paid': { class: 'bg-blue-100 text-blue-800', label: 'Paid' }
+    };
+    
+    const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.Draft;
+    return <Badge className={config.class}>{config.label}</Badge>;
+  };
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('id-ID', {
@@ -37,19 +49,109 @@ const ApprovalClaimDinas = () => {
     }).format(amount);
   };
 
-  const handleApprove = (id: number) => {
-    toast({
-      title: "Berhasil!",
-      description: "Claim dinas telah disetujui",
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('id-ID', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric'
     });
   };
 
-  const handleReject = (id: number) => {
-    toast({
-      title: "Berhasil!",
-      description: "Claim dinas telah ditolak",
-      variant: "destructive",
-    });
+  const handleApprove = async (claimId: string) => {
+    try {
+      await updateTripClaim.mutateAsync({
+        id: claimId,
+        status: 'Approved',
+        approved_at: new Date().toISOString()
+      });
+      
+      toast({
+        title: "Berhasil!",
+        description: "Claim dinas telah disetujui",
+      });
+    } catch (error) {
+      toast({
+        title: "Error!",
+        description: "Gagal menyetujui claim dinas",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleReject = async () => {
+    if (!selectedClaimId || !rejectReason.trim()) {
+      toast({
+        title: "Error!",
+        description: "Alasan penolakan harus diisi",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      await updateTripClaim.mutateAsync({
+        id: selectedClaimId,
+        status: 'Rejected'
+      });
+      
+      toast({
+        title: "Berhasil!",
+        description: "Claim dinas telah ditolak",
+        variant: "destructive",
+      });
+      
+      setIsRejectDialogOpen(false);
+      setRejectReason('');
+      setSelectedClaimId(null);
+    } catch (error) {
+      toast({
+        title: "Error!",
+        description: "Gagal menolak claim dinas",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const openRejectDialog = (claimId: string) => {
+    setSelectedClaimId(claimId);
+    setIsRejectDialogOpen(true);
+  };
+
+  // Calculate statistics
+  const totalClaims = claims.length;
+  const pendingClaims = claims.filter(c => c.status === 'Submitted').length;
+  const approvedToday = claims.filter(c => 
+    c.status === 'Approved' && 
+    c.approved_at && 
+    new Date(c.approved_at).toDateString() === new Date().toDateString()
+  ).length;
+  const totalAmountThisMonth = claims
+    .filter(c => {
+      const claimDate = new Date(c.created_at);
+      const now = new Date();
+      return claimDate.getMonth() === now.getMonth() && claimDate.getFullYear() === now.getFullYear();
+    })
+    .reduce((sum, claim) => sum + claim.total_amount, 0);
+
+  // Filter claims - only show submitted claims for approval
+  const filteredClaims = claims.filter(claim => {
+    const matchesSearch = claim.employees.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         claim.business_trips.destination.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesStatus = statusFilter === 'all' || claim.status.toLowerCase() === statusFilter.toLowerCase();
+    const isSubmitted = claim.status === 'Submitted'; // Only show submitted claims
+    return matchesSearch && matchesStatus && isSubmitted;
+  });
+
+  const generateClaimId = (claim: any) => {
+    const date = new Date(claim.created_at);
+    const timestamp = date.getTime().toString().slice(-6);
+    return `CL-${timestamp}`;
+  };
+
+  const generateTripId = (claim: any) => {
+    const date = new Date(claim.business_trips.created_at);
+    const timestamp = date.getTime().toString().slice(-8);
+    return `PD${timestamp}`;
   };
 
   return (
@@ -81,7 +183,7 @@ const ApprovalClaimDinas = () => {
                     </div>
                     <div className="ml-4">
                       <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Menunggu Approval</p>
-                      <p className="text-2xl font-bold text-gray-900 dark:text-white">1</p>
+                      <p className="text-2xl font-bold text-gray-900 dark:text-white">{pendingClaims}</p>
                     </div>
                   </div>
                 </CardContent>
@@ -95,7 +197,7 @@ const ApprovalClaimDinas = () => {
                     </div>
                     <div className="ml-4">
                       <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Disetujui Hari Ini</p>
-                      <p className="text-2xl font-bold text-gray-900 dark:text-white">0</p>
+                      <p className="text-2xl font-bold text-gray-900 dark:text-white">{approvedToday}</p>
                     </div>
                   </div>
                 </CardContent>
@@ -109,7 +211,9 @@ const ApprovalClaimDinas = () => {
                     </div>
                     <div className="ml-4">
                       <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Total Claim Bulan Ini</p>
-                      <p className="text-2xl font-bold text-gray-900 dark:text-white">{formatCurrency(1450000)}</p>
+                      <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                        {formatCurrency(totalAmountThisMonth).replace('IDR', 'Rp')}
+                      </p>
                     </div>
                   </div>
                 </CardContent>
@@ -123,7 +227,7 @@ const ApprovalClaimDinas = () => {
                   Daftar Claim Dinas Menunggu Approval
                 </CardTitle>
                 
-                {/* Search */}
+                {/* Search and Filter */}
                 <div className="flex flex-col md:flex-row gap-4 mt-4">
                   <div className="relative flex-1">
                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
@@ -135,77 +239,116 @@ const ApprovalClaimDinas = () => {
                       onChange={(e) => setSearchTerm(e.target.value)}
                     />
                   </div>
+                  <Select value={statusFilter} onValueChange={setStatusFilter}>
+                    <SelectTrigger className="w-32">
+                      <SelectValue placeholder="Status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Semua</SelectItem>
+                      <SelectItem value="submitted">Submitted</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
               </CardHeader>
               
               <CardContent>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Karyawan</TableHead>
-                      <TableHead>No. Perjalanan</TableHead>
-                      <TableHead>Tujuan</TableHead>
-                      <TableHead>Tanggal Claim</TableHead>
-                      <TableHead>Total Amount</TableHead>
-                      <TableHead>Tanggal Pengajuan</TableHead>
-                      <TableHead>Aksi</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {pendingClaims.map((item) => (
-                      <TableRow key={item.id}>
-                        <TableCell>
-                          <div>
-                            <p className="font-medium text-gray-900 dark:text-white">{item.employee.name}</p>
-                            <p className="text-sm text-gray-500 dark:text-gray-400">{item.employee.id}</p>
-                          </div>
-                        </TableCell>
-                        <TableCell className="font-medium text-gray-900 dark:text-white">
-                          {item.tripNumber}
-                        </TableCell>
-                        <TableCell className="text-gray-600 dark:text-gray-400">
-                          {item.destination}
-                        </TableCell>
-                        <TableCell className="text-gray-600 dark:text-gray-400">
-                          {item.claimDate}
-                        </TableCell>
-                        <TableCell className="font-medium text-gray-900 dark:text-white">
-                          {formatCurrency(item.totalAmount)}
-                        </TableCell>
-                        <TableCell className="text-gray-600 dark:text-gray-400">
-                          {item.submittedAt}
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-2">
-                            <Button 
-                              variant="ghost" 
-                              size="sm" 
-                              className="p-2"
-                            >
-                              <Eye className="w-4 h-4" />
-                            </Button>
-                            <Button 
-                              variant="ghost" 
-                              size="sm" 
-                              className="p-2 text-green-600 hover:text-green-800"
-                              onClick={() => handleApprove(item.id)}
-                            >
-                              <Check className="w-4 h-4" />
-                            </Button>
-                            <Button 
-                              variant="ghost" 
-                              size="sm" 
-                              className="p-2 text-red-600 hover:text-red-800"
-                              onClick={() => handleReject(item.id)}
-                            >
-                              <X className="w-4 h-4" />
-                            </Button>
-                          </div>
-                        </TableCell>
+                {isLoading ? (
+                  <div className="text-center py-8">
+                    <p className="text-gray-500">Memuat data...</p>
+                  </div>
+                ) : (
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>ID Claim</TableHead>
+                        <TableHead>Karyawan</TableHead>
+                        <TableHead>Tujuan & Alasan</TableHead>
+                        <TableHead>Tanggal Claim</TableHead>
+                        <TableHead>Total Amount</TableHead>
+                        <TableHead>Tanggal Pengajuan</TableHead>
+                        <TableHead>Aksi</TableHead>
                       </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+                    </TableHeader>
+                    <TableBody>
+                      {filteredClaims.length === 0 ? (
+                        <TableRow>
+                          <TableCell colSpan={7} className="text-center py-8 text-gray-500">
+                            Tidak ada claim dinas yang menunggu approval
+                          </TableCell>
+                        </TableRow>
+                      ) : (
+                        filteredClaims.map((claim) => (
+                          <TableRow key={claim.id}>
+                            <TableCell>
+                              <div>
+                                <p className="font-medium text-gray-900 dark:text-white">{generateClaimId(claim)}</p>
+                                <p className="text-sm text-gray-500 dark:text-gray-400">ID Trip: {generateTripId(claim)}</p>
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                              <div className="flex items-center gap-3">
+                                <Avatar className="w-10 h-10">
+                                  <AvatarImage src={claim.employees.avatar_url || undefined} />
+                                  <AvatarFallback className="bg-blue-500 text-white text-sm">
+                                    {claim.employees.name.split(' ').map(n => n[0]).join('').substring(0, 2)}
+                                  </AvatarFallback>
+                                </Avatar>
+                                <div>
+                                  <p className="font-medium text-gray-900 dark:text-white">{claim.employees.name}</p>
+                                  <p className="text-sm text-gray-500 dark:text-gray-400">ID: {claim.employees.id}</p>
+                                </div>
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                              <div>
+                                <p className="font-medium text-gray-900 dark:text-white">{claim.business_trips.destination}</p>
+                                <p className="text-sm text-gray-500 dark:text-gray-400">{claim.business_trips.purpose}</p>
+                              </div>
+                            </TableCell>
+                            <TableCell className="text-gray-600 dark:text-gray-400">
+                              {formatDate(claim.created_at)}
+                            </TableCell>
+                            <TableCell className="font-medium text-gray-900 dark:text-white">
+                              {formatCurrency(claim.total_amount).replace('IDR', 'Rp')}
+                            </TableCell>
+                            <TableCell className="text-gray-600 dark:text-gray-400">
+                              {claim.submitted_at ? formatDate(claim.submitted_at) : '-'}
+                            </TableCell>
+                            <TableCell>
+                              <div className="flex items-center gap-2">
+                                <Button 
+                                  variant="ghost" 
+                                  size="sm" 
+                                  className="p-2"
+                                >
+                                  <Eye className="w-4 h-4" />
+                                </Button>
+                                <Button 
+                                  variant="ghost" 
+                                  size="sm" 
+                                  className="p-2 text-green-600 hover:text-green-800"
+                                  onClick={() => handleApprove(claim.id)}
+                                  disabled={updateTripClaim.isPending}
+                                >
+                                  <Check className="w-4 h-4" />
+                                </Button>
+                                <Button 
+                                  variant="ghost" 
+                                  size="sm" 
+                                  className="p-2 text-red-600 hover:text-red-800"
+                                  onClick={() => openRejectDialog(claim.id)}
+                                  disabled={updateTripClaim.isPending}
+                                >
+                                  <X className="w-4 h-4" />
+                                </Button>
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        ))
+                      )}
+                    </TableBody>
+                  </Table>
+                )}
               </CardContent>
             </Card>
           </main>
@@ -213,6 +356,46 @@ const ApprovalClaimDinas = () => {
           <Footer />
         </div>
       </div>
+
+      {/* Reject Dialog */}
+      <Dialog open={isRejectDialogOpen} onOpenChange={setIsRejectDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Tolak Claim Dinas</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="rejectReason">Alasan Penolakan</Label>
+              <Textarea
+                id="rejectReason"
+                placeholder="Masukkan alasan penolakan..."
+                value={rejectReason}
+                onChange={(e) => setRejectReason(e.target.value)}
+                className="mt-1"
+              />
+            </div>
+            <div className="flex gap-2 justify-end">
+              <Button 
+                variant="outline" 
+                onClick={() => {
+                  setIsRejectDialogOpen(false);
+                  setRejectReason('');
+                  setSelectedClaimId(null);
+                }}
+              >
+                Batal
+              </Button>
+              <Button 
+                variant="destructive" 
+                onClick={handleReject}
+                disabled={!rejectReason.trim() || updateTripClaim.isPending}
+              >
+                {updateTripClaim.isPending ? 'Menolak...' : 'Tolak Claim'}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Mobile menu button */}
       <button
