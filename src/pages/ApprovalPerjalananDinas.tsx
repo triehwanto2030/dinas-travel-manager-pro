@@ -11,7 +11,7 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useBusinessTrips, useUpdateBusinessTrip } from '@/hooks/useBusinessTrips';
-import { useToast } from '@/hooks/use-toast';
+import Swal from 'sweetalert2';
 
 const ApprovalPerjalananDinas = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -21,7 +21,6 @@ const ApprovalPerjalananDinas = () => {
 
   const { data: businessTrips, isLoading, error } = useBusinessTrips();
   const updateBusinessTrip = useUpdateBusinessTrip();
-  const { toast } = useToast();
 
   console.log('Business trips data:', businessTrips);
   console.log('Loading state:', isLoading);
@@ -58,47 +57,86 @@ const ApprovalPerjalananDinas = () => {
   };
 
   const handleApprove = async (item: any) => {
-    try {
-      console.log('Approving trip:', item.id);
-      await updateBusinessTrip.mutateAsync({
-        id: item.id,
-        status: 'Approved'
-      });
-      
-      toast({
-        title: "Berhasil!",
-        description: "Perjalanan dinas telah disetujui",
-      });
-    } catch (error) {
-      console.error('Error approving trip:', error);
-      toast({
-        title: "Error!",
-        description: "Gagal menyetujui perjalanan dinas",
-        variant: "destructive",
-      });
+    const result = await Swal.fire({
+      title: 'Setujui Perjalanan Dinas?',
+      text: `Apakah Anda yakin ingin menyetujui perjalanan dinas ke ${item.destination}?`,
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonColor: '#22c55e',
+      cancelButtonColor: '#6b7280',
+      confirmButtonText: 'Ya, Setujui!',
+      cancelButtonText: 'Batal'
+    });
+
+    if (result.isConfirmed) {
+      try {
+        console.log('Approving trip:', item.id);
+        await updateBusinessTrip.mutateAsync({
+          id: item.id,
+          status: 'Approved'
+        });
+        
+        Swal.fire({
+          title: 'Berhasil!',
+          text: 'Perjalanan dinas telah disetujui',
+          icon: 'success',
+          timer: 2000,
+          showConfirmButton: false
+        });
+      } catch (error) {
+        console.error('Error approving trip:', error);
+        Swal.fire({
+          title: 'Error!',
+          text: 'Gagal menyetujui perjalanan dinas',
+          icon: 'error',
+          confirmButtonText: 'OK'
+        });
+      }
     }
   };
 
   const handleReject = async (item: any) => {
-    try {
-      console.log('Rejecting trip:', item.id);
-      await updateBusinessTrip.mutateAsync({
-        id: item.id,
-        status: 'Rejected'
-      });
-      
-      toast({
-        title: "Berhasil!",
-        description: "Perjalanan dinas telah ditolak",
-        variant: "destructive",
-      });
-    } catch (error) {
-      console.error('Error rejecting trip:', error);
-      toast({
-        title: "Error!",
-        description: "Gagal menolak perjalanan dinas",
-        variant: "destructive",
-      });
+    const { value: reason } = await Swal.fire({
+      title: 'Tolak Perjalanan Dinas',
+      text: `Masukkan alasan penolakan untuk perjalanan dinas ke ${item.destination}:`,
+      input: 'textarea',
+      inputPlaceholder: 'Masukkan alasan penolakan...',
+      inputValidator: (value) => {
+        if (!value) {
+          return 'Alasan penolakan harus diisi!'
+        }
+      },
+      showCancelButton: true,
+      confirmButtonText: 'Tolak',
+      cancelButtonText: 'Batal',
+      confirmButtonColor: '#ef4444',
+      cancelButtonColor: '#6b7280'
+    });
+
+    if (reason) {
+      try {
+        console.log('Rejecting trip:', item.id, 'with reason:', reason);
+        await updateBusinessTrip.mutateAsync({
+          id: item.id,
+          status: 'Rejected'
+        });
+        
+        Swal.fire({
+          title: 'Berhasil!',
+          text: 'Perjalanan dinas telah ditolak',
+          icon: 'success',
+          timer: 2000,
+          showConfirmButton: false
+        });
+      } catch (error) {
+        console.error('Error rejecting trip:', error);
+        Swal.fire({
+          title: 'Error!',
+          text: 'Gagal menolak perjalanan dinas',
+          icon: 'error',
+          confirmButtonText: 'OK'
+        });
+      }
     }
   };
 
@@ -107,9 +145,13 @@ const ApprovalPerjalananDinas = () => {
     // TODO: Implement view modal
   };
 
-  // Filter business trips based on search term, status, and department
+  // Filter business trips - only show Draft and Submitted status for approval
   const filteredTrips = businessTrips?.filter(trip => {
     if (!trip.employees) return false;
+    
+    // Only show trips that need approval (Draft or Submitted)
+    const pendingStatuses = ['Draft', 'Submitted'];
+    if (!pendingStatuses.includes(trip.status)) return false;
     
     const matchesSearch = trip.employees.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          trip.destination?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -126,8 +168,8 @@ const ApprovalPerjalananDinas = () => {
     businessTrips?.map(trip => trip.employees?.department).filter(dept => dept && dept.trim() !== '') || []
   )];
 
-  // Calculate stats
-  const pendingCount = businessTrips?.filter(trip => trip.status === 'Submitted').length || 0;
+  // Calculate stats - only count pending approvals
+  const pendingCount = businessTrips?.filter(trip => ['Draft', 'Submitted'].includes(trip.status)).length || 0;
   const approvedTodayCount = businessTrips?.filter(trip => {
     const today = new Date().toDateString();
     return trip.status === 'Approved' && new Date(trip.updated_at || trip.created_at).toDateString() === today;
@@ -224,7 +266,7 @@ const ApprovalPerjalananDinas = () => {
             <Card className="bg-white dark:bg-gray-800">
               <CardHeader>
                 <CardTitle className="text-xl font-semibold text-gray-900 dark:text-white">
-                  Daftar Perjalanan Dinas
+                  Daftar Perjalanan Dinas Menunggu Approval
                 </CardTitle>
                 
                 <div className="flex flex-col md:flex-row gap-4 mt-4">
@@ -247,9 +289,8 @@ const ApprovalPerjalananDinas = () => {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">Semua Status</SelectItem>
+                      <SelectItem value="Draft">Draft</SelectItem>
                       <SelectItem value="Submitted">Submitted</SelectItem>
-                      <SelectItem value="Approved">Approved</SelectItem>
-                      <SelectItem value="Rejected">Rejected</SelectItem>
                     </SelectContent>
                   </Select>
 
@@ -351,28 +392,26 @@ const ApprovalPerjalananDinas = () => {
                               >
                                 <Eye className="w-4 h-4" />
                               </Button>
-                              {item.status === 'Submitted' && (
-                                <>
-                                  <Button 
-                                    variant="ghost" 
-                                    size="sm" 
-                                    className="p-2 text-green-600 hover:text-green-800"
-                                    onClick={() => handleApprove(item)}
-                                    title="Setujui"
-                                  >
-                                    <Check className="w-4 h-4" />
-                                  </Button>
-                                  <Button 
-                                    variant="ghost" 
-                                    size="sm" 
-                                    className="p-2 text-red-600 hover:text-red-800"
-                                    onClick={() => handleReject(item)}
-                                    title="Tolak"
-                                  >
-                                    <X className="w-4 h-4" />
-                                  </Button>
-                                </>
-                              )}
+                              <Button 
+                                variant="ghost" 
+                                size="sm" 
+                                className="p-2 text-green-600 hover:text-green-800"
+                                onClick={() => handleApprove(item)}
+                                title="Setujui"
+                                disabled={updateBusinessTrip.isPending}
+                              >
+                                <Check className="w-4 h-4" />
+                              </Button>
+                              <Button 
+                                variant="ghost" 
+                                size="sm" 
+                                className="p-2 text-red-600 hover:text-red-800"
+                                onClick={() => handleReject(item)}
+                                title="Tolak"
+                                disabled={updateBusinessTrip.isPending}
+                              >
+                                <X className="w-4 h-4" />
+                              </Button>
                             </div>
                           </TableCell>
                         </TableRow>
@@ -382,7 +421,7 @@ const ApprovalPerjalananDinas = () => {
                           <TableCell colSpan={8} className="text-center py-8 text-gray-500">
                             {searchTerm || statusFilter !== 'all' || departmentFilter !== 'all'
                               ? 'Tidak ada data yang sesuai dengan filter'
-                              : 'Belum ada data perjalanan dinas untuk disetujui'
+                              : 'Tidak ada perjalanan dinas yang menunggu approval'
                             }
                           </TableCell>
                         </TableRow>

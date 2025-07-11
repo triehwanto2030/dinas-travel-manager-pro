@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Search, Plus, Eye, Edit, Trash2, Download, Upload, Receipt } from 'lucide-react';
 import Header from '@/components/Header';
@@ -14,6 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useBusinessTrips, useUpdateBusinessTrip, useDeleteBusinessTrip } from '@/hooks/useBusinessTrips';
 import { useToast } from '@/hooks/use-toast';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import Swal from 'sweetalert2';
 
 const PerjalananDinas = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -84,10 +84,11 @@ const PerjalananDinas = () => {
 
   const handleClaim = (item: any) => {
     if (item.status !== 'Approved') {
-      toast({
-        title: "Tidak dapat claim",
-        description: "Perjalanan dinas harus berstatus 'Approved' untuk dapat di-claim",
-        variant: "destructive",
+      Swal.fire({
+        title: 'Tidak dapat claim',
+        text: "Perjalanan dinas harus berstatus 'Approved' untuk dapat di-claim",
+        icon: 'warning',
+        confirmButtonText: 'OK'
       });
       return;
     }
@@ -97,26 +98,45 @@ const PerjalananDinas = () => {
   };
 
   const handleDelete = async (item: any) => {
-    if (window.confirm('Apakah Anda yakin ingin menghapus perjalanan dinas ini?')) {
+    const result = await Swal.fire({
+      title: 'Hapus Perjalanan Dinas?',
+      text: 'Apakah Anda yakin ingin menghapus perjalanan dinas ini?',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#3085d6',
+      confirmButtonText: 'Ya, Hapus!',
+      cancelButtonText: 'Batal'
+    });
+
+    if (result.isConfirmed) {
       try {
         await deleteBusinessTrip.mutateAsync(item.id);
-        toast({
-          title: "Berhasil!",
-          description: "Perjalanan dinas berhasil dihapus",
+        Swal.fire({
+          title: 'Berhasil!',
+          text: 'Perjalanan dinas berhasil dihapus',
+          icon: 'success',
+          timer: 2000,
+          showConfirmButton: false
         });
       } catch (error) {
-        toast({
-          title: "Error!",
-          description: "Gagal menghapus perjalanan dinas",
-          variant: "destructive",
+        Swal.fire({
+          title: 'Error!',
+          text: 'Gagal menghapus perjalanan dinas',
+          icon: 'error',
+          confirmButtonText: 'OK'
         });
       }
     }
   };
 
-  // Filter business trips based on search term, status, and department
+  // Filter business trips - only show Approved, Rejected, and Completed status
   const filteredTrips = businessTrips?.filter(trip => {
     if (!trip.employees) return false;
+    
+    // Only show trips with final status (not Draft or Submitted)
+    const allowedStatuses = ['Approved', 'Rejected', 'Completed'];
+    if (!allowedStatuses.includes(trip.status)) return false;
     
     const matchesSearch = trip.employees.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          trip.destination?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -188,7 +208,7 @@ const PerjalananDinas = () => {
               <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
                 <div>
                   <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Daftar Perjalanan Dinas</h1>
-                  <p className="text-gray-600 dark:text-gray-400">Kelola perjalanan dinas karyawan</p>
+                  <p className="text-gray-600 dark:text-gray-400">Kelola perjalanan dinas karyawan yang telah diproses</p>
                 </div>
                 <div className="flex gap-3 mt-4 md:mt-0">
                   <Button variant="outline" className="flex items-center gap-2">
@@ -233,8 +253,6 @@ const PerjalananDinas = () => {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">Semua Status</SelectItem>
-                      <SelectItem value="Draft">Draft</SelectItem>
-                      <SelectItem value="Submitted">Submitted</SelectItem>
                       <SelectItem value="Approved">Approved</SelectItem>
                       <SelectItem value="Rejected">Rejected</SelectItem>
                       <SelectItem value="Completed">Completed</SelectItem>
@@ -336,15 +354,17 @@ const PerjalananDinas = () => {
                             >
                               <Eye className="w-4 h-4" />
                             </Button>
-                            <Button 
-                              variant="ghost" 
-                              size="sm" 
-                              className="p-2"
-                              onClick={() => handleEdit(item)}
-                              title="Edit"
-                            >
-                              <Edit className="w-4 h-4" />
-                            </Button>
+                            {item.status !== 'Completed' && (
+                              <Button 
+                                variant="ghost" 
+                                size="sm" 
+                                className="p-2"
+                                onClick={() => handleEdit(item)}
+                                title="Edit"
+                              >
+                                <Edit className="w-4 h-4" />
+                              </Button>
+                            )}
                             <Button 
                               variant="ghost" 
                               size="sm" 
@@ -374,7 +394,7 @@ const PerjalananDinas = () => {
                         <TableCell colSpan={8} className="text-center py-8 text-gray-500">
                           {searchTerm || statusFilter !== 'all' || departmentFilter !== 'all' 
                             ? 'Tidak ada data yang sesuai dengan filter'
-                            : 'Belum ada data perjalanan dinas'
+                            : 'Belum ada data perjalanan dinas yang telah diproses'
                           }
                         </TableCell>
                       </TableRow>

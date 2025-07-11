@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Search, Plus, Eye, Edit, Trash2, Download, Upload, Filter, TrendingDown, TrendingUp, DollarSign } from 'lucide-react';
+import { Search, Eye, Edit, Trash2, Download, Filter, TrendingDown, TrendingUp, DollarSign } from 'lucide-react';
 import Header from '@/components/Header';
 import Sidebar from '@/components/Sidebar';
 import Footer from '@/components/Footer';
@@ -10,7 +10,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useTripClaims } from '@/hooks/useTripClaims';
+import { useTripClaims, useDeleteTripClaim } from '@/hooks/useTripClaims';
+import Swal from 'sweetalert2';
 
 const ClaimDinas = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -18,6 +19,7 @@ const ClaimDinas = () => {
   const [statusFilter, setStatusFilter] = useState('all');
 
   const { data: claims = [], isLoading } = useTripClaims();
+  const deleteClaimMutation = useDeleteTripClaim();
 
   const getStatusBadge = (status: string) => {
     const statusConfig = {
@@ -48,19 +50,56 @@ const ClaimDinas = () => {
     });
   };
 
-  // Calculate statistics
-  const totalClaims = claims.length;
-  const pendingClaims = claims.filter(c => c.status === 'Submitted').length;
-  const approvedClaims = claims.filter(c => c.status === 'Approved').length;
-  const totalAmount = claims.reduce((sum, claim) => sum + claim.total_amount, 0);
+  const handleDelete = async (claim: any) => {
+    const result = await Swal.fire({
+      title: 'Hapus Claim Dinas?',
+      text: 'Apakah Anda yakin ingin menghapus claim dinas ini?',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#3085d6',
+      confirmButtonText: 'Ya, Hapus!',
+      cancelButtonText: 'Batal'
+    });
 
-  // Filter claims
+    if (result.isConfirmed) {
+      try {
+        await deleteClaimMutation.mutateAsync(claim.id);
+        Swal.fire({
+          title: 'Berhasil!',
+          text: 'Claim dinas berhasil dihapus',
+          icon: 'success',
+          timer: 2000,
+          showConfirmButton: false
+        });
+      } catch (error) {
+        Swal.fire({
+          title: 'Error!',
+          text: 'Gagal menghapus claim dinas',
+          icon: 'error',
+          confirmButtonText: 'OK'
+        });
+      }
+    }
+  };
+
+  // Filter claims - only show Approved, Rejected, and Paid status
   const filteredClaims = claims.filter(claim => {
+    // Only show claims with final status (not Draft or Submitted)
+    const allowedStatuses = ['Approved', 'Rejected', 'Paid'];
+    if (!allowedStatuses.includes(claim.status)) return false;
+
     const matchesSearch = claim.employees.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          claim.business_trips.destination.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = statusFilter === 'all' || claim.status.toLowerCase() === statusFilter.toLowerCase();
     return matchesSearch && matchesStatus;
   });
+
+  // Calculate statistics based on filtered claims
+  const totalClaims = filteredClaims.length;
+  const approvedClaims = filteredClaims.filter(c => c.status === 'Approved').length;
+  const rejectedClaims = filteredClaims.filter(c => c.status === 'Rejected').length;
+  const totalAmount = filteredClaims.reduce((sum, claim) => sum + claim.total_amount, 0);
 
   const generateClaimId = (claim: any) => {
     const date = new Date(claim.created_at);
@@ -88,7 +127,7 @@ const ClaimDinas = () => {
               <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
                 <div>
                   <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Claim Dinas</h1>
-                  <p className="text-gray-600 dark:text-gray-400">Kelola pengajuan claim perjalanan dinas</p>
+                  <p className="text-gray-600 dark:text-gray-400">Kelola claim perjalanan dinas yang telah diproses</p>
                 </div>
                 <div className="flex gap-3 mt-4 md:mt-0">
                   <Button variant="outline" className="flex items-center gap-2">
@@ -118,11 +157,11 @@ const ClaimDinas = () => {
                   <CardContent className="p-6">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Pending</p>
-                        <p className="text-2xl font-bold text-gray-900 dark:text-white">{pendingClaims}</p>
+                        <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Approved</p>
+                        <p className="text-2xl font-bold text-gray-900 dark:text-white">{approvedClaims}</p>
                       </div>
-                      <div className="w-12 h-12 bg-orange-100 dark:bg-orange-900 rounded-lg flex items-center justify-center">
-                        <TrendingDown className="w-6 h-6 text-orange-600 dark:text-orange-400" />
+                      <div className="w-12 h-12 bg-green-100 dark:bg-green-900 rounded-lg flex items-center justify-center">
+                        <TrendingUp className="w-6 h-6 text-green-600 dark:text-green-400" />
                       </div>
                     </div>
                   </CardContent>
@@ -132,11 +171,11 @@ const ClaimDinas = () => {
                   <CardContent className="p-6">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Approved</p>
-                        <p className="text-2xl font-bold text-gray-900 dark:text-white">{approvedClaims}</p>
+                        <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Rejected</p>
+                        <p className="text-2xl font-bold text-gray-900 dark:text-white">{rejectedClaims}</p>
                       </div>
-                      <div className="w-12 h-12 bg-green-100 dark:bg-green-900 rounded-lg flex items-center justify-center">
-                        <TrendingUp className="w-6 h-6 text-green-600 dark:text-green-400" />
+                      <div className="w-12 h-12 bg-red-100 dark:bg-red-900 rounded-lg flex items-center justify-center">
+                        <TrendingDown className="w-6 h-6 text-red-600 dark:text-red-400" />
                       </div>
                     </div>
                   </CardContent>
@@ -152,7 +191,7 @@ const ClaimDinas = () => {
                         </p>
                       </div>
                       <div className="w-12 h-12 bg-purple-100 dark:bg-purple-900 rounded-lg flex items-center justify-center">
-                        <TrendingDown className="w-6 h-6 text-purple-600 dark:text-purple-400" />
+                        <DollarSign className="w-6 h-6 text-purple-600 dark:text-purple-400" />
                       </div>
                     </div>
                   </CardContent>
@@ -187,7 +226,6 @@ const ClaimDinas = () => {
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="all">Semua</SelectItem>
-                        <SelectItem value="submitted">Submitted</SelectItem>
                         <SelectItem value="approved">Approved</SelectItem>
                         <SelectItem value="rejected">Rejected</SelectItem>
                         <SelectItem value="paid">Paid</SelectItem>
@@ -219,7 +257,10 @@ const ClaimDinas = () => {
                       {filteredClaims.length === 0 ? (
                         <TableRow>
                           <TableCell colSpan={7} className="text-center py-8 text-gray-500">
-                            Tidak ada data claim dinas
+                            {searchTerm || statusFilter !== 'all' 
+                              ? 'Tidak ada data yang sesuai dengan filter'
+                              : 'Tidak ada data claim dinas yang telah diproses'
+                            }
                           </TableCell>
                         </TableRow>
                       ) : (
@@ -260,7 +301,7 @@ const ClaimDinas = () => {
                                   {formatCurrency(claim.total_amount).replace('IDR', 'Rp')}
                                 </p>
                                 <p className="text-sm text-gray-500 dark:text-gray-400">
-                                  {claim.status === 'Submitted' ? 'Pembayaran' : 'Pengembalian'}
+                                  {claim.status === 'Approved' ? 'Pembayaran' : 'Pengembalian'}
                                 </p>
                               </div>
                             </TableCell>
@@ -272,10 +313,17 @@ const ClaimDinas = () => {
                                 <Button variant="ghost" size="sm" className="p-2 h-8 w-8">
                                   <Eye className="w-4 h-4" />
                                 </Button>
-                                <Button variant="ghost" size="sm" className="p-2 h-8 w-8">
-                                  <Edit className="w-4 h-4" />
-                                </Button>
-                                <Button variant="ghost" size="sm" className="p-2 h-8 w-8 text-red-600 hover:text-red-800">
+                                {claim.status !== 'Paid' && (
+                                  <Button variant="ghost" size="sm" className="p-2 h-8 w-8">
+                                    <Edit className="w-4 h-4" />
+                                  </Button>
+                                )}
+                                <Button 
+                                  variant="ghost" 
+                                  size="sm" 
+                                  className="p-2 h-8 w-8 text-red-600 hover:text-red-800"
+                                  onClick={() => handleDelete(claim)}
+                                >
                                   <Trash2 className="w-4 h-4" />
                                 </Button>
                               </div>
