@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Search, Plus, Eye, Edit, Trash2, Calendar, MapPin, User, Building } from 'lucide-react';
 import Header from '@/components/Header';
@@ -217,10 +216,8 @@ const PerjalananDinas = () => {
                       </DialogTitle>
                     </DialogHeader>
                     <PerjalananDinasForm 
-                      isOpen={isDialogOpen}
-                      onClose={() => setIsDialogOpen(false)}
-                      mode={editingTrip ? 'edit' : 'create'}
-                      data={editingTrip}
+                      editData={editingTrip}
+                      onSuccess={() => setIsDialogOpen(false)}
                     />
                   </DialogContent>
                 </Dialog>
