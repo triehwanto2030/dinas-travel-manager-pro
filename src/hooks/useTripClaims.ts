@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Tables, TablesInsert, TablesUpdate } from '@/integrations/supabase/types';
@@ -16,6 +15,7 @@ export const useTripClaims = () => {
   return useQuery({
     queryKey: ['trip_claims'],
     queryFn: async (): Promise<TripClaimWithDetails[]> => {
+      console.log('Fetching trip claims...');
       const { data, error } = await supabase
         .from('trip_claims')
         .select(`
@@ -26,9 +26,11 @@ export const useTripClaims = () => {
         .order('created_at', { ascending: false });
 
       if (error) {
+        console.error('Error fetching trip claims:', error);
         throw new Error(error.message);
       }
 
+      console.log('Trip claims fetched:', data);
       return data as TripClaimWithDetails[];
     },
   });
@@ -41,9 +43,20 @@ export const useCreateTripClaim = () => {
     mutationFn: async (claim: TablesInsert<'trip_claims'>) => {
       console.log('Creating trip claim with data:', claim);
       
+      // Ensure all required fields are present
+      const claimData = {
+        employee_id: claim.employee_id,
+        trip_id: claim.trip_id,
+        total_amount: claim.total_amount || 0,
+        status: claim.status || 'Submitted',
+        submitted_at: claim.submitted_at || new Date().toISOString(),
+      };
+
+      console.log('Processed claim data:', claimData);
+      
       const { data, error } = await supabase
         .from('trip_claims')
-        .insert([claim])
+        .insert([claimData])
         .select(`
           *,
           employees (*),
@@ -53,14 +66,19 @@ export const useCreateTripClaim = () => {
 
       if (error) {
         console.error('Error creating trip claim:', error);
-        throw new Error(error.message);
+        throw new Error(`Failed to create trip claim: ${error.message}`);
       }
 
       console.log('Trip claim created successfully:', data);
       return data;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      console.log('Trip claim creation successful, invalidating queries');
       queryClient.invalidateQueries({ queryKey: ['trip_claims'] });
+      queryClient.invalidateQueries({ queryKey: ['business_trips'] });
+    },
+    onError: (error) => {
+      console.error('Trip claim creation failed:', error);
     },
   });
 };

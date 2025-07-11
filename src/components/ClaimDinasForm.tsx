@@ -125,6 +125,10 @@ const ClaimDinasForm: React.FC<ClaimDinasFormProps> = ({ isOpen, onClose, tripDa
 
   const handleSubmit = async () => {
     try {
+      console.log('Starting claim submission...');
+      console.log('Trip data:', tripData);
+      console.log('Expenses:', expenses);
+      
       // Validate expenses
       const validExpenses = expenses.filter(exp => exp.type && exp.description && exp.amount > 0);
       
@@ -137,27 +141,31 @@ const ClaimDinasForm: React.FC<ClaimDinasFormProps> = ({ isOpen, onClose, tripDa
         return;
       }
 
-      // Create claim data
+      // Create claim data with proper validation
       const claimData = {
-        employee_id: tripData.employee_id,
-        trip_id: tripData.id,
-        total_amount: totalExpenses,
+        employee_id: String(tripData.employee_id),
+        trip_id: String(tripData.id),
+        total_amount: Number(totalExpenses),
         status: 'Submitted' as const,
         submitted_at: new Date().toISOString()
       };
 
-      await createTripClaim.mutateAsync(claimData);
+      console.log('Submitting claim data:', claimData);
+
+      const result = await createTripClaim.mutateAsync(claimData);
+      console.log('Claim submission result:', result);
 
       toast({
         title: "Berhasil!",
         description: "Claim dinas berhasil diajukan dan akan masuk ke proses approval",
       });
+      
       onClose();
     } catch (error) {
       console.error('Error creating claim:', error);
       toast({
         title: "Error!",
-        description: "Gagal mengajukan claim dinas",
+        description: `Gagal mengajukan claim dinas: ${error instanceof Error ? error.message : 'Unknown error'}`,
         variant: "destructive",
       });
     }
@@ -165,9 +173,9 @@ const ClaimDinasForm: React.FC<ClaimDinasFormProps> = ({ isOpen, onClose, tripDa
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-hidden">
+      <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col">
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b">
+        <div className="flex items-center justify-between p-6 border-b flex-shrink-0">
           <div>
             <h2 className="text-xl font-semibold text-gray-900">Buat Claim Perjalanan Dinas</h2>
             <h3 className="text-lg text-gray-700 mt-1">Detail Perjalanan Dinas & Klaim</h3>
@@ -177,7 +185,8 @@ const ClaimDinasForm: React.FC<ClaimDinasFormProps> = ({ isOpen, onClose, tripDa
           </Button>
         </div>
 
-        <div className="overflow-y-auto max-h-[calc(90vh-140px)]">
+        {/* Scrollable Content */}
+        <div className="flex-1 overflow-y-auto">
           <div className="p-6 space-y-6">
             {/* Employee Info & Trip Details */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -417,14 +426,14 @@ const ClaimDinasForm: React.FC<ClaimDinasFormProps> = ({ isOpen, onClose, tripDa
           </div>
         </div>
 
-        {/* Footer */}
-        <div className="flex items-center justify-end gap-4 p-6 border-t bg-gray-50">
-          <Button variant="outline" onClick={onClose}>
+        {/* Fixed Footer with proper spacing */}
+        <div className="flex items-center justify-end gap-4 p-6 border-t bg-gray-50 flex-shrink-0">
+          <Button variant="outline" onClick={onClose} disabled={createTripClaim.isPending}>
             Batal
           </Button>
           <Button 
             onClick={handleSubmit} 
-            className="bg-blue-600 hover:bg-blue-700"
+            className="bg-blue-600 hover:bg-blue-700 min-w-[140px]"
             disabled={createTripClaim.isPending}
           >
             {createTripClaim.isPending ? 'Mengajukan...' : 'Ajukan Claim'}
