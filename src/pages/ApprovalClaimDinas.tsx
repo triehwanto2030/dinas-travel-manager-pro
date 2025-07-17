@@ -10,13 +10,20 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
+import { useToast } from '@/hooks/use-toast';
 import { useTripClaims, useUpdateTripClaim } from '@/hooks/useTripClaims';
-import Swal from 'sweetalert2';
 
 const ApprovalClaimDinas = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [rejectReason, setRejectReason] = useState('');
+  const [selectedClaimId, setSelectedClaimId] = useState<string | null>(null);
+  const [isRejectDialogOpen, setIsRejectDialogOpen] = useState(false);
+  const { toast } = useToast();
 
   const { data: claims = [], isLoading } = useTripClaims();
   const updateTripClaim = useUpdateTripClaim();
@@ -50,99 +57,68 @@ const ApprovalClaimDinas = () => {
     });
   };
 
-  const handleApprove = async (claim: any) => {
-    const result = await Swal.fire({
-      title: 'Setujui Claim Dinas?',
-      text: `Apakah Anda yakin ingin menyetujui claim dinas sebesar ${formatCurrency(claim.total_amount).replace('IDR', 'Rp')}?`,
-      icon: 'question',
-      showCancelButton: true,
-      confirmButtonColor: '#22c55e',
-      cancelButtonColor: '#6b7280',
-      confirmButtonText: 'Ya, Setujui!',
-      cancelButtonText: 'Batal'
-    });
-
-    if (result.isConfirmed) {
-      try {
-        await updateTripClaim.mutateAsync({
-          id: claim.id,
-          status: 'Approved',
-          approved_at: new Date().toISOString()
-        });
-        
-        Swal.fire({
-          title: 'Berhasil!',
-          text: 'Claim dinas telah disetujui',
-          icon: 'success',
-          timer: 2000,
-          showConfirmButton: false
-        });
-      } catch (error) {
-        Swal.fire({
-          title: 'Error!',
-          text: 'Gagal menyetujui claim dinas',
-          icon: 'error',
-          confirmButtonText: 'OK'
-        });
-      }
+  const handleApprove = async (claimId: string) => {
+    try {
+      await updateTripClaim.mutateAsync({
+        id: claimId,
+        status: 'Approved',
+        approved_at: new Date().toISOString()
+      });
+      
+      toast({
+        title: "Berhasil!",
+        description: "Claim dinas telah disetujui",
+      });
+    } catch (error) {
+      toast({
+        title: "Error!",
+        description: "Gagal menyetujui claim dinas",
+        variant: "destructive",
+      });
     }
   };
 
-  const handleReject = async (claim: any) => {
-    const { value: reason } = await Swal.fire({
-      title: 'Tolak Claim Dinas',
-      text: `Masukkan alasan penolakan untuk claim dinas sebesar ${formatCurrency(claim.total_amount).replace('IDR', 'Rp')}:`,
-      input: 'textarea',
-      inputPlaceholder: 'Masukkan alasan penolakan...',
-      inputValidator: (value) => {
-        if (!value) {
-          return 'Alasan penolakan harus diisi!'
-        }
-      },
-      showCancelButton: true,
-      confirmButtonText: 'Tolak',
-      cancelButtonText: 'Batal',
-      confirmButtonColor: '#ef4444',
-      cancelButtonColor: '#6b7280'
-    });
+  const handleReject = async () => {
+    if (!selectedClaimId || !rejectReason.trim()) {
+      toast({
+        title: "Error!",
+        description: "Alasan penolakan harus diisi",
+        variant: "destructive",
+      });
+      return;
+    }
 
-    if (reason) {
-      try {
-        await updateTripClaim.mutateAsync({
-          id: claim.id,
-          status: 'Rejected'
-        });
-        
-        Swal.fire({
-          title: 'Berhasil!',
-          text: 'Claim dinas telah ditolak',
-          icon: 'success',
-          timer: 2000,
-          showConfirmButton: false
-        });
-      } catch (error) {
-        Swal.fire({
-          title: 'Error!',
-          text: 'Gagal menolak claim dinas',
-          icon: 'error',
-          confirmButtonText: 'OK'
-        });
-      }
+    try {
+      await updateTripClaim.mutateAsync({
+        id: selectedClaimId,
+        status: 'Rejected'
+      });
+      
+      toast({
+        title: "Berhasil!",
+        description: "Claim dinas telah ditolak",
+        variant: "destructive",
+      });
+      
+      setIsRejectDialogOpen(false);
+      setRejectReason('');
+      setSelectedClaimId(null);
+    } catch (error) {
+      toast({
+        title: "Error!",
+        description: "Gagal menolak claim dinas",
+        variant: "destructive",
+      });
     }
   };
 
-  // Filter claims - only show submitted claims for approval
-  const filteredClaims = claims.filter(claim => {
-    // Only show submitted claims that need approval
-    if (claim.status !== 'Submitted') return false;
+  const openRejectDialog = (claimId: string) => {
+    setSelectedClaimId(claimId);
+    setIsRejectDialogOpen(true);
+  };
 
-    const matchesSearch = claim.employees.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         claim.business_trips.destination.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = statusFilter === 'all' || claim.status.toLowerCase() === statusFilter.toLowerCase();
-    return matchesSearch && matchesStatus;
-  });
-
-  // Calculate statistics - only count submitted claims
+  // Calculate statistics
+  const totalClaims = claims.length;
   const pendingClaims = claims.filter(c => c.status === 'Submitted').length;
   const approvedToday = claims.filter(c => 
     c.status === 'Approved' && 
@@ -153,11 +129,18 @@ const ApprovalClaimDinas = () => {
     .filter(c => {
       const claimDate = new Date(c.created_at);
       const now = new Date();
-      return claimDate.getMonth() === now.getMonth() && 
-             claimDate.getFullYear() === now.getFullYear() &&
-             c.status === 'Submitted';
+      return claimDate.getMonth() === now.getMonth() && claimDate.getFullYear() === now.getFullYear();
     })
     .reduce((sum, claim) => sum + claim.total_amount, 0);
+
+  // Filter claims - only show submitted claims for approval
+  const filteredClaims = claims.filter(claim => {
+    const matchesSearch = claim.employees.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         claim.business_trips.destination.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesStatus = statusFilter === 'all' || claim.status.toLowerCase() === statusFilter.toLowerCase();
+    const isSubmitted = claim.status === 'Submitted'; // Only show submitted claims
+    return matchesSearch && matchesStatus && isSubmitted;
+  });
 
   const generateClaimId = (claim: any) => {
     const date = new Date(claim.created_at);
@@ -290,10 +273,7 @@ const ApprovalClaimDinas = () => {
                       {filteredClaims.length === 0 ? (
                         <TableRow>
                           <TableCell colSpan={7} className="text-center py-8 text-gray-500">
-                            {searchTerm || statusFilter !== 'all'
-                              ? 'Tidak ada data yang sesuai dengan filter'
-                              : 'Tidak ada claim dinas yang menunggu approval'
-                            }
+                            Tidak ada claim dinas yang menunggu approval
                           </TableCell>
                         </TableRow>
                       ) : (
@@ -347,7 +327,7 @@ const ApprovalClaimDinas = () => {
                                   variant="ghost" 
                                   size="sm" 
                                   className="p-2 text-green-600 hover:text-green-800"
-                                  onClick={() => handleApprove(claim)}
+                                  onClick={() => handleApprove(claim.id)}
                                   disabled={updateTripClaim.isPending}
                                 >
                                   <Check className="w-4 h-4" />
@@ -356,7 +336,7 @@ const ApprovalClaimDinas = () => {
                                   variant="ghost" 
                                   size="sm" 
                                   className="p-2 text-red-600 hover:text-red-800"
-                                  onClick={() => handleReject(claim)}
+                                  onClick={() => openRejectDialog(claim.id)}
                                   disabled={updateTripClaim.isPending}
                                 >
                                   <X className="w-4 h-4" />
@@ -376,6 +356,46 @@ const ApprovalClaimDinas = () => {
           <Footer />
         </div>
       </div>
+
+      {/* Reject Dialog */}
+      <Dialog open={isRejectDialogOpen} onOpenChange={setIsRejectDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Tolak Claim Dinas</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="rejectReason">Alasan Penolakan</Label>
+              <Textarea
+                id="rejectReason"
+                placeholder="Masukkan alasan penolakan..."
+                value={rejectReason}
+                onChange={(e) => setRejectReason(e.target.value)}
+                className="mt-1"
+              />
+            </div>
+            <div className="flex gap-2 justify-end">
+              <Button 
+                variant="outline" 
+                onClick={() => {
+                  setIsRejectDialogOpen(false);
+                  setRejectReason('');
+                  setSelectedClaimId(null);
+                }}
+              >
+                Batal
+              </Button>
+              <Button 
+                variant="destructive" 
+                onClick={handleReject}
+                disabled={!rejectReason.trim() || updateTripClaim.isPending}
+              >
+                {updateTripClaim.isPending ? 'Menolak...' : 'Tolak Claim'}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Mobile menu button */}
       <button
