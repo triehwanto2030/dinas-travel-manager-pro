@@ -29,7 +29,7 @@ const KaryawanForm: React.FC<KaryawanFormProps> = ({
   const { data: employees = [] } = useEmployees();
   
   const [formData, setFormData] = useState<EmployeeFormData>({
-    id: '',
+    employeeId: '',
     nama: '',
     email: '',
     phone: '',
@@ -53,23 +53,23 @@ const KaryawanForm: React.FC<KaryawanFormProps> = ({
       const company = companies.find(c => c.id === initialData.company_id);
       
       setFormData({
-        id: initialData.id || '',
+        employeeId: initialData.employee_id || '',
         nama: initialData.name || '',
         email: initialData.email || '',
         phone: initialData.phone || '',
-        tanggalBergabung: initialData.join_date || '',
+        tanggalBergabung: '',
         departemen: initialData.department || '',
         posisi: initialData.position || '',
         grade: initialData.grade || '',
-        status: initialData.status || 'Aktif',
+        status: 'Aktif',
         namaPerusahaan: company?.name || '',
         supervisorId: initialData.supervisor_id || '',
-        fotoUrl: initialData.avatar_url || ''
+        fotoUrl: initialData.photo_url || ''
       });
-      setPreviewImage(initialData.avatar_url || null);
+      setPreviewImage(initialData.photo_url || null);
     } else if (!initialData && isOpen) {
       setFormData({
-        id: '',
+        employeeId: '',
         nama: '',
         email: '',
         phone: '',
@@ -115,7 +115,7 @@ const KaryawanForm: React.FC<KaryawanFormProps> = ({
 
   // Filter employees for supervisor selection - exclude current employee and filter by same company
   const availableSupervisors = employees.filter(emp => 
-    emp.id !== formData.id && 
+    emp.employee_id !== formData.employeeId && 
     (formData.namaPerusahaan ? emp.companies?.name === formData.namaPerusahaan : true)
   );
 
@@ -171,11 +171,11 @@ const KaryawanForm: React.FC<KaryawanFormProps> = ({
                 <h3 className="text-lg font-semibold mb-4">Informasi Personal</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="id">ID Karyawan *</Label>
+                    <Label htmlFor="employeeId">ID Karyawan *</Label>
                     <Input
-                      id="id"
-                      value={formData.id}
-                      onChange={(e) => handleInputChange('id', e.target.value)}
+                      id="employeeId"
+                      value={formData.employeeId}
+                      onChange={(e) => handleInputChange('employeeId', e.target.value)}
                       placeholder="EMP001"
                       required={mode === 'add'}
                       readOnly={mode === 'edit' || isReadOnly}

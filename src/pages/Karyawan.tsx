@@ -35,7 +35,7 @@ const Karyawan = () => {
 
   const stats = [
     { title: 'Total Karyawan', value: employees.length.toString(), color: 'bg-blue-500' },
-    { title: 'Karyawan Aktif', value: employees.filter(k => k.status === 'Aktif').length.toString(), color: 'bg-green-500' },
+    { title: 'Karyawan Aktif', value: employees.length.toString(), color: 'bg-green-500' },
     { title: 'Departemen', value: '5', color: 'bg-purple-500' },
     { title: 'Bergabung Bulan Ini', value: '1', color: 'bg-orange-500' }
   ];
@@ -119,12 +119,11 @@ const Karyawan = () => {
 
   const filteredData = employees.filter(karyawan => {
     const matchesSearch = karyawan.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         karyawan.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         karyawan.email.toLowerCase().includes(searchTerm.toLowerCase());
+                         karyawan.employee_id.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         (karyawan.email?.toLowerCase().includes(searchTerm.toLowerCase()) || false);
     const matchesDepartment = !departmentFilter || karyawan.department === departmentFilter;
-    const matchesStatus = !statusFilter || karyawan.status === statusFilter;
     
-    return matchesSearch && matchesDepartment && matchesStatus;
+    return matchesSearch && matchesDepartment;
   });
 
   if (isLoading) {
@@ -246,14 +245,14 @@ const Karyawan = () => {
                         <TableCell>
                           <div className="flex items-center gap-3">
                             <Avatar className="w-12 h-12">
-                              <AvatarImage src={karyawan.avatar_url || undefined} />
+                              <AvatarImage src={karyawan.photo_url || undefined} />
                               <AvatarFallback className="bg-blue-500 text-white font-medium">
                                 {karyawan.name.split(' ').map(n => n[0]).join('').toUpperCase()}
                               </AvatarFallback>
                             </Avatar>
                             <div>
                               <p className="font-medium text-gray-900 dark:text-white">{karyawan.name}</p>
-                              <p className="text-sm text-gray-500 dark:text-gray-400">{karyawan.id} ({karyawan.grade})</p>
+                              <p className="text-sm text-gray-500 dark:text-gray-400">{karyawan.employee_id} ({karyawan.grade})</p>
                             </div>
                           </div>
                         </TableCell>
@@ -288,16 +287,14 @@ const Karyawan = () => {
                         </TableCell>
                         <TableCell>
                           <Badge 
-                            variant={karyawan.status === 'Aktif' ? 'default' : 'secondary'}
-                            className={karyawan.status === 'Aktif' 
-                              ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300' 
-                              : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300'}
+                            variant="default"
+                            className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300"
                           >
-                            {karyawan.status}
+                            Aktif
                           </Badge>
                         </TableCell>
                         <TableCell className="text-gray-600 dark:text-gray-400">
-                          {karyawan.join_date}
+                          {new Date(karyawan.created_at).toLocaleDateString('id-ID')}
                         </TableCell>
                         <TableCell>
                           <div className="flex items-center gap-2">

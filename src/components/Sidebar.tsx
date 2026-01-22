@@ -104,18 +104,6 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle }) => {
         ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
       `}>
         <div className="flex flex-col h-full">
-          {/* Logo */}
-          <div className="flex items-center justify-center h-16 px-4 border-b border-gray-200 dark:border-gray-700">
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-                <Plane className="w-5 h-5 text-white" />
-              </div>
-              <div>
-                <h1 className="text-lg font-bold text-gray-900 dark:text-white">Travel Pro</h1>
-                <p className="text-xs text-gray-500 dark:text-gray-400">Perjalanan Dinas</p>
-              </div>
-            </div>
-          </div>
 
           {/* Navigation */}
           <nav className="flex-1 px-4 py-6 overflow-y-auto">
