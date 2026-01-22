@@ -14,7 +14,386 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      app_settings: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          key: string
+          updated_at: string
+          value: string | null
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          key: string
+          updated_at?: string
+          value?: string | null
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          key?: string
+          updated_at?: string
+          value?: string | null
+        }
+        Relationships: []
+      }
+      business_trips: {
+        Row: {
+          accommodation: string | null
+          cash_advance: number | null
+          created_at: string
+          destination: string
+          employee_id: string | null
+          end_date: string
+          id: string
+          notes: string | null
+          purpose: string | null
+          start_date: string
+          status: string
+          transportation: string | null
+          trip_number: string
+          updated_at: string
+        }
+        Insert: {
+          accommodation?: string | null
+          cash_advance?: number | null
+          created_at?: string
+          destination: string
+          employee_id?: string | null
+          end_date: string
+          id?: string
+          notes?: string | null
+          purpose?: string | null
+          start_date: string
+          status?: string
+          transportation?: string | null
+          trip_number: string
+          updated_at?: string
+        }
+        Update: {
+          accommodation?: string | null
+          cash_advance?: number | null
+          created_at?: string
+          destination?: string
+          employee_id?: string | null
+          end_date?: string
+          id?: string
+          notes?: string | null
+          purpose?: string | null
+          start_date?: string
+          status?: string
+          transportation?: string | null
+          trip_number?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "business_trips_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      companies: {
+        Row: {
+          address: string | null
+          code: string | null
+          created_at: string
+          id: string
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          address?: string | null
+          code?: string | null
+          created_at?: string
+          id?: string
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          address?: string | null
+          code?: string | null
+          created_at?: string
+          id?: string
+          name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      employees: {
+        Row: {
+          company_id: string | null
+          created_at: string
+          department: string | null
+          email: string | null
+          employee_id: string
+          grade: string | null
+          id: string
+          name: string
+          phone: string | null
+          photo_url: string | null
+          position: string | null
+          supervisor_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          company_id?: string | null
+          created_at?: string
+          department?: string | null
+          email?: string | null
+          employee_id: string
+          grade?: string | null
+          id?: string
+          name: string
+          phone?: string | null
+          photo_url?: string | null
+          position?: string | null
+          supervisor_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          company_id?: string | null
+          created_at?: string
+          department?: string | null
+          email?: string | null
+          employee_id?: string
+          grade?: string | null
+          id?: string
+          name?: string
+          phone?: string | null
+          photo_url?: string | null
+          position?: string | null
+          supervisor_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "employees_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "employees_supervisor_id_fkey"
+            columns: ["supervisor_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      line_approvals: {
+        Row: {
+          bod_id: string | null
+          company_id: string | null
+          created_at: string
+          hr_manager_id: string | null
+          id: string
+          spv_ga_id: string | null
+          staff_fa_id: string | null
+          staff_ga_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          bod_id?: string | null
+          company_id?: string | null
+          created_at?: string
+          hr_manager_id?: string | null
+          id?: string
+          spv_ga_id?: string | null
+          staff_fa_id?: string | null
+          staff_ga_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          bod_id?: string | null
+          company_id?: string | null
+          created_at?: string
+          hr_manager_id?: string | null
+          id?: string
+          spv_ga_id?: string | null
+          staff_fa_id?: string | null
+          staff_ga_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "line_approvals_bod_id_fkey"
+            columns: ["bod_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "line_approvals_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "line_approvals_hr_manager_id_fkey"
+            columns: ["hr_manager_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "line_approvals_spv_ga_id_fkey"
+            columns: ["spv_ga_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "line_approvals_staff_fa_id_fkey"
+            columns: ["staff_fa_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "line_approvals_staff_ga_id_fkey"
+            columns: ["staff_ga_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      roles: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          name: string
+          permissions: Json | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          name: string
+          permissions?: Json | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string
+          permissions?: Json | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      trip_claims: {
+        Row: {
+          claim_number: string | null
+          created_at: string
+          employee_id: string | null
+          id: string
+          notes: string | null
+          status: string
+          submitted_at: string | null
+          total_amount: number | null
+          trip_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          claim_number?: string | null
+          created_at?: string
+          employee_id?: string | null
+          id?: string
+          notes?: string | null
+          status?: string
+          submitted_at?: string | null
+          total_amount?: number | null
+          trip_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          claim_number?: string | null
+          created_at?: string
+          employee_id?: string | null
+          id?: string
+          notes?: string | null
+          status?: string
+          submitted_at?: string | null
+          total_amount?: number | null
+          trip_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trip_claims_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "trip_claims_trip_id_fkey"
+            columns: ["trip_id"]
+            isOneToOne: false
+            referencedRelation: "business_trips"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      users: {
+        Row: {
+          created_at: string
+          email: string
+          employee_id: string | null
+          id: string
+          is_active: boolean | null
+          last_login: string | null
+          role: string
+          updated_at: string
+          username: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          employee_id?: string | null
+          id?: string
+          is_active?: boolean | null
+          last_login?: string | null
+          role?: string
+          updated_at?: string
+          username: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          employee_id?: string | null
+          id?: string
+          is_active?: boolean | null
+          last_login?: string | null
+          role?: string
+          updated_at?: string
+          username?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "users_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
