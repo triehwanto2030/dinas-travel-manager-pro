@@ -234,14 +234,14 @@ const ClaimDinas = () => {
                             <TableCell>
                               <div className="flex items-center gap-3">
                                 <Avatar className="w-10 h-10">
-                                  <AvatarImage src={claim.employees.avatar_url || undefined} />
+                                  <AvatarImage src={claim.employees.photo_url || undefined} />
                                   <AvatarFallback className="bg-blue-500 text-white text-sm">
                                     {claim.employees.name.split(' ').map(n => n[0]).join('').substring(0, 2)}
                                   </AvatarFallback>
                                 </Avatar>
                                 <div>
                                   <p className="font-medium text-gray-900 dark:text-white">{claim.employees.name}</p>
-                                  <p className="text-sm text-gray-500 dark:text-gray-400">ID: {claim.employees.id}</p>
+                                  <p className="text-sm text-gray-500 dark:text-gray-400">ID: {claim.employees.employee_id}</p>
                                 </div>
                               </div>
                             </TableCell>

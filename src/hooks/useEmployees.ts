@@ -12,7 +12,7 @@ export interface EmployeeWithCompany extends Employee {
 
 // Interface for form data with Indonesian property names
 export interface EmployeeFormData {
-  id: string;
+  employeeId: string; // This is the employee_id string like "EMP001"
   nama: string;
   email: string;
   phone: string;
@@ -68,18 +68,16 @@ export const useCreateEmployee = () => {
 
       // Map form data to database schema
       const employeeData: TablesInsert<'employees'> = {
-        id: employee.id,
+        employee_id: employee.employeeId,
         name: employee.nama,
         email: employee.email,
         phone: employee.phone,
-        join_date: employee.tanggalBergabung,
         department: employee.departemen,
         position: employee.posisi,
-        grade: employee.grade as any,
-        status: employee.status as 'Aktif' | 'Tidak Aktif',
+        grade: employee.grade,
         company_id: companies.id,
         supervisor_id: employee.supervisorId || null,
-        avatar_url: employee.fotoUrl || null
+        photo_url: employee.fotoUrl || null
       };
 
       const { data, error } = await supabase
@@ -140,14 +138,12 @@ export const useUpdateEmployee = () => {
       if (updates.nama) updateData.name = updates.nama;
       if (updates.email) updateData.email = updates.email;
       if (updates.phone) updateData.phone = updates.phone;
-      if (updates.tanggalBergabung) updateData.join_date = updates.tanggalBergabung;
       if (updates.departemen) updateData.department = updates.departemen;
       if (updates.posisi) updateData.position = updates.posisi;
-      if (updates.grade) updateData.grade = updates.grade as any;
-      if (updates.status) updateData.status = updates.status;
+      if (updates.grade) updateData.grade = updates.grade;
       if (company_id) updateData.company_id = company_id;
       if (updates.supervisorId !== undefined) updateData.supervisor_id = updates.supervisorId || null;
-      if (updates.fotoUrl !== undefined) updateData.avatar_url = updates.fotoUrl || null;
+      if (updates.fotoUrl !== undefined) updateData.photo_url = updates.fotoUrl || null;
 
       const { data, error } = await supabase
         .from('employees')

@@ -281,7 +281,7 @@ const PerjalananDinas = () => {
                         <TableCell>
                           <div className="flex items-center space-x-3">
                             <Avatar className="w-8 h-8">
-                              <AvatarImage src={item.employees?.avatar_url || ''} />
+                              <AvatarImage src={item.employees?.photo_url || ''} />
                               <AvatarFallback className="bg-blue-100 text-blue-600 text-xs">
                                 {item.employees?.name?.split(' ').map(n => n[0]).join('') || 'N/A'}
                               </AvatarFallback>
@@ -289,7 +289,7 @@ const PerjalananDinas = () => {
                             <div>
                               <p className="font-medium text-gray-900 dark:text-white">{item.employees?.name || 'N/A'}</p>
                               <p className="text-sm text-gray-500 dark:text-gray-400">
-                                ID: {item.employees?.id || 'N/A'} 
+                                ID: {item.employees?.employee_id || 'N/A'} 
                                 <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs ml-2">
                                   {item.employees?.grade || 'N/A'}
                                 </span>
@@ -323,7 +323,7 @@ const PerjalananDinas = () => {
                           {getStatusBadge(item.status)}
                         </TableCell>
                         <TableCell className="font-medium text-gray-900 dark:text-white">
-                          {item.estimated_budget ? formatCurrency(item.estimated_budget) : '-'}
+                          {item.cash_advance ? formatCurrency(item.cash_advance) : '-'}
                         </TableCell>
                         <TableCell>
                           <div className="flex items-center gap-1">

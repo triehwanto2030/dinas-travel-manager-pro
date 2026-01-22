@@ -65,14 +65,16 @@ export const useCreateBusinessTrip = () => {
       
       // Map form data to database schema
       const businessTripData: TablesInsert<'business_trips'> = {
+        trip_number: `TRIP-${Date.now()}`,
         employee_id: tripData.employee_id,
-        company_id: tripData.cost_center,
         destination: tripData.destination,
         start_date: tripData.start_date.toISOString().split('T')[0],
         end_date: tripData.end_date.toISOString().split('T')[0],
         purpose: tripData.purpose,
-        estimated_budget: tripData.cash_advance,
-        status: 'Submitted' as any // Change default status to Submitted
+        accommodation: tripData.accommodation,
+        transportation: tripData.transportation,
+        cash_advance: tripData.cash_advance,
+        status: 'Submitted'
       };
 
       const { data, error } = await supabase
@@ -120,8 +122,9 @@ export const useUpdateBusinessTrip = () => {
       if (updates.start_date) updateData.start_date = updates.start_date.toISOString().split('T')[0];
       if (updates.end_date) updateData.end_date = updates.end_date.toISOString().split('T')[0];
       if (updates.purpose) updateData.purpose = updates.purpose;
-      if (updates.cash_advance !== undefined) updateData.estimated_budget = updates.cash_advance;
-      if (updates.cost_center) updateData.company_id = updates.cost_center;
+      if (updates.cash_advance !== undefined) updateData.cash_advance = updates.cash_advance;
+      if (updates.accommodation) updateData.accommodation = updates.accommodation;
+      if (updates.transportation) updateData.transportation = updates.transportation;
 
       const { data, error } = await supabase
         .from('business_trips')

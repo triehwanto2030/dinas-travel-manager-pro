@@ -78,17 +78,17 @@ const PerjalananDinasForm = ({ isOpen, onClose, mode, data }: PerjalananDinasFor
       const employee = employees.find(emp => emp.id === data.employee_id);
       if (employee) {
         setSelectedEmployee(employee);
-        form.setValue('employee_id', data.employee_id);
+        form.setValue('employee_id', data.employee_id || '');
         form.setValue('destination', data.destination);
         form.setValue('start_date', new Date(data.start_date));
         form.setValue('end_date', new Date(data.end_date));
-        form.setValue('purpose', data.purpose);
-        form.setValue('cost_center', data.company_id);
-        form.setValue('cash_advance', data.estimated_budget || 0);
+        form.setValue('purpose', data.purpose || '');
+        form.setValue('cost_center', employee.company_id || '');
+        form.setValue('cash_advance', data.cash_advance || 0);
         
-        // Set accommodation and transportation to default values if not available
-        form.setValue('accommodation', 'hotel');
-        form.setValue('transportation', 'flight');
+        // Set accommodation and transportation
+        form.setValue('accommodation', data.accommodation || 'hotel');
+        form.setValue('transportation', data.transportation || 'flight');
         
         if (employee.department) {
           form.setValue('department', employee.department);
