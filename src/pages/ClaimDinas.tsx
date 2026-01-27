@@ -4,6 +4,7 @@ import { Search, Plus, Eye, Edit, Trash2, Download, Upload, Filter, TrendingDown
 import Header from '@/components/Header';
 import Sidebar from '@/components/Sidebar';
 import Footer from '@/components/Footer';
+import ClaimDinasDetailModal from '@/components/ClaimDinasDetailModal';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -16,8 +17,15 @@ const ClaimDinas = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [detailModalOpen, setDetailModalOpen] = useState(false);
+  const [selectedClaim, setSelectedClaim] = useState<any>(null);
 
   const { data: claims = [], isLoading } = useTripClaims();
+
+  const handleViewDetail = (claim: any) => {
+    setSelectedClaim(claim);
+    setDetailModalOpen(true);
+  };
 
   const getStatusBadge = (status: string) => {
     const statusConfig = {
@@ -269,7 +277,13 @@ const ClaimDinas = () => {
                             </TableCell>
                             <TableCell>
                               <div className="flex items-center gap-2">
-                                <Button variant="ghost" size="sm" className="p-2 h-8 w-8">
+                                <Button 
+                                  variant="ghost" 
+                                  size="sm" 
+                                  className="p-2 h-8 w-8"
+                                  onClick={() => handleViewDetail(claim)}
+                                  title="Lihat Detail"
+                                >
                                   <Eye className="w-4 h-4" />
                                 </Button>
                                 <Button variant="ghost" size="sm" className="p-2 h-8 w-8">
@@ -303,6 +317,13 @@ const ClaimDinas = () => {
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
         </svg>
       </button>
+
+      {/* Detail Modal */}
+      <ClaimDinasDetailModal
+        isOpen={detailModalOpen}
+        onClose={() => setDetailModalOpen(false)}
+        claimData={selectedClaim}
+      />
     </div>
   );
 };
