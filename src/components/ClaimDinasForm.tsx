@@ -70,17 +70,17 @@ const ClaimDinasForm: React.FC<ClaimDinasFormProps> = ({ isOpen, onClose, tripDa
     month: 'short', 
     year: 'numeric' 
   }) : 'N/A';
-  const estimatedBudget = tripData.estimated_budget || 0;
+  const cashAdvance = tripData.cash_advance || 0;
 
   // Create trip info from the data
   const tripInfo = {
-    number: `PD${new Date(tripData.created_at).getFullYear()}${String(new Date(tripData.created_at).getMonth() + 1).padStart(2, '0')}${String(new Date(tripData.created_at).getDate()).padStart(2, '0')}01`,
+    number: tripData.trip_number || `PD${new Date(tripData.created_at).getFullYear()}${String(new Date(tripData.created_at).getMonth() + 1).padStart(2, '0')}${String(new Date(tripData.created_at).getDate()).padStart(2, '0')}01`,
     destination: destination,
     purpose: purpose,
     startDate: startDate,
     endDate: endDate,
     duration: calculateDuration(tripData.start_date, tripData.end_date),
-    cashAdvance: estimatedBudget
+    cashAdvance: cashAdvance
   };
 
   function calculateDuration(start: string, end: string): string {
