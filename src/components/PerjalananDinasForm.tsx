@@ -72,9 +72,9 @@ const PerjalananDinasForm = ({ isOpen, onClose, mode, data }: PerjalananDinasFor
     },
   });
 
-  // Populate form when in edit mode
+  // Populate form when in edit or view mode
   useEffect(() => {
-    if (mode === 'edit' && data && employees) {
+    if ((mode === 'edit' || mode === 'view') && data && employees) {
       const employee = employees.find(emp => emp.id === data.employee_id);
       if (employee) {
         setSelectedEmployee(employee);
