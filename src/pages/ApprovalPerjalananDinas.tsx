@@ -4,6 +4,7 @@ import { Search, Eye, Check, X, Calendar, MapPin, User, Building } from 'lucide-
 import Header from '@/components/Header';
 import Sidebar from '@/components/Sidebar';
 import Footer from '@/components/Footer';
+import ApprovalPerjalananDinasDetailModal from '@/components/ApprovalPerjalananDinasDetailModal';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -18,6 +19,8 @@ const ApprovalPerjalananDinas = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('Submitted');
   const [departmentFilter, setDepartmentFilter] = useState('all');
+  const [detailModalOpen, setDetailModalOpen] = useState(false);
+  const [selectedTrip, setSelectedTrip] = useState<any>(null);
 
   const { data: businessTrips, isLoading, error } = useBusinessTrips();
   const updateBusinessTrip = useUpdateBusinessTrip();
@@ -103,8 +106,8 @@ const ApprovalPerjalananDinas = () => {
   };
 
   const handleView = (item: any) => {
-    console.log('View item:', item);
-    // TODO: Implement view modal
+    setSelectedTrip(item);
+    setDetailModalOpen(true);
   };
 
   // Filter business trips based on search term, status, and department
@@ -397,6 +400,16 @@ const ApprovalPerjalananDinas = () => {
           <Footer />
         </div>
       </div>
+
+      {/* Detail Modal */}
+      <ApprovalPerjalananDinasDetailModal
+        isOpen={detailModalOpen}
+        onClose={() => {
+          setDetailModalOpen(false);
+          setSelectedTrip(null);
+        }}
+        trip={selectedTrip}
+      />
 
       {/* Mobile menu button */}
       <button

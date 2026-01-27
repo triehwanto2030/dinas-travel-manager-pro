@@ -4,6 +4,7 @@ import { Search, Eye, Check, X, DollarSign, Receipt, User } from 'lucide-react';
 import Header from '@/components/Header';
 import Sidebar from '@/components/Sidebar';
 import Footer from '@/components/Footer';
+import ApprovalClaimDinasDetailModal from '@/components/ApprovalClaimDinasDetailModal';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -23,6 +24,8 @@ const ApprovalClaimDinas = () => {
   const [rejectReason, setRejectReason] = useState('');
   const [selectedClaimId, setSelectedClaimId] = useState<string | null>(null);
   const [isRejectDialogOpen, setIsRejectDialogOpen] = useState(false);
+  const [detailModalOpen, setDetailModalOpen] = useState(false);
+  const [selectedClaim, setSelectedClaim] = useState<any>(null);
   const { toast } = useToast();
 
   const { data: claims = [], isLoading } = useTripClaims();
@@ -318,6 +321,10 @@ const ApprovalClaimDinas = () => {
                                   variant="ghost" 
                                   size="sm" 
                                   className="p-2"
+                                  onClick={() => {
+                                    setSelectedClaim(claim);
+                                    setDetailModalOpen(true);
+                                  }}
                                 >
                                   <Eye className="w-4 h-4" />
                                 </Button>
@@ -394,6 +401,16 @@ const ApprovalClaimDinas = () => {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Detail Modal */}
+      <ApprovalClaimDinasDetailModal
+        isOpen={detailModalOpen}
+        onClose={() => {
+          setDetailModalOpen(false);
+          setSelectedClaim(null);
+        }}
+        claim={selectedClaim}
+      />
 
       {/* Mobile menu button */}
       <button
