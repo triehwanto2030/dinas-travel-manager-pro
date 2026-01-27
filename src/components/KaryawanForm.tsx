@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Upload, Calendar, User, Mail, Phone, Building, Award, UserCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -47,17 +46,25 @@ const KaryawanForm: React.FC<KaryawanFormProps> = ({
 
   const gradeOptions = ['1A', '1B', '2A', '2B', '2C', '3A', '3B', '3C', '4A', '4B', '4C', '5A', '5B', '5C', '6A', '6B'];
 
+  // Utility function to format date to 'yyyy-MM-dd'
+  const formatDate = (date) => {
+    if (!date) return new Date().toISOString().split('T')[0]; // Default to current date
+    const parsedDate = new Date(date);
+    if (isNaN(parsedDate.getTime())) return new Date().toISOString().split('T')[0]; // Fallback to current date if invalid
+    return parsedDate.toISOString().split('T')[0];
+  };
+
   useEffect(() => {
     if (initialData && isOpen) {
       // Find company name from companies data
       const company = companies.find(c => c.id === initialData.company_id);
-      
+
       setFormData({
         employeeId: initialData.employee_id || '',
         nama: initialData.name || '',
         email: initialData.email || '',
         phone: initialData.phone || '',
-        tanggalBergabung: '',
+        tanggalBergabung: formatDate(initialData.created_at), // Format the date here
         departemen: initialData.department || '',
         posisi: initialData.position || '',
         grade: initialData.grade || '',
@@ -73,7 +80,7 @@ const KaryawanForm: React.FC<KaryawanFormProps> = ({
         nama: '',
         email: '',
         phone: '',
-        tanggalBergabung: '',
+        tanggalBergabung: formatDate(null), // Default to current date
         departemen: '',
         posisi: '',
         grade: '',
