@@ -46,7 +46,6 @@ const KaryawanForm: React.FC<KaryawanFormProps> = ({
 
   const [previewImage, setPreviewImage] = useState<string | null>(null);
 
-  // Belum dipasang: '1A', '1B', '2A', '2B', '2C', '3A', '3B', '3C', '4A', '4B', '4C', '5A', '5B', '5C', '6A', '6B'
   const { data: gradeOptions = [] } = useEmployeeGrades();
   const { data: departemenOptions = [] } = useEmployeeDepartments();
 
@@ -282,12 +281,6 @@ const KaryawanForm: React.FC<KaryawanFormProps> = ({
                         <SelectValue placeholder="Pilih Departemen" />
                       </SelectTrigger>
                       <SelectContent>
-                        {/* <SelectItem value="HR">HR</SelectItem>
-                        <SelectItem value="Finance">Finance</SelectItem>
-                        <SelectItem value="Sales">Sales</SelectItem>
-                        <SelectItem value="Marketing">Marketing</SelectItem>
-                        <SelectItem value="IT">IT</SelectItem>
-                        <SelectItem value="Operations">Operations</SelectItem> */}
                         {departemenOptions.map((dept) => (
                           <SelectItem key={dept.id} value={dept.name}>{dept.name}</SelectItem>
                         ))}

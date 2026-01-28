@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Search, Plus, Eye, Edit, Trash2, Download, ArrowUpDown } from 'lucide-react';
 import Header from '@/components/Header';
@@ -143,8 +142,8 @@ const Karyawan = () => {
             <div className="mb-8">
               <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
                 <div>
-                  {/* <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Master Karyawan</h1> */}
-                  <p className="text-gray-600 dark:text-gray-400">Master Karyawan</p>
+                  <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Data Karyawan</h1>
+                  {/* <p className="text-gray-600 dark:text-gray-400">Kelola data karyawan perusahaan</p> */}
                 </div>
                 <div className="flex gap-3 mt-4 md:mt-0">
                   <Button variant="outline" className="flex items-center gap-2">
@@ -252,7 +251,9 @@ const Karyawan = () => {
                             </Avatar>
                             <div>
                               <p className="font-medium text-gray-900 dark:text-white">{karyawan.name}</p>
-                              <p className="text-sm text-gray-500 dark:text-gray-400">{karyawan.employee_id} ({karyawan.grade})</p>
+                              <p className="text-sm text-gray-500 dark:text-gray-400">{karyawan.employee_id}
+                                <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs ml-2">{karyawan.grade || 'N/A'}</span>
+                              </p>
                             </div>
                           </div>
                         </TableCell>

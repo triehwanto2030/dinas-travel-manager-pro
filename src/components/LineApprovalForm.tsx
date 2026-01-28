@@ -127,7 +127,7 @@ const LineApprovalForm: React.FC<LineApprovalFormProps> = ({
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="none">Tidak Ada</SelectItem>
-                    {companyEmployees.map((employee) => (
+                    {employees.map((employee) => (
                       <SelectItem key={employee.id} value={employee.id}>
                         {employee.name} - {employee.position}
                       </SelectItem>
@@ -149,7 +149,7 @@ const LineApprovalForm: React.FC<LineApprovalFormProps> = ({
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="none">Tidak Ada</SelectItem>
-                    {companyEmployees.map((employee) => (
+                    {employees.map((employee) => (
                       <SelectItem key={employee.id} value={employee.id}>
                         {employee.name} - {employee.position}
                       </SelectItem>
@@ -171,7 +171,7 @@ const LineApprovalForm: React.FC<LineApprovalFormProps> = ({
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="none">Tidak Ada</SelectItem>
-                    {companyEmployees.map((employee) => (
+                    {employees.map((employee) => (
                       <SelectItem key={employee.id} value={employee.id}>
                         {employee.name} - {employee.position}
                       </SelectItem>
@@ -193,7 +193,7 @@ const LineApprovalForm: React.FC<LineApprovalFormProps> = ({
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="none">Tidak Ada</SelectItem>
-                    {companyEmployees.map((employee) => (
+                    {employees.map((employee) => (
                       <SelectItem key={employee.id} value={employee.id}>
                         {employee.name} - {employee.position}
                       </SelectItem>
@@ -215,7 +215,7 @@ const LineApprovalForm: React.FC<LineApprovalFormProps> = ({
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="none">Tidak Ada</SelectItem>
-                    {companyEmployees.map((employee) => (
+                    {employees.map((employee) => (
                       <SelectItem key={employee.id} value={employee.id}>
                         {employee.name} - {employee.position}
                       </SelectItem>
