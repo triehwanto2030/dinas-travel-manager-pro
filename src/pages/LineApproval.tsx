@@ -199,8 +199,8 @@ const LineApproval = () => {
                             </Avatar>
                             <div>
                               <p className="font-medium text-gray-900 dark:text-white">{item.staff_ga?.name}</p>
-                              <p className="font-medium text-gray-500 dark:text-white">{item.staff_ga?.position}</p>
-                              <p className="text-sm text-gray-500 dark:text-gray-400">({item.staff_ga?.department})</p>
+                              <p className="font-medium text-gray-500 dark:text-white">{item.staff_ga?.employee_id}</p>
+                              <p className="text-sm text-gray-500 dark:text-gray-400">{item.staff_ga?.position}</p>
                             </div>
                           </div>
                         </TableCell>
@@ -214,8 +214,8 @@ const LineApproval = () => {
                             </Avatar>
                             <div>
                               <p className="font-medium text-gray-900 dark:text-white">{item.spv_ga?.name}</p>
-                              <p className="font-medium text-gray-500 dark:text-white">{item.spv_ga?.position}</p>
-                              <p className="text-sm text-gray-500 dark:text-gray-400">({item.spv_ga?.department})</p>
+                              <p className="font-medium text-gray-500 dark:text-white">{item.spv_ga?.employee_id}</p>
+                              <p className="text-sm text-gray-500 dark:text-gray-400">{item.spv_ga?.position}</p>
                             </div>
                           </div>
                         </TableCell>
@@ -229,8 +229,8 @@ const LineApproval = () => {
                             </Avatar>
                             <div>
                               <p className="font-medium text-gray-900 dark:text-white">{item.hr_manager?.name}</p>
-                              <p className="font-medium text-gray-500 dark:text-white">{item.hr_manager?.position}</p>
-                              <p className="text-sm text-gray-500 dark:text-gray-400">({item.hr_manager?.department})</p>
+                              <p className="font-medium text-gray-500 dark:text-white">{item.hr_manager?.employee_id}</p>
+                              <p className="text-sm text-gray-500 dark:text-gray-400">{item.hr_manager?.position}</p>
                             </div>
                           </div>
                         </TableCell>
@@ -244,8 +244,8 @@ const LineApproval = () => {
                             </Avatar>
                             <div>
                               <p className="font-medium text-gray-900 dark:text-white">{item.bod?.name}</p>
-                              <p className="font-medium text-gray-500 dark:text-white">{item.bod?.position}</p>
-                              <p className="text-sm text-gray-500 dark:text-gray-400">({item.bod?.department})</p>
+                              <p className="font-medium text-gray-500 dark:text-white">{item.bod?.employee_id}</p>
+                              <p className="text-sm text-gray-500 dark:text-gray-400">{item.bod?.position}</p>
                             </div>
                           </div>
                         </TableCell>
@@ -259,8 +259,8 @@ const LineApproval = () => {
                             </Avatar>
                             <div>
                               <p className="font-medium text-gray-900 dark:text-white">{item.staff_fa?.name}</p>
-                              <p className="font-medium text-gray-500 dark:text-white">{item.staff_fa?.position}</p>
-                              <p className="text-sm text-gray-500 dark:text-gray-400">({item.staff_fa?.department})</p>
+                              <p className="font-medium text-gray-500 dark:text-white">{item.staff_fa?.employee_id}</p>
+                              <p className="text-sm text-gray-500 dark:text-gray-400">{item.staff_fa?.position}</p>
                             </div>
                           </div>
                         </TableCell>

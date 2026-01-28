@@ -25,11 +25,11 @@ export const useLineApprovals = () => {
         .select(`
           *,
           companies!inner(*),
-          staff_ga:employees!line_approvals_staff_ga_id_fkey(id, name, email, position, department, grade),
-          spv_ga:employees!line_approvals_spv_ga_id_fkey(id, name, email, position, department, grade),
-          hr_manager:employees!line_approvals_hr_manager_id_fkey(id, name, email, position, department, grade),
-          bod:employees!line_approvals_bod_id_fkey(id, name, email, position, department, grade),
-          staff_fa:employees!line_approvals_staff_fa_id_fkey(id, name, email, position, department, grade)
+          staff_ga:employees!line_approvals_staff_ga_id_fkey(id, employee_id, name, email, position, department, grade, photo_url),
+          spv_ga:employees!line_approvals_spv_ga_id_fkey(id, employee_id, name, email, position, department, grade, photo_url),
+          hr_manager:employees!line_approvals_hr_manager_id_fkey(id, employee_id, name, email, position, department, grade, photo_url),
+          bod:employees!line_approvals_bod_id_fkey(id, employee_id, name, email, position, department, grade, photo_url),
+          staff_fa:employees!line_approvals_staff_fa_id_fkey(id, employee_id, name, email, position, department, grade, photo_url)
         `)
         .order('created_at', { ascending: false });
 

@@ -143,8 +143,8 @@ const Karyawan = () => {
             <div className="mb-8">
               <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
                 <div>
-                  <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Master Karyawan</h1>
-                  <p className="text-gray-600 dark:text-gray-400">Kelola data karyawan perusahaan</p>
+                  {/* <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Master Karyawan</h1> */}
+                  <p className="text-gray-600 dark:text-gray-400">Master Karyawan</p>
                 </div>
                 <div className="flex gap-3 mt-4 md:mt-0">
                   <Button variant="outline" className="flex items-center gap-2">

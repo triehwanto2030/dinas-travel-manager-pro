@@ -8,6 +8,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useCompanies } from '@/hooks/useCompanies';
 import { useEmployees, EmployeeFormData } from '@/hooks/useEmployees';
+import { useEmployeeGrades } from '@/hooks/useEmployeeGrades';
+import { useEmployeeDepartments } from '@/hooks/useEmployeeDepartments';
 
 interface KaryawanFormProps {
   isOpen: boolean;
@@ -44,7 +46,9 @@ const KaryawanForm: React.FC<KaryawanFormProps> = ({
 
   const [previewImage, setPreviewImage] = useState<string | null>(null);
 
-  const gradeOptions = ['1A', '1B', '2A', '2B', '2C', '3A', '3B', '3C', '4A', '4B', '4C', '5A', '5B', '5C', '6A', '6B'];
+  // Belum dipasang: '1A', '1B', '2A', '2B', '2C', '3A', '3B', '3C', '4A', '4B', '4C', '5A', '5B', '5C', '6A', '6B'
+  const { data: gradeOptions = [] } = useEmployeeGrades();
+  const { data: departemenOptions = [] } = useEmployeeDepartments();
 
   // Utility function to format date to 'yyyy-MM-dd'
   const formatDate = (date) => {
@@ -278,12 +282,15 @@ const KaryawanForm: React.FC<KaryawanFormProps> = ({
                         <SelectValue placeholder="Pilih Departemen" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="HR">HR</SelectItem>
+                        {/* <SelectItem value="HR">HR</SelectItem>
                         <SelectItem value="Finance">Finance</SelectItem>
                         <SelectItem value="Sales">Sales</SelectItem>
                         <SelectItem value="Marketing">Marketing</SelectItem>
                         <SelectItem value="IT">IT</SelectItem>
-                        <SelectItem value="Operations">Operations</SelectItem>
+                        <SelectItem value="Operations">Operations</SelectItem> */}
+                        {departemenOptions.map((dept) => (
+                          <SelectItem key={dept.id} value={dept.name}>{dept.name}</SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                   </div>
@@ -313,7 +320,7 @@ const KaryawanForm: React.FC<KaryawanFormProps> = ({
                       </SelectTrigger>
                       <SelectContent>
                         {gradeOptions.map((grade) => (
-                          <SelectItem key={grade} value={grade}>{grade}</SelectItem>
+                          <SelectItem key={grade.code} value={grade.code}>{grade.code}</SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
@@ -348,7 +355,7 @@ const KaryawanForm: React.FC<KaryawanFormProps> = ({
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="none">Tidak Ada Atasan</SelectItem>
-                        {availableSupervisors.map((supervisor) => (
+                        {employees.map((supervisor) => (
                           <SelectItem key={supervisor.id} value={supervisor.id}>
                             {supervisor.name} - {supervisor.position}
                           </SelectItem>
