@@ -5,6 +5,7 @@ import Header from '@/components/Header';
 import Sidebar from '@/components/Sidebar';
 import Footer from '@/components/Footer';
 import LineApprovalForm from '@/components/LineApprovalForm';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -189,53 +190,78 @@ const LineApproval = () => {
                           <p className="font-medium text-gray-900 dark:text-white">{item.companies.name}</p>
                         </TableCell>
                         <TableCell>
-                          <div>
-                            <p className="text-sm font-medium text-gray-900 dark:text-white">
-                              {item.staff_ga?.name || '-'}
-                            </p>
-                            <p className="text-xs text-gray-500 dark:text-gray-400">
-                              {item.staff_ga?.id || ''}
-                            </p>
+                          <div className="flex items-center gap-3">
+                            <Avatar className="w-12 h-12">
+                              <AvatarImage src={item.staff_ga?.photo_url || undefined} />
+                              <AvatarFallback className="bg-blue-500 text-white font-medium">
+                                {item.staff_ga?.name.split(' ').map(n => n[0]).join('').toUpperCase()}
+                              </AvatarFallback>
+                            </Avatar>
+                            <div>
+                              <p className="font-medium text-gray-900 dark:text-white">{item.staff_ga?.name}</p>
+                              <p className="font-medium text-gray-500 dark:text-white">{item.staff_ga?.position}</p>
+                              <p className="text-sm text-gray-500 dark:text-gray-400">({item.staff_ga?.department})</p>
+                            </div>
                           </div>
                         </TableCell>
                         <TableCell>
-                          <div>
-                            <p className="text-sm font-medium text-gray-900 dark:text-white">
-                              {item.spv_ga?.name || '-'}
-                            </p>
-                            <p className="text-xs text-gray-500 dark:text-gray-400">
-                              {item.spv_ga?.id || ''}
-                            </p>
+                          <div className="flex items-center gap-3">
+                            <Avatar className="w-12 h-12">
+                              <AvatarImage src={item.spv_ga?.photo_url || undefined} />
+                              <AvatarFallback className="bg-blue-500 text-white font-medium">
+                                {item.spv_ga?.name.split(' ').map(n => n[0]).join('').toUpperCase()}
+                              </AvatarFallback>
+                            </Avatar>
+                            <div>
+                              <p className="font-medium text-gray-900 dark:text-white">{item.spv_ga?.name}</p>
+                              <p className="font-medium text-gray-500 dark:text-white">{item.spv_ga?.position}</p>
+                              <p className="text-sm text-gray-500 dark:text-gray-400">({item.spv_ga?.department})</p>
+                            </div>
                           </div>
                         </TableCell>
                         <TableCell>
-                          <div>
-                            <p className="text-sm font-medium text-gray-900 dark:text-white">
-                              {item.hr_manager?.name || '-'}
-                            </p>
-                            <p className="text-xs text-gray-500 dark:text-gray-400">
-                              {item.hr_manager?.id || ''}
-                            </p>
+                          <div className="flex items-center gap-3">
+                            <Avatar className="w-12 h-12">
+                              <AvatarImage src={item.hr_manager?.photo_url || undefined} />
+                              <AvatarFallback className="bg-blue-500 text-white font-medium">
+                                {item.hr_manager?.name.split(' ').map(n => n[0]).join('').toUpperCase()}
+                              </AvatarFallback>
+                            </Avatar>
+                            <div>
+                              <p className="font-medium text-gray-900 dark:text-white">{item.hr_manager?.name}</p>
+                              <p className="font-medium text-gray-500 dark:text-white">{item.hr_manager?.position}</p>
+                              <p className="text-sm text-gray-500 dark:text-gray-400">({item.hr_manager?.department})</p>
+                            </div>
                           </div>
                         </TableCell>
                         <TableCell>
-                          <div>
-                            <p className="text-sm font-medium text-gray-900 dark:text-white">
-                              {item.bod?.name || '-'}
-                            </p>
-                            <p className="text-xs text-gray-500 dark:text-gray-400">
-                              {item.bod?.id || ''}
-                            </p>
+                          <div className="flex items-center gap-3">
+                            <Avatar className="w-12 h-12">
+                              <AvatarImage src={item.bod?.photo_url || undefined} />
+                              <AvatarFallback className="bg-blue-500 text-white font-medium">
+                                {item.bod?.name.split(' ').map(n => n[0]).join('').toUpperCase()}
+                              </AvatarFallback>
+                            </Avatar>
+                            <div>
+                              <p className="font-medium text-gray-900 dark:text-white">{item.bod?.name}</p>
+                              <p className="font-medium text-gray-500 dark:text-white">{item.bod?.position}</p>
+                              <p className="text-sm text-gray-500 dark:text-gray-400">({item.bod?.department})</p>
+                            </div>
                           </div>
                         </TableCell>
                         <TableCell>
-                          <div>
-                            <p className="text-sm font-medium text-gray-900 dark:text-white">
-                              {item.staff_fa?.name || '-'}
-                            </p>
-                            <p className="text-xs text-gray-500 dark:text-gray-400">
-                              {item.staff_fa?.id || ''}
-                            </p>
+                          <div className="flex items-center gap-3">
+                            <Avatar className="w-12 h-12">
+                              <AvatarImage src={item.staff_fa?.photo_url || undefined} />
+                              <AvatarFallback className="bg-blue-500 text-white font-medium">
+                                {item.staff_fa?.name.split(' ').map(n => n[0]).join('').toUpperCase()}
+                              </AvatarFallback>
+                            </Avatar>
+                            <div>
+                              <p className="font-medium text-gray-900 dark:text-white">{item.staff_fa?.name}</p>
+                              <p className="font-medium text-gray-500 dark:text-white">{item.staff_fa?.position}</p>
+                              <p className="text-sm text-gray-500 dark:text-gray-400">({item.staff_fa?.department})</p>
+                            </div>
                           </div>
                         </TableCell>
                         <TableCell>
