@@ -211,7 +211,7 @@ const ClaimDinasForm: React.FC<ClaimDinasFormProps> = ({ isOpen, onClose, tripDa
                   <h3 className="font-medium text-gray-900 mb-4">Informasi Karyawan</h3>
                   <div className="flex items-center space-x-4 mb-4">
                     <Avatar className="w-16 h-16">
-                      <AvatarImage src={employee.avatar_url || ''} />
+                      <AvatarImage src={employee.photo_url || ''} />
                       <AvatarFallback>
                         {employee.name ? employee.name.split(' ').map((n: string) => n[0]).join('').substring(0, 2) : 'N/A'}
                       </AvatarFallback>
@@ -219,10 +219,7 @@ const ClaimDinasForm: React.FC<ClaimDinasFormProps> = ({ isOpen, onClose, tripDa
                     <div>
                       <h4 className="font-medium text-gray-900">{employee.name || 'N/A'}</h4>
                       <p className="text-sm text-gray-500">
-                        NIK: {employee.id || 'N/A'} 
-                        <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs ml-2">
-                          {employee.grade || 'N/A'}
-                        </span>
+                        ID: {employee.employee_id || 'N/A'} 
                       </p>
                     </div>
                   </div>
@@ -230,7 +227,10 @@ const ClaimDinasForm: React.FC<ClaimDinasFormProps> = ({ isOpen, onClose, tripDa
                   <div className="grid grid-cols-2 gap-4 text-sm">
                     <div>
                       <p className="text-gray-500">Grade:</p>
-                      <p className="font-medium">{employee.grade || 'N/A'}</p>
+                      <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs ml-0">
+                        {employee.grade || 'N/A'}
+                      </span>
+                      {/* <p className="font-medium">{employee.grade || 'N/A'}</p> */}
                     </div>
                     <div>
                       <p className="text-gray-500">Jabatan:</p>
@@ -242,7 +242,7 @@ const ClaimDinasForm: React.FC<ClaimDinasFormProps> = ({ isOpen, onClose, tripDa
                     </div>
                     <div>
                       <p className="text-gray-500">Cost Center:</p>
-                      <p className="font-medium">{employee.companies?.name || 'N/A'} - {employee.department || 'N/A'}</p>
+                      <p className="font-medium">{employee.department || 'N/A'} - {employee.companies?.name || 'N/A'}</p>
                     </div>
                   </div>
                 </CardContent>

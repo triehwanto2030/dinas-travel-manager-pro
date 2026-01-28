@@ -273,17 +273,17 @@ const PerjalananDinasForm = ({ isOpen, onClose, mode, data }: PerjalananDinasFor
                     <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Detail Karyawan</h4>
                     <div className="flex items-start gap-4">
                       <Avatar className="w-16 h-16">
-                        <AvatarImage src={selectedEmployee.avatar_url} alt={selectedEmployee.name} />
+                        <AvatarImage src={selectedEmployee.photo_url} alt={selectedEmployee.name} />
                         <AvatarFallback className="text-lg">
                           {selectedEmployee.name.split(' ').map((n: string) => n[0]).join('').substring(0, 2)}
                         </AvatarFallback>
                       </Avatar>
                       <div className="space-y-1">
                         <p className="font-medium text-gray-900 dark:text-white">{selectedEmployee.name}</p>
-                        <p className="text-sm text-gray-600 dark:text-gray-400">{selectedEmployee.id} ({selectedEmployee.grade})</p>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">{selectedEmployee.employee_id}</p>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">{selectedEmployee.grade}</p>
                         <p className="text-sm text-gray-600 dark:text-gray-400">{selectedEmployee.position}</p>
                         <p className="text-sm text-gray-600 dark:text-gray-400">{selectedEmployee.department}</p>
-                        <p className="text-sm text-gray-600 dark:text-gray-400">{selectedEmployee.companies?.name}</p>
                       </div>
                     </div>
                   </div>
@@ -320,17 +320,17 @@ const PerjalananDinasForm = ({ isOpen, onClose, mode, data }: PerjalananDinasFor
                     <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Detail Atasan</h4>
                     <div className="flex items-start gap-4">
                       <Avatar className="w-16 h-16">
-                        <AvatarImage src={selectedSupervisor.avatar_url} alt={selectedSupervisor.name} />
+                        <AvatarImage src={selectedSupervisor.photo_url} alt={selectedSupervisor.name} />
                         <AvatarFallback className="text-lg">
                           {selectedSupervisor.name.split(' ').map((n: string) => n[0]).join('').substring(0, 2)}
                         </AvatarFallback>
                       </Avatar>
                       <div className="space-y-1">
                         <p className="font-medium text-gray-900 dark:text-white">{selectedSupervisor.name}</p>
-                        <p className="text-sm text-gray-600 dark:text-gray-400">{selectedSupervisor.id} ({selectedSupervisor.grade})</p>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">{selectedSupervisor.employee_id}</p>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">{selectedSupervisor.grade}</p>
                         <p className="text-sm text-gray-600 dark:text-gray-400">{selectedSupervisor.position}</p>
                         <p className="text-sm text-gray-600 dark:text-gray-400">{selectedSupervisor.department}</p>
-                        <p className="text-sm text-gray-600 dark:text-gray-400">{selectedSupervisor.companies?.name}</p>
                       </div>
                     </div>
                   </div>
