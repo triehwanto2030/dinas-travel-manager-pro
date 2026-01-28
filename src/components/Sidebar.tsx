@@ -59,6 +59,12 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle }) => {
       isActive: location.pathname === '/karyawan'
     },
     {
+      icon: Building,
+      label: 'Manajemen Karyawan',
+      path: '/manajemen-karyawan',
+      isActive: location.pathname === '/manajemen-karyawan'
+    },
+    {
       icon: FileText,
       label: 'Line Approval',
       path: '/approval',

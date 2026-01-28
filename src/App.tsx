@@ -7,6 +7,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ThemeProvider } from "@/hooks/useTheme";
 import Dashboard from "./pages/Dashboard";
 import Karyawan from "./pages/Karyawan";
+import ManajemenKaryawan from "./pages/ManajemenKaryawan";
 import LineApproval from "./pages/LineApproval";
 import PerjalananDinas from "./pages/PerjalananDinas";
 import ClaimDinas from "./pages/ClaimDinas";
@@ -33,6 +34,7 @@ const App = () => (
             <Route path="/claim-dinas" element={<ClaimDinas />} />
             <Route path="/approval-claim-dinas" element={<ApprovalClaimDinas />} />
             <Route path="/karyawan" element={<Karyawan />} />
+            <Route path="/manajemen-karyawan" element={<ManajemenKaryawan />} />
             <Route path="/approval" element={<LineApproval />} />
             <Route path="/manajemen-user" element={<ManajemenUser />} />
             <Route path="/role-manajemen" element={<RoleManajemen />} />

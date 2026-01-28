@@ -37,13 +37,14 @@ const LineApprovalForm: React.FC<LineApprovalFormProps> = ({
 
   useEffect(() => {
     if (initialData && isOpen) {
+      // Extract IDs from related objects or direct fields
       setFormData({
-        company_id: initialData.company_id || '',
-        staff_ga_id: initialData.staff_ga_id || '',
-        spv_ga_id: initialData.spv_ga_id || '',
-        hr_manager_id: initialData.hr_manager_id || '',
-        bod_id: initialData.bod_id || '',
-        staff_fa_id: initialData.staff_fa_id || ''
+        company_id: initialData.company_id || initialData.companies?.id || '',
+        staff_ga_id: initialData.staff_ga_id || initialData.staff_ga?.id || '',
+        spv_ga_id: initialData.spv_ga_id || initialData.spv_ga?.id || '',
+        hr_manager_id: initialData.hr_manager_id || initialData.hr_manager?.id || '',
+        bod_id: initialData.bod_id || initialData.bod?.id || '',
+        staff_fa_id: initialData.staff_fa_id || initialData.staff_fa?.id || ''
       });
     } else if (!initialData && isOpen) {
       setFormData({
