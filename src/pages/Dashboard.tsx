@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Plane, FileText, Users, TrendingUp } from 'lucide-react';
 import Header from '@/components/Header';
@@ -8,74 +7,47 @@ import TripCard from '@/components/TripCard';
 import BudgetOverview from '@/components/BudgetOverview';
 import Footer from '@/components/Footer';
 import { Button } from '@/components/ui/button';
+import { Skeleton } from '@/components/ui/skeleton';
 import Swal from 'sweetalert2';
+import { useDashboardStats, useRecentTrips } from '@/hooks/useDashboardStats';
 
 const Dashboard = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const { data: dashboardStats, isLoading: statsLoading } = useDashboardStats();
+  const { data: recentTrips, isLoading: tripsLoading } = useRecentTrips();
 
   const stats = [
     {
       title: 'Total Perjalanan Dinas',
-      value: '11',
-      change: '+12% dari bulan lalu',
+      value: statsLoading ? '-' : String(dashboardStats?.totalTrips || 0),
+      change: 'Data real-time',
       changeType: 'increase' as const,
       icon: Plane,
       iconColor: 'bg-gradient-to-r from-blue-500 to-blue-600'
     },
     {
       title: 'Claim Pending',
-      value: '1',
-      change: '-5% dari bulan lalu',
-      changeType: 'decrease' as const,
+      value: statsLoading ? '-' : String(dashboardStats?.pendingClaims || 0),
+      change: 'Menunggu persetujuan',
+      changeType: dashboardStats?.pendingClaims && dashboardStats.pendingClaims > 0 ? 'increase' as const : 'decrease' as const,
       icon: FileText,
       iconColor: 'bg-gradient-to-r from-orange-500 to-red-500'
     },
     {
       title: 'Karyawan Aktif',
-      value: '11',
-      change: '+3% dari bulan lalu',
+      value: statsLoading ? '-' : String(dashboardStats?.activeEmployees || 0),
+      change: 'Total karyawan terdaftar',
       changeType: 'increase' as const,
       icon: Users,
       iconColor: 'bg-gradient-to-r from-green-500 to-green-600'
     },
     {
       title: 'Budget Terpakai',
-      value: '67%',
-      change: '+8% dari bulan lalu',
-      changeType: 'increase' as const,
+      value: statsLoading ? '-' : `${dashboardStats?.budgetUsed || 0}%`,
+      change: 'Dari budget bulanan',
+      changeType: (dashboardStats?.budgetUsed || 0) > 80 ? 'increase' as const : 'decrease' as const,
       icon: TrendingUp,
       iconColor: 'bg-gradient-to-r from-purple-500 to-purple-600'
-    }
-  ];
-
-  const recentTrips = [
-    {
-      name: 'Lisa Anderson',
-      destination: 'malang',
-      date: '2025-07-06',
-      amount: 'Rp 1.500.000',
-      status: 'approved' as const
-    },
-    {
-      name: 'Lisa Anderson',
-      destination: 'malang',
-      date: '2025-07-06',
-      amount: 'Rp 1.500.000',
-      status: 'approved' as const
-    },
-    {
-      name: 'Jesika',
-      destination: 'jkt',
-      date: '2025-07-04',
-      amount: 'Rp 2.000.000',
-      status: 'approved' as const
-    },
-    {
-      name: 'Jesika',
-      destination: 'jkt',
-      date: '2025-07-04',
-      amount: 'Rp 2.000.000',
-      status: 'submitted' as const
     }
   ];
 
@@ -133,9 +105,21 @@ const Dashboard = () => {
                     ✈️ Perjalanan Dinas Terbaru
                   </h3>
                   <div className="space-y-4">
-                    {recentTrips.map((trip, index) => (
-                      <TripCard key={index} {...trip} />
-                    ))}
+                    {tripsLoading ? (
+                      <>
+                        <Skeleton className="h-24 w-full" />
+                        <Skeleton className="h-24 w-full" />
+                        <Skeleton className="h-24 w-full" />
+                      </>
+                    ) : recentTrips && recentTrips.length > 0 ? (
+                      recentTrips.map((trip, index) => (
+                        <TripCard key={trip.id || index} {...trip} />
+                      ))
+                    ) : (
+                      <p className="text-gray-500 dark:text-gray-400 text-center py-4">
+                        Belum ada perjalanan dinas
+                      </p>
+                    )}
                   </div>
                 </div>
               </div>
