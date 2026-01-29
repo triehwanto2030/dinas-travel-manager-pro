@@ -336,24 +336,28 @@ const PerjalananDinas = () => {
                             >
                               <Eye className="w-4 h-4" />
                             </Button>
-                            <Button 
-                              variant="ghost" 
-                              size="sm" 
-                              className="p-2"
-                              onClick={() => handleEdit(item)}
-                              title="Edit"
-                            >
-                              <Edit className="w-4 h-4" />
-                            </Button>
-                            <Button 
-                              variant="ghost" 
-                              size="sm" 
-                              className="p-2 text-red-600 hover:text-red-800"
-                              onClick={() => handleDelete(item)}
-                              title="Hapus"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </Button>
+                            {item.status === 'Submitted' && (
+                              <>
+                                <Button 
+                                  variant="ghost" 
+                                  size="sm" 
+                                  className="p-2"
+                                  onClick={() => handleEdit(item)}
+                                  title="Edit"
+                                >
+                                  <Edit className="w-4 h-4" />
+                                </Button>
+                                <Button 
+                                  variant="ghost" 
+                                  size="sm" 
+                                  className="p-2 text-red-600 hover:text-red-800"
+                                  onClick={() => handleDelete(item)}
+                                  title="Hapus"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </Button>
+                              </>
+                            )}
                             {item.status === 'Approved' && (
                               <Button 
                                 variant="ghost" 

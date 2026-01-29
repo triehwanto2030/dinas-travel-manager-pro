@@ -350,6 +350,7 @@ const ClaimDinasForm: React.FC<ClaimDinasFormProps> = ({ isOpen, onClose, tripDa
                             <SelectItem value="transport">Transport</SelectItem>
                             <SelectItem value="meal">Makan</SelectItem>
                             <SelectItem value="accommodation">Akomodasi</SelectItem>
+                            <SelectItem value="allowance">Saku</SelectItem>
                             <SelectItem value="other">Lainnya</SelectItem>
                           </SelectContent>
                         </Select>

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -55,6 +54,8 @@ const PerjalananDinasForm = ({ isOpen, onClose, mode, data }: PerjalananDinasFor
   const [selectedEmployee, setSelectedEmployee] = useState<any>(null);
   const [selectedSupervisor, setSelectedSupervisor] = useState<any>(null);
   const [approvalHierarchy, setApprovalHierarchy] = useState<any>(null);
+
+  const [waktuMulai, setWaktuMulai] = useState<Date>(new Date());
 
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
@@ -223,6 +224,17 @@ const PerjalananDinasForm = ({ isOpen, onClose, mode, data }: PerjalananDinasFor
 
   // Filter out empty/undefined departments
   const departments = [...new Set(employees?.map(emp => emp.department).filter(dept => dept && dept.trim() !== '') || [])];
+
+  // Add logic to ensure the selected date in the start_date calendar affects the end_date calendar
+  useEffect(() => {
+    const subscription = form.watch((value, { name }) => {
+      if (name === 'start_date' && value.start_date) {
+        setWaktuMulai(new Date(value.start_date));
+      }
+    });
+    
+    return () => subscription.unsubscribe();
+  }, [form]);
 
   if (!isOpen) return null;
 
@@ -443,7 +455,7 @@ const PerjalananDinasForm = ({ isOpen, onClose, mode, data }: PerjalananDinasFor
                               mode="single"
                               selected={field.value}
                               onSelect={field.onChange}
-                              disabled={(date) => date < new Date()}
+                              disabled={(date) => date < waktuMulai}
                               initialFocus
                               className="p-3 pointer-events-auto"
                             />
@@ -646,7 +658,7 @@ const PerjalananDinasForm = ({ isOpen, onClose, mode, data }: PerjalananDinasFor
                       <p className="text-sm text-gray-600 dark:text-gray-400">Atasan</p>
                       <div className="flex items-center gap-2 mt-2">
                         <Avatar className="w-8 h-8">
-                          <AvatarImage src={approvalHierarchy.supervisor.avatar_url} />
+                          <AvatarImage src={approvalHierarchy.supervisor.photo_url} />
                           <AvatarFallback className="text-xs">
                             {approvalHierarchy.supervisor.name.split(' ').map((n: string) => n[0]).join('').substring(0, 2)}
                           </AvatarFallback>
@@ -663,7 +675,7 @@ const PerjalananDinasForm = ({ isOpen, onClose, mode, data }: PerjalananDinasFor
                       <p className="text-sm text-gray-600 dark:text-gray-400">Staff GA</p>
                       <div className="flex items-center gap-2 mt-2">
                         <Avatar className="w-8 h-8">
-                          <AvatarImage src={approvalHierarchy.staff_ga.avatar_url} />
+                          <AvatarImage src={approvalHierarchy.staff_ga.photo_url} />
                           <AvatarFallback className="text-xs">
                             {approvalHierarchy.staff_ga.name.split(' ').map((n: string) => n[0]).join('').substring(0, 2)}
                           </AvatarFallback>
@@ -680,7 +692,7 @@ const PerjalananDinasForm = ({ isOpen, onClose, mode, data }: PerjalananDinasFor
                       <p className="text-sm text-gray-600 dark:text-gray-400">HR Manager</p>
                       <div className="flex items-center gap-2 mt-2">
                         <Avatar className="w-8 h-8">
-                          <AvatarImage src={approvalHierarchy.hr_manager.avatar_url} />
+                          <AvatarImage src={approvalHierarchy.hr_manager.photo_url} />
                           <AvatarFallback className="text-xs">
                             {approvalHierarchy.hr_manager.name.split(' ').map((n: string) => n[0]).join('').substring(0, 2)}
                           </AvatarFallback>
@@ -697,7 +709,7 @@ const PerjalananDinasForm = ({ isOpen, onClose, mode, data }: PerjalananDinasFor
                       <p className="text-sm text-gray-600 dark:text-gray-400">BOD</p>
                       <div className="flex items-center gap-2 mt-2">
                         <Avatar className="w-8 h-8">
-                          <AvatarImage src={approvalHierarchy.bod.avatar_url} />
+                          <AvatarImage src={approvalHierarchy.bod.photo_url} />
                           <AvatarFallback className="text-xs">
                             {approvalHierarchy.bod.name.split(' ').map((n: string) => n[0]).join('').substring(0, 2)}
                           </AvatarFallback>
@@ -714,7 +726,7 @@ const PerjalananDinasForm = ({ isOpen, onClose, mode, data }: PerjalananDinasFor
                       <p className="text-sm text-gray-600 dark:text-gray-400">Staff FA</p>
                       <div className="flex items-center gap-2 mt-2">
                         <Avatar className="w-8 h-8">
-                          <AvatarImage src={approvalHierarchy.staff_fa.avatar_url} />
+                          <AvatarImage src={approvalHierarchy.staff_fa.photo_url} />
                           <AvatarFallback className="text-xs">
                             {approvalHierarchy.staff_fa.name.split(' ').map((n: string) => n[0]).join('').substring(0, 2)}
                           </AvatarFallback>
