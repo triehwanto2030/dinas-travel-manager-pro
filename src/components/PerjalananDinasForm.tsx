@@ -105,27 +105,36 @@ const PerjalananDinasForm = ({ isOpen, onClose, mode, data }: PerjalananDinasFor
     }
   }, [mode, data, employees, form]);
 
-  // Build approval hierarchy based on selected employee and supervisor
+  // Watch cost_center to trigger approval hierarchy update
+  const watchedCostCenter = form.watch('cost_center');
+
+  // Build approval hierarchy based on cost_center (PT) and supervisor
   useEffect(() => {
-    if (selectedEmployee && selectedSupervisor && lineApprovals && employees) {
-      const employeeApproval = lineApprovals.find(
-        (approval) => approval.company_id === selectedEmployee.company_id
+    if (watchedCostCenter && selectedSupervisor && lineApprovals) {
+      const costCenterApproval = lineApprovals.find(
+        (approval) => approval.company_id === watchedCostCenter
       );
       
-      if (employeeApproval) {
+      if (costCenterApproval) {
         // Build hierarchy: Supervisor -> Staff GA -> HR Manager -> BOD -> Staff FA
+        // Use the employee data already included in lineApprovals
         const hierarchy = {
           supervisor: selectedSupervisor,
-          staff_ga: employeeApproval.staff_ga_id ? employees.find(emp => emp.id === employeeApproval.staff_ga_id) : null,
-          hr_manager: employeeApproval.hr_manager_id ? employees.find(emp => emp.id === employeeApproval.hr_manager_id) : null,
-          bod: employeeApproval.bod_id ? employees.find(emp => emp.id === employeeApproval.bod_id) : null,
-          staff_fa: employeeApproval.staff_fa_id ? employees.find(emp => emp.id === employeeApproval.staff_fa_id) : null
+          staff_ga: costCenterApproval.staff_ga || null,
+          hr_manager: costCenterApproval.hr_manager || null,
+          bod: costCenterApproval.bod || null,
+          staff_fa: costCenterApproval.staff_fa || null
         };
         
         setApprovalHierarchy(hierarchy);
+      } else {
+        // Reset hierarchy if no approval found for the selected cost center
+        setApprovalHierarchy(selectedSupervisor ? { supervisor: selectedSupervisor, staff_ga: null, hr_manager: null, bod: null, staff_fa: null } : null);
       }
+    } else if (!watchedCostCenter) {
+      setApprovalHierarchy(null);
     }
-  }, [selectedEmployee, selectedSupervisor, lineApprovals, employees]);
+  }, [watchedCostCenter, selectedSupervisor, lineApprovals]);
 
   // Auto-fill supervisor and approval line when employee is selected
   useEffect(() => {
@@ -556,7 +565,13 @@ const PerjalananDinasForm = ({ isOpen, onClose, mode, data }: PerjalananDinasFor
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Cost Center *</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value} disabled={mode === 'view'}>
+                      <Select 
+                        onValueChange={(value) => {
+                          field.onChange(value);
+                        }} 
+                        value={field.value} 
+                        disabled={mode === 'view'}
+                      >
                         <FormControl>
                           <SelectTrigger>
                             <SelectValue placeholder="Pilih perusahaan..." />
