@@ -4,6 +4,8 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
+import { ExpenseDetail } from './ExpenseDetail';
+import { useTripClaimExpenses } from '@/hooks/useTripClaims';
 
 interface ClaimDinasDetailModalProps {
   isOpen: boolean;
@@ -13,10 +15,15 @@ interface ClaimDinasDetailModalProps {
 
 const ClaimDinasDetailModal: React.FC<ClaimDinasDetailModalProps> = ({ isOpen, onClose, claimData }) => {
   if (!isOpen || !claimData) return null;
+  const [expenses, setExpenses] = React.useState([
+    { id: '', date: undefined, type: '', description: '', amount: 0 }
+  ]);
+  const { data: claimExpenses, isLoading, error } = useTripClaimExpenses(claimData.id);
+  const [editExpenses, setEditExpenses] = React.useState(true);
+  console.log('Claim Expenses Data in Modal:', claimExpenses);
 
   const employee = claimData.employees || {};
   const trip = claimData.business_trips || {};
-
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('id-ID', {
       style: 'currency',
@@ -46,6 +53,15 @@ const ClaimDinasDetailModal: React.FC<ClaimDinasDetailModalProps> = ({ isOpen, o
     const config = statusConfig[status] || statusConfig.Draft;
     return <Badge className={config.class}>{config.label}</Badge>;
   };
+
+  setExpenses(claimExpenses.map(expense => ({
+    id: expense.id,
+    date: expense.expense_date,
+    type: expense.expense_type,
+    description: expense.description,
+    amount: expense.expense_amount,
+  }))
+);
 
   const cashAdvance = trip.cash_advance || 0;
   const totalAmount = claimData.total_amount || 0;
@@ -177,6 +193,23 @@ const ClaimDinasDetailModal: React.FC<ClaimDinasDetailModalProps> = ({ isOpen, o
                   <p className="font-medium text-gray-900 dark:text-white">{claimData.notes}</p>
                 </div>
               )}
+              
+              <div className="mb-4">
+                <div className="flex justify-between items-center mb-4">
+                  <h3 className="font-medium text-gray-900 dark:text-white">Detail Pengeluaran</h3>
+                  <Button
+                    onClick={() => setEditExpenses(prev => !prev)} // Toggle editExpenses state
+                    className="bg-blue-600 hover:bg-blue-700 text-white"
+                  >
+                    {editExpenses ? 'Edit' : 'Selesai'}
+                  </Button>
+                </div>
+                <div className="space-y-4">
+                  {expenses.map((exp: any, index: number) => (
+                    <ExpenseDetail expense={exp} index={index} disabled={editExpenses} onlyOne={(expenses.length <= 1)} />
+                  ))}
+                </div>
+              </div>
 
               {/* Summary */}
               <div className="grid grid-cols-3 gap-4 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">

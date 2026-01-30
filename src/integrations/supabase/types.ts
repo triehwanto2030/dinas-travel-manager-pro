@@ -403,6 +403,41 @@ export type Database = {
           },
         ]
       }
+      claim_expenses: {
+        Row: {
+          id: string
+          expense_date: string
+          expense_type: string
+          description: string | null
+          expense_amount: number | null
+          trip_claim_id: string | null
+        }
+        Insert: {
+          id?: string
+          expense_date?: string
+          expense_type?: string
+          description?: string | null
+          expense_amount?: number | null
+          trip_claim_id?: string | null
+        }
+        Update: {
+          id?: string
+          expense_date?: string
+          expense_type?: string
+          description?: string | null
+          expense_amount?: number | null
+          trip_claim_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "claims_expenses_trip_claim_id_fkey"
+            columns: ["trip_claim_id"]
+            isOneToOne: false
+            referencedRelation: "trip_claims"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       users: {
         Row: {
           created_at: string

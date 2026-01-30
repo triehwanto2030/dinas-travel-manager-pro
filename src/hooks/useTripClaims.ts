@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Tables, TablesInsert, TablesUpdate } from '@/integrations/supabase/types';
 
 type TripClaim = Tables<'trip_claims'>;
+type ClaimExpense = Tables<'claim_expenses'>;
 type Employee = Tables<'employees'>;
 type BusinessTrip = Tables<'business_trips'>;
 
@@ -74,8 +75,8 @@ export const useCreateTripClaim = () => {
     },
     onSuccess: (data) => {
       console.log('Trip claim creation successful, invalidating queries');
-      queryClient.invalidateQueries({ queryKey: ['trip_claims'] });
-      queryClient.invalidateQueries({ queryKey: ['business_trips'] });
+      queryClient.invalidateQueries({ queryKey: ['trip_claims'] }); // Fixes the issue by invalidating the correct query
+      queryClient.invalidateQueries({ queryKey: ['business_trips'] }); // In case business trips data is affected
     },
     onError: (error) => {
       console.error('Trip claim creation failed:', error);
@@ -136,6 +137,74 @@ export const useDeleteTripClaim = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['trip_claims'] });
+    },
+  });
+};
+
+export const useTripClaimExpenses = (tripClaimId?: string) => {
+  return useQuery({
+    queryKey: ['claim_expenses', tripClaimId],
+    queryFn: async ({ queryKey }): Promise<ClaimExpense[]> => {
+      const [, tripClaimId] = queryKey;
+      console.log('Fetching trip claims...');
+      
+      const query = supabase
+        .from('claim_expenses')
+        .select(`*`);
+
+      if (tripClaimId) {
+        query.eq('trip_claim_id', tripClaimId); // Add this line to filter by trip_claim_id
+      }
+      
+      const { data, error } = await query;
+
+      if (error) {
+        console.error('Error fetching expenses:', error);
+        throw new Error(error.message);
+      }
+
+      console.log('Claim expenses fetched:', data);
+      return data as ClaimExpense[];
+    },
+  });
+};
+
+export const useCreateTripClaimExpense = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (expenses: TablesInsert<'claim_expenses'>[]) => {
+      console.log('Creating claim expense with data:', expenses);
+      
+      // Ensure all required fields are present
+      const expenseData = expenses.map(expense => ({
+        expense_date: expense.expense_date,
+        expense_type: expense.expense_type || 'other',
+        expense_amount: expense.expense_amount || 0,
+        description: expense.description || '',
+        trip_claim_id: expense.trip_claim_id,
+      }));
+
+      console.log('Processed expense data:', expenseData);
+      
+      const { data, error } = await supabase
+        .from('claim_expenses')
+        .insert(expenseData);
+
+      if (error) {
+        console.error('Error creating trip claim:', error);
+        throw new Error(`Failed to create trip claim: ${error.message}`);
+      }
+
+      console.log('Expenses created successfully:', data);
+      return data;
+    },
+    onSuccess: (data) => {
+      console.log('Expense successfully stored! Invalidating queries.');
+      queryClient.invalidateQueries({ queryKey: ['claim_expenses'] });
+    },
+    onError: (error) => {
+      console.error('Trip claim creation failed:', error);
     },
   });
 };

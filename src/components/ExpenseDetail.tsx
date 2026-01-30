@@ -10,14 +10,19 @@ import { Input } from "@/components/ui/input";
 
 interface ExpenseDetailProps {
     index: number;
-    isClaimDisabled: boolean;
+    disabled: boolean;
     onlyOne: boolean;
-    expense: any;
-    updateExpense: (index: number, field: string, value: any) => void;
-    removeExpense: (index: number) => void;
+    expense: {
+        date: any;
+        type: string;
+        description: string;
+        amount: number;
+    };
+    updateExp?: (idx: number, expFl: string, expVal: any) => void;
+    deleteExp?: (idx: number) => void;
 }
 
-export const ExpenseDetail = ({index, isClaimDisabled, onlyOne = true, expense, updateExpense, removeExpense}: ExpenseDetailProps) => {
+export const ExpenseDetail = ({index, disabled = false, onlyOne = true, expense, updateExp, deleteExp}: ExpenseDetailProps) => {
   return (
     <div key={index} className="grid grid-cols-1 md:grid-cols-12 gap-4 p-4 border rounded-lg">
         <div className="md:col-span-2">
@@ -30,7 +35,7 @@ export const ExpenseDetail = ({index, isClaimDisabled, onlyOne = true, expense, 
                 "w-full justify-start text-left font-normal",
                 !expense.date && "text-muted-foreground"
                 )}
-                disabled={isClaimDisabled}
+                disabled={disabled}
             >
                 <Calendar className="mr-2 h-4 w-4" />
                 {expense.date ? format(expense.date, "dd/MM/yyyy") : "Pilih tanggal"}
@@ -40,7 +45,7 @@ export const ExpenseDetail = ({index, isClaimDisabled, onlyOne = true, expense, 
             <CalendarComponent
                 mode="single"
                 selected={expense.date}
-                onSelect={(date) => updateExpense(index, 'date', date)}
+                onSelect={(date) => updateExp(index, 'date', date)}
                 initialFocus
                 className="pointer-events-auto"
             />
@@ -51,8 +56,8 @@ export const ExpenseDetail = ({index, isClaimDisabled, onlyOne = true, expense, 
         <Label>Jenis Biaya</Label>
         <Select 
             value={expense.type} 
-            onValueChange={(value) => updateExpense(index, 'type', value)}
-            disabled={isClaimDisabled}
+            onValueChange={(value) => updateExp(index, 'type', value)}
+            disabled={disabled}
         >
             <SelectTrigger>
             <SelectValue placeholder="Pilih jenis biaya" />
@@ -71,8 +76,8 @@ export const ExpenseDetail = ({index, isClaimDisabled, onlyOne = true, expense, 
         <Input
             placeholder="Detail pengeluaran..."
             value={expense.description}
-            onChange={(e) => updateExpense(index, 'description', e.target.value)}
-            disabled={isClaimDisabled}
+            onChange={(e) => updateExp(index, 'description', e.target.value)}
+            disabled={disabled}
         />
         </div>
         <div className="md:col-span-2">
@@ -81,8 +86,8 @@ export const ExpenseDetail = ({index, isClaimDisabled, onlyOne = true, expense, 
             type="number"
             placeholder="0"
             value={expense.amount || ''}
-            onChange={(e) => updateExpense(index, 'amount', Number(e.target.value))}
-            disabled={isClaimDisabled}
+            onChange={(e) => updateExp(index, 'amount', Number(e.target.value))}
+            disabled={disabled}
         />
         </div>
         <div className="md:col-span-1 flex items-end">
@@ -90,8 +95,8 @@ export const ExpenseDetail = ({index, isClaimDisabled, onlyOne = true, expense, 
             <Button 
             variant="ghost" 
             size="sm" 
-            onClick={() => removeExpense(index)}
-            disabled={isClaimDisabled}
+            onClick={() => deleteExp(index)}
+            disabled={disabled}
             >
             <X className="w-4 h-4" />
             </Button>
