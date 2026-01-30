@@ -5,7 +5,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { ExpenseDetail } from './ExpenseDetail';
-import { useTripClaimExpenses } from '@/hooks/useTripClaims';
+import { useTripClaimExpenses, useUpdateTripClaimExpenses } from '@/hooks/useTripClaims';
 
 interface ClaimDinasDetailModalProps {
   isOpen: boolean;
@@ -19,6 +19,21 @@ const ClaimDinasDetailModal: React.FC<ClaimDinasDetailModalProps> = ({ isOpen, o
     { id: '', date: undefined, type: '', description: '', amount: 0 }
   ]);
   const { data: claimExpenses, isLoading, error } = useTripClaimExpenses(claimData.id);
+
+  React.useEffect(() => {
+    if (claimExpenses) {
+      setExpenses(
+        claimExpenses.map((expense) => ({
+          id: expense.id,
+          date: expense.expense_date,
+          type: expense.expense_type,
+          description: expense.description,
+          amount: expense.expense_amount,
+        }))
+      );
+    }
+  }, [claimExpenses]);
+
   const [editExpenses, setEditExpenses] = React.useState(true);
   console.log('Claim Expenses Data in Modal:', claimExpenses);
 
@@ -31,6 +46,34 @@ const ClaimDinasDetailModal: React.FC<ClaimDinasDetailModalProps> = ({ isOpen, o
       minimumFractionDigits: 0,
     }).format(amount);
   };
+
+  const updateTripClaimExpenses = useUpdateTripClaimExpenses();
+
+  React.useEffect(() => {
+    if (editExpenses) {
+      // Validate and prepare data for row-by-row updates
+      const validatedExpenses = expenses.map((exp) => ({
+        id: exp.id,
+        expense_date: exp.date ? new Date(exp.date).toISOString() : null, // Ensure valid ISO format or fallback to null
+        expense_type: String(exp.type), // Ensure type is a string
+        description: String(exp.description), // Ensure description is a string
+        expense_amount: Number(exp.amount), // Ensure amount is a number
+      }));
+
+      // Update each expense row-by-row
+      validatedExpenses.forEach((expense) => {
+        updateTripClaimExpenses.mutate({
+          id: expense.id,
+          expense_date: expense.expense_date,
+          expense_type: expense.expense_type,
+          description: expense.description,
+          expense_amount: expense.expense_amount,
+        });
+      });
+
+      console.log("Submitted updated expenses:", validatedExpenses);
+    }
+  }, [editExpenses]);
 
   const formatDate = (dateString: string) => {
     if (!dateString) return 'N/A';
@@ -53,19 +96,26 @@ const ClaimDinasDetailModal: React.FC<ClaimDinasDetailModalProps> = ({ isOpen, o
     const config = statusConfig[status] || statusConfig.Draft;
     return <Badge className={config.class}>{config.label}</Badge>;
   };
-
-  setExpenses(claimExpenses.map(expense => ({
-    id: expense.id,
-    date: expense.expense_date,
-    type: expense.expense_type,
-    description: expense.description,
-    amount: expense.expense_amount,
-  }))
-);
+  
+  const updateExpense = (index: number, field: string, value: any) => {
+    const newExpenses = [...expenses];
+    newExpenses[index] = { ...newExpenses[index], [field]: value };
+    setExpenses(newExpenses);
+    console.log("Updated expenses:", expenses);
+  };
 
   const cashAdvance = trip.cash_advance || 0;
   const totalAmount = claimData.total_amount || 0;
   const remaining = cashAdvance - totalAmount;
+
+  if (isLoading) {
+    return <div>Loading...</div>; // Display a loading state
+  }
+
+  if (error) {
+    console.error('Error fetching claim expenses:', error);
+    return <div>Error loading claim expenses. Please try again later.</div>; // Display an error message
+  }
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
@@ -206,7 +256,7 @@ const ClaimDinasDetailModal: React.FC<ClaimDinasDetailModalProps> = ({ isOpen, o
                 </div>
                 <div className="space-y-4">
                   {expenses.map((exp: any, index: number) => (
-                    <ExpenseDetail expense={exp} index={index} disabled={editExpenses} onlyOne={(expenses.length <= 1)} />
+                    <ExpenseDetail expense={exp} index={index} disabled={editExpenses} onlyOne={true} updateExp={updateExpense} />
                   ))}
                 </div>
               </div>

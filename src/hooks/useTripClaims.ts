@@ -208,3 +208,29 @@ export const useCreateTripClaimExpense = () => {
     },
   });
 };
+
+export const useUpdateTripClaimExpenses = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ id, ...updates }: TablesUpdate<'claim_expenses'> & { id: string }) => {
+      console.log('Updating expense:', id, 'with data:', updates);
+      
+      const { data, error } = await supabase
+        .from('claim_expenses')
+        .update(updates)
+        .eq('id', id);
+
+      if (error) {
+        console.error('Error updating expense:', error);
+        throw new Error(error.message);
+      }
+
+      console.log('Claim expense updated successfully:', data);
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['claim_expenses'] });
+    },
+  });
+};
