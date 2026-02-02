@@ -168,6 +168,28 @@ const PerjalananDinasForm = ({ isOpen, onClose, mode, data }: PerjalananDinasFor
     }
   }, [form.watch('supervisor_id'), employees]);
 
+  useEffect(() => {
+    if (isOpen && mode === "create") {
+      form.reset({
+        employee_id: '',
+        supervisor_id: '',
+        destination: '',
+        start_date: undefined,
+        end_date: undefined,
+        purpose: '',
+        accommodation: '',
+        transportation: '',
+        cash_advance: 0,
+        cost_center: '',
+        department: '',
+        notes: '',
+      }); // Reset the form to its default values
+      setSelectedEmployee(null);
+      setSelectedSupervisor(null);
+      setApprovalHierarchy(null);
+    }
+  }, [isOpen, mode, form]);
+
   const handleEmployeeChange = (employeeId: string) => {
     const employee = employees?.find(emp => emp.id === employeeId);
     setSelectedEmployee(employee);
@@ -210,6 +232,7 @@ const PerjalananDinasForm = ({ isOpen, onClose, mode, data }: PerjalananDinasFor
       if (mode === 'create') {
         await createBusinessTrip.mutateAsync(businessTripData);
         toast.success('Perjalanan dinas berhasil dibuat dan diajukan');
+        form.reset();
       } else if (mode === 'edit' && data?.id) {
         await updateBusinessTrip.mutateAsync({ id: data.id, ...businessTripData });
         toast.success('Perjalanan dinas berhasil diupdate');

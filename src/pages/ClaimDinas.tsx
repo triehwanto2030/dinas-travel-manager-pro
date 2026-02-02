@@ -12,6 +12,7 @@ import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useTripClaims } from '@/hooks/useTripClaims';
+import MainLayout from '@/components/MainLayout';
 
 const ClaimDinas = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -84,229 +85,218 @@ const ClaimDinas = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors w-full">
-      <Header />
-      
-      <div className="flex w-full">
-        <Sidebar isOpen={sidebarOpen} onToggle={() => setSidebarOpen(!sidebarOpen)} />
-        
-        <div className="flex-1 w-full">
-          <main className="p-6 w-full">
-            {/* Header Section */}
-            <div className="mb-8">
-              <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
-                <div>
-                  <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Claim Dinas</h1>
-                  <p className="text-gray-600 dark:text-gray-400">Kelola pengajuan claim perjalanan dinas</p>
-                </div>
-                <div className="flex gap-3 mt-4 md:mt-0">
-                  <Button variant="outline" className="flex items-center gap-2">
-                    <Download className="w-4 h-4" />
-                    Export
-                  </Button>
-                </div>
-              </div>
-
-              {/* Statistics Cards */}
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-                <Card className="bg-white dark:bg-gray-800">
-                  <CardContent className="p-6">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Total Claim</p>
-                        <p className="text-2xl font-bold text-gray-900 dark:text-white">{totalClaims}</p>
-                      </div>
-                      <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900 rounded-lg flex items-center justify-center">
-                        <TrendingDown className="w-6 h-6 text-blue-600 dark:text-blue-400" />
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <Card className="bg-white dark:bg-gray-800">
-                  <CardContent className="p-6">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Pending</p>
-                        <p className="text-2xl font-bold text-gray-900 dark:text-white">{pendingClaims}</p>
-                      </div>
-                      <div className="w-12 h-12 bg-orange-100 dark:bg-orange-900 rounded-lg flex items-center justify-center">
-                        <TrendingDown className="w-6 h-6 text-orange-600 dark:text-orange-400" />
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <Card className="bg-white dark:bg-gray-800">
-                  <CardContent className="p-6">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Approved</p>
-                        <p className="text-2xl font-bold text-gray-900 dark:text-white">{approvedClaims}</p>
-                      </div>
-                      <div className="w-12 h-12 bg-green-100 dark:bg-green-900 rounded-lg flex items-center justify-center">
-                        <TrendingUp className="w-6 h-6 text-green-600 dark:text-green-400" />
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <Card className="bg-white dark:bg-gray-800">
-                  <CardContent className="p-6">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Total Amount</p>
-                        <p className="text-xl font-bold text-gray-900 dark:text-white">
-                          {formatCurrency(totalAmount).replace('IDR', 'Rp')}
-                        </p>
-                      </div>
-                      <div className="w-12 h-12 bg-purple-100 dark:bg-purple-900 rounded-lg flex items-center justify-center">
-                        <TrendingDown className="w-6 h-6 text-purple-600 dark:text-purple-400" />
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
+      <MainLayout sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen}>
+        <div className="mb-8">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Claim Dinas</h1>
+              <p className="text-gray-600 dark:text-gray-400">Kelola pengajuan claim perjalanan dinas</p>
             </div>
+            <div className="flex gap-3 mt-4 md:mt-0">
+              <Button variant="outline" className="flex items-center gap-2">
+                <Download className="w-4 h-4" />
+                Export
+              </Button>
+            </div>
+          </div>
 
-            {/* Table Section */}
+          {/* Statistics Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
             <Card className="bg-white dark:bg-gray-800">
-              <CardHeader>
-                <CardTitle className="text-xl font-semibold text-gray-900 dark:text-white">
-                  Daftar Claim Dinas
-                </CardTitle>
-                
-                {/* Search and Filter */}
-                <div className="flex flex-col md:flex-row gap-4 mt-4">
-                  <div className="relative flex-1">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                    <input
-                      type="text"
-                      placeholder="Cari claim dinas..."
-                      className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                    />
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Total Claim</p>
+                    <p className="text-2xl font-bold text-gray-900 dark:text-white">{totalClaims}</p>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <Filter className="w-4 h-4 text-gray-400" />
-                    <Select value={statusFilter} onValueChange={setStatusFilter}>
-                      <SelectTrigger className="w-32">
-                        <SelectValue placeholder="Status" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">Semua</SelectItem>
-                        <SelectItem value="submitted">Submitted</SelectItem>
-                        <SelectItem value="approved">Approved</SelectItem>
-                        <SelectItem value="rejected">Rejected</SelectItem>
-                        <SelectItem value="paid">Paid</SelectItem>
-                      </SelectContent>
-                    </Select>
+                  <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900 rounded-lg flex items-center justify-center">
+                    <TrendingDown className="w-6 h-6 text-blue-600 dark:text-blue-400" />
                   </div>
                 </div>
-              </CardHeader>
-              
-              <CardContent>
-                {isLoading ? (
-                  <div className="text-center py-8">
-                    <p className="text-gray-500">Memuat data...</p>
-                  </div>
-                ) : (
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>ID Claim</TableHead>
-                        <TableHead>Karyawan</TableHead>
-                        <TableHead>Tujuan & Alasan</TableHead>
-                        <TableHead>Tanggal Claim</TableHead>
-                        <TableHead>Nominal Bayar/Pengembalian</TableHead>
-                        <TableHead>Status</TableHead>
-                        <TableHead>AKSI</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {filteredClaims.length === 0 ? (
-                        <TableRow>
-                          <TableCell colSpan={7} className="text-center py-8 text-gray-500">
-                            Tidak ada data claim dinas
-                          </TableCell>
-                        </TableRow>
-                      ) : (
-                        filteredClaims.map((claim) => (
-                          <TableRow key={claim.id}>
-                            <TableCell>
-                              <div>
-                                <p className="font-medium text-gray-900 dark:text-white">{generateClaimId(claim)}</p>
-                                <p className="text-sm text-gray-500 dark:text-gray-400">ID Trip: {generateTripId(claim)}</p>
-                              </div>
-                            </TableCell>
-                            <TableCell>
-                              <div className="flex items-center gap-3">
-                                <Avatar className="w-10 h-10">
-                                  <AvatarImage src={claim.employees.photo_url || undefined} />
-                                  <AvatarFallback className="bg-blue-500 text-white text-sm">
-                                    {claim.employees.name.split(' ').map(n => n[0]).join('').substring(0, 2)}
-                                  </AvatarFallback>
-                                </Avatar>
-                                <div>
-                                  <p className="font-medium text-gray-900 dark:text-white">{claim.employees.name}</p>
-                                  <p className="text-sm text-gray-500 dark:text-gray-400">ID: {claim.employees.employee_id}</p>
-                                </div>
-                              </div>
-                            </TableCell>
-                            <TableCell>
-                              <div>
-                                <p className="font-medium text-gray-900 dark:text-white">{claim.business_trips.destination}</p>
-                                <p className="text-sm text-gray-500 dark:text-gray-400">{claim.business_trips.purpose}</p>
-                              </div>
-                            </TableCell>
-                            <TableCell className="text-gray-600 dark:text-gray-400">
-                              {formatDate(claim.created_at)}
-                            </TableCell>
-                            <TableCell>
-                              <div>
-                                <p className="font-medium text-gray-900 dark:text-white">
-                                  {formatCurrency(claim.total_amount).replace('IDR', 'Rp')}
-                                </p>
-                                <p className="text-sm text-gray-500 dark:text-gray-400">
-                                  {claim.status === 'Submitted' ? 'Pembayaran' : 'Pengembalian'}
-                                </p>
-                              </div>
-                            </TableCell>
-                            <TableCell>
-                              {getStatusBadge(claim.status)}
-                            </TableCell>
-                            <TableCell>
-                              <div className="flex items-center gap-2">
-                                <Button 
-                                  variant="ghost" 
-                                  size="sm" 
-                                  className="p-2 h-8 w-8"
-                                  onClick={() => handleViewDetail(claim)}
-                                  title="Lihat Detail"
-                                >
-                                  <Eye className="w-4 h-4" />
-                                </Button>
-                                <Button variant="ghost" size="sm" className="p-2 h-8 w-8">
-                                  <Edit className="w-4 h-4" />
-                                </Button>
-                                <Button variant="ghost" size="sm" className="p-2 h-8 w-8 text-red-600 hover:text-red-800">
-                                  <Trash2 className="w-4 h-4" />
-                                </Button>
-                              </div>
-                            </TableCell>
-                          </TableRow>
-                        ))
-                      )}
-                    </TableBody>
-                  </Table>
-                )}
               </CardContent>
             </Card>
-          </main>
-          
-          <Footer />
+
+            <Card className="bg-white dark:bg-gray-800">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Pending</p>
+                    <p className="text-2xl font-bold text-gray-900 dark:text-white">{pendingClaims}</p>
+                  </div>
+                  <div className="w-12 h-12 bg-orange-100 dark:bg-orange-900 rounded-lg flex items-center justify-center">
+                    <TrendingDown className="w-6 h-6 text-orange-600 dark:text-orange-400" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-white dark:bg-gray-800">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Approved</p>
+                    <p className="text-2xl font-bold text-gray-900 dark:text-white">{approvedClaims}</p>
+                  </div>
+                  <div className="w-12 h-12 bg-green-100 dark:bg-green-900 rounded-lg flex items-center justify-center">
+                    <TrendingUp className="w-6 h-6 text-green-600 dark:text-green-400" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-white dark:bg-gray-800">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Total Amount</p>
+                    <p className="text-xl font-bold text-gray-900 dark:text-white">
+                      {formatCurrency(totalAmount).replace('IDR', 'Rp')}
+                    </p>
+                  </div>
+                  <div className="w-12 h-12 bg-purple-100 dark:bg-purple-900 rounded-lg flex items-center justify-center">
+                    <TrendingDown className="w-6 h-6 text-purple-600 dark:text-purple-400" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
         </div>
-      </div>
+
+        {/* Table Section */}
+        <Card className="bg-white dark:bg-gray-800">
+          <CardHeader>
+            <CardTitle className="text-xl font-semibold text-gray-900 dark:text-white">
+              Daftar Claim Dinas
+            </CardTitle>
+            
+            {/* Search and Filter */}
+            <div className="flex flex-col md:flex-row gap-4 mt-4">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                <input
+                  type="text"
+                  placeholder="Cari claim dinas..."
+                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+              </div>
+              <div className="flex items-center gap-2">
+                <Filter className="w-4 h-4 text-gray-400" />
+                <Select value={statusFilter} onValueChange={setStatusFilter}>
+                  <SelectTrigger className="w-32">
+                    <SelectValue placeholder="Status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Semua</SelectItem>
+                    <SelectItem value="submitted">Submitted</SelectItem>
+                    <SelectItem value="approved">Approved</SelectItem>
+                    <SelectItem value="rejected">Rejected</SelectItem>
+                    <SelectItem value="paid">Paid</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </CardHeader>
+          
+          <CardContent>
+            {isLoading ? (
+              <div className="text-center py-8">
+                <p className="text-gray-500">Memuat data...</p>
+              </div>
+            ) : (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>ID Claim</TableHead>
+                    <TableHead>Karyawan</TableHead>
+                    <TableHead>Tujuan & Alasan</TableHead>
+                    <TableHead>Tanggal Claim</TableHead>
+                    <TableHead>Nominal Bayar/Pengembalian</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>AKSI</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filteredClaims.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={7} className="text-center py-8 text-gray-500">
+                        Tidak ada data claim dinas
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    filteredClaims.map((claim) => (
+                      <TableRow key={claim.id}>
+                        <TableCell>
+                          <div>
+                            <p className="font-medium text-gray-900 dark:text-white">{generateClaimId(claim)}</p>
+                            <p className="text-sm text-gray-500 dark:text-gray-400">ID Trip: {generateTripId(claim)}</p>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-3">
+                            <Avatar className="w-10 h-10">
+                              <AvatarImage src={claim.employees.photo_url || undefined} />
+                              <AvatarFallback className="bg-blue-500 text-white text-sm">
+                                {claim.employees.name.split(' ').map(n => n[0]).join('').substring(0, 2)}
+                              </AvatarFallback>
+                            </Avatar>
+                            <div>
+                              <p className="font-medium text-gray-900 dark:text-white">{claim.employees.name}</p>
+                              <p className="text-sm text-gray-500 dark:text-gray-400">ID: {claim.employees.employee_id}</p>
+                            </div>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div>
+                            <p className="font-medium text-gray-900 dark:text-white">{claim.business_trips.destination}</p>
+                            <p className="text-sm text-gray-500 dark:text-gray-400">{claim.business_trips.purpose}</p>
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-gray-600 dark:text-gray-400">
+                          {formatDate(claim.created_at)}
+                        </TableCell>
+                        <TableCell>
+                          <div>
+                            <p className="font-medium text-gray-900 dark:text-white">
+                              {formatCurrency(claim.total_amount).replace('IDR', 'Rp')}
+                            </p>
+                            <p className="text-sm text-gray-500 dark:text-gray-400">
+                              {claim.status === 'Submitted' ? 'Pembayaran' : 'Pengembalian'}
+                            </p>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          {getStatusBadge(claim.status)}
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              className="p-2 h-8 w-8"
+                              onClick={() => handleViewDetail(claim)}
+                              title="Lihat Detail"
+                            >
+                              <Eye className="w-4 h-4" />
+                            </Button>
+                            <Button variant="ghost" size="sm" className="p-2 h-8 w-8">
+                              <Edit className="w-4 h-4" />
+                            </Button>
+                            <Button variant="ghost" size="sm" className="p-2 h-8 w-8 text-red-600 hover:text-red-800">
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            )}
+          </CardContent>
+        </Card>
+      </MainLayout>
 
       {/* Mobile menu button */}
       <button

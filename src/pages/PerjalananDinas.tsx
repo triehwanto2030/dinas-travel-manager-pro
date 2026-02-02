@@ -14,6 +14,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useBusinessTrips, useUpdateBusinessTrip, useDeleteBusinessTrip } from '@/hooks/useBusinessTrips';
 import { useToast } from '@/hooks/use-toast';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import MainLayout from '@/components/MainLayout';
 
 const PerjalananDinas = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -176,222 +177,211 @@ const PerjalananDinas = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors w-full">
-      <Header />
-      
-      <div className="flex w-full">
-        <Sidebar isOpen={sidebarOpen} onToggle={() => setSidebarOpen(!sidebarOpen)} />
-        
-        <div className="flex-1 w-full">
-          <main className="p-6 w-full">
-            {/* Header Section */}
-            <div className="mb-8">
-              <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
-                <div>
-                  <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Daftar Perjalanan Dinas</h1>
-                  <p className="text-gray-600 dark:text-gray-400">Kelola perjalanan dinas karyawan</p>
-                </div>
-                <div className="flex gap-3 mt-4 md:mt-0">
-                  <Button variant="outline" className="flex items-center gap-2">
-                    <Upload className="w-4 h-4" />
-                    Import Excel
-                  </Button>
-                  <Button variant="outline" className="flex items-center gap-2">
-                    <Download className="w-4 h-4" />
-                    Export Excel
-                  </Button>
-                  <Button 
-                    onClick={handleAddNew}
-                    className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700"
-                  >
-                    <Plus className="w-4 h-4" />
-                    Tambah Perjalanan Dinas
-                  </Button>
-                </div>
-              </div>
+      <MainLayout sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen}>
+        <div className="mb-8">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Daftar Perjalanan Dinas</h1>
+              <p className="text-gray-600 dark:text-gray-400">Kelola perjalanan dinas karyawan</p>
             </div>
+            <div className="flex gap-3 mt-4 md:mt-0">
+              <Button variant="outline" className="flex items-center gap-2">
+                <Upload className="w-4 h-4" />
+                Import Excel
+              </Button>
+              <Button variant="outline" className="flex items-center gap-2">
+                <Download className="w-4 h-4" />
+                Export Excel
+              </Button>
+              <Button 
+                onClick={handleAddNew}
+                className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700"
+              >
+                <Plus className="w-4 h-4" />
+                Tambah Perjalanan Dinas
+              </Button>
+            </div>
+          </div>
+        </div>
 
-            {/* Table Section */}
-            <Card className="bg-white dark:bg-gray-800">
-              <CardHeader>
-                <div className="flex flex-col md:flex-row gap-4">
-                  {/* Search */}
-                  <div className="relative flex-1">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                    <input
-                      type="text"
-                      placeholder="Cari perjalanan dinas..."
-                      className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                    />
-                  </div>
-                  
-                  {/* Status Filter */}
-                  <Select value={statusFilter} onValueChange={setStatusFilter}>
-                    <SelectTrigger className="w-48">
-                      <SelectValue placeholder="Status" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">Semua Status</SelectItem>
-                      <SelectItem value="Draft">Draft</SelectItem>
-                      <SelectItem value="Submitted">Submitted</SelectItem>
-                      <SelectItem value="Approved">Approved</SelectItem>
-                      <SelectItem value="Rejected">Rejected</SelectItem>
-                      <SelectItem value="Completed">Completed</SelectItem>
-                    </SelectContent>
-                  </Select>
-
-                  {/* Department Filter */}
-                  {departments.length > 0 && (
-                    <Select value={departmentFilter} onValueChange={setDepartmentFilter}>
-                      <SelectTrigger className="w-48">
-                        <SelectValue placeholder="Departemen" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">Semua Departemen</SelectItem>
-                        {departments.map(dept => (
-                          <SelectItem key={dept} value={dept}>{dept}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  )}
-                </div>
-              </CardHeader>
+        {/* Table Section */}
+        <Card className="bg-white dark:bg-gray-800">
+          <CardHeader>
+            <div className="flex flex-col md:flex-row gap-4">
+              {/* Search */}
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                <input
+                  type="text"
+                  placeholder="Cari perjalanan dinas..."
+                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+              </div>
               
-              <CardContent>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>ID Perjalanan</TableHead>
-                      <TableHead>Karyawan</TableHead>
-                      <TableHead>Jabatan</TableHead>
-                      <TableHead>Tujuan</TableHead>
-                      <TableHead>Periode</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Cash Advance</TableHead>
-                      <TableHead>AKSI</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {filteredTrips.map((item, index) => (
-                      <TableRow key={item.id}>
-                        <TableCell className="font-medium text-gray-900 dark:text-white">
-                          {generateTripId(item.created_at, index)}
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center space-x-3">
-                            <Avatar className="w-8 h-8">
-                              <AvatarImage src={item.employees?.photo_url || ''} />
-                              <AvatarFallback className="bg-blue-100 text-blue-600 text-xs">
-                                {item.employees?.name?.split(' ').map(n => n[0]).join('') || 'N/A'}
-                              </AvatarFallback>
-                            </Avatar>
-                            <div>
-                              <p className="font-medium text-gray-900 dark:text-white">{item.employees?.name || 'N/A'}</p>
-                              <p className="text-sm text-gray-500 dark:text-gray-400">
-                                {item.employees?.employee_id || 'N/A'} 
-                                <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs ml-2">
-                                  {item.employees?.grade || 'N/A'}
-                                </span>
-                              </p>
-                            </div>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div>
-                            <p className="font-medium text-gray-900 dark:text-white">{item.employees?.position || 'N/A'}</p>
-                            <p className="text-sm text-gray-500 dark:text-gray-400">{item.employees?.department || 'N/A'}</p>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div>
-                            <p className="font-medium text-gray-900 dark:text-white">{item.destination}</p>
-                            <p className="text-sm text-gray-500 dark:text-gray-400">{item.purpose}</p>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div>
-                            <p className="text-sm text-gray-900 dark:text-white">
-                              {new Date(item.start_date).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' })}
-                            </p>
-                            <p className="text-sm text-gray-500 dark:text-gray-400">
-                              s/d {new Date(item.end_date).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' })}
-                            </p>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          {getStatusBadge(item.status)}
-                        </TableCell>
-                        <TableCell className="font-medium text-gray-900 dark:text-white">
-                          {item.cash_advance ? formatCurrency(item.cash_advance) : '-'}
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-1">
+              {/* Status Filter */}
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="w-48">
+                  <SelectValue placeholder="Status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Semua Status</SelectItem>
+                  <SelectItem value="Draft">Draft</SelectItem>
+                  <SelectItem value="Submitted">Submitted</SelectItem>
+                  <SelectItem value="Approved">Approved</SelectItem>
+                  <SelectItem value="Rejected">Rejected</SelectItem>
+                  <SelectItem value="Completed">Completed</SelectItem>
+                </SelectContent>
+              </Select>
+
+              {/* Department Filter */}
+              {departments.length > 0 && (
+                <Select value={departmentFilter} onValueChange={setDepartmentFilter}>
+                  <SelectTrigger className="w-48">
+                    <SelectValue placeholder="Departemen" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Semua Departemen</SelectItem>
+                    {departments.map(dept => (
+                      <SelectItem key={dept} value={dept}>{dept}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+            </div>
+          </CardHeader>
+          
+          <CardContent>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>ID Perjalanan</TableHead>
+                  <TableHead>Karyawan</TableHead>
+                  <TableHead>Jabatan</TableHead>
+                  <TableHead>Tujuan</TableHead>
+                  <TableHead>Periode</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Cash Advance</TableHead>
+                  <TableHead>AKSI</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredTrips.map((item, index) => (
+                  <TableRow key={item.id}>
+                    <TableCell className="font-medium text-gray-900 dark:text-white">
+                      {generateTripId(item.created_at, index)}
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center space-x-3">
+                        <Avatar className="w-8 h-8">
+                          <AvatarImage src={item.employees?.photo_url || ''} />
+                          <AvatarFallback className="bg-blue-100 text-blue-600 text-xs">
+                            {item.employees?.name?.split(' ').map(n => n[0]).join('') || 'N/A'}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div>
+                          <p className="font-medium text-gray-900 dark:text-white">{item.employees?.name || 'N/A'}</p>
+                          <p className="text-sm text-gray-500 dark:text-gray-400">
+                            {item.employees?.employee_id || 'N/A'} 
+                            <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs ml-2">
+                              {item.employees?.grade || 'N/A'}
+                            </span>
+                          </p>
+                        </div>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div>
+                        <p className="font-medium text-gray-900 dark:text-white">{item.employees?.position || 'N/A'}</p>
+                        <p className="text-sm text-gray-500 dark:text-gray-400">{item.employees?.department || 'N/A'}</p>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div>
+                        <p className="font-medium text-gray-900 dark:text-white">{item.destination}</p>
+                        <p className="text-sm text-gray-500 dark:text-gray-400">{item.purpose}</p>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div>
+                        <p className="text-sm text-gray-900 dark:text-white">
+                          {new Date(item.start_date).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' })}
+                        </p>
+                        <p className="text-sm text-gray-500 dark:text-gray-400">
+                          s/d {new Date(item.end_date).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' })}
+                        </p>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      {getStatusBadge(item.status)}
+                    </TableCell>
+                    <TableCell className="font-medium text-gray-900 dark:text-white">
+                      {item.cash_advance ? formatCurrency(item.cash_advance) : '-'}
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-1">
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          className="p-2"
+                          onClick={() => handleView(item)}
+                          title="Lihat Detail"
+                        >
+                          <Eye className="w-4 h-4" />
+                        </Button>
+                        {item.status === 'Submitted' && (
+                          <>
                             <Button 
                               variant="ghost" 
                               size="sm" 
                               className="p-2"
-                              onClick={() => handleView(item)}
-                              title="Lihat Detail"
+                              onClick={() => handleEdit(item)}
+                              title="Edit"
                             >
-                              <Eye className="w-4 h-4" />
+                              <Edit className="w-4 h-4" />
                             </Button>
-                            {item.status === 'Submitted' && (
-                              <>
-                                <Button 
-                                  variant="ghost" 
-                                  size="sm" 
-                                  className="p-2"
-                                  onClick={() => handleEdit(item)}
-                                  title="Edit"
-                                >
-                                  <Edit className="w-4 h-4" />
-                                </Button>
-                                <Button 
-                                  variant="ghost" 
-                                  size="sm" 
-                                  className="p-2 text-red-600 hover:text-red-800"
-                                  onClick={() => handleDelete(item)}
-                                  title="Hapus"
-                                >
-                                  <Trash2 className="w-4 h-4" />
-                                </Button>
-                              </>
-                            )}
-                            {item.status === 'Approved' && (
-                              <Button 
-                                variant="ghost" 
-                                size="sm" 
-                                className="p-2 text-green-600 hover:text-green-800"
-                                onClick={() => handleClaim(item)}
-                                title="Claim Dinas"
-                              >
-                                <Receipt className="w-4 h-4" />
-                              </Button>
-                            )}
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                    {filteredTrips.length === 0 && (
-                      <TableRow>
-                        <TableCell colSpan={8} className="text-center py-8 text-gray-500">
-                          {searchTerm || statusFilter !== 'all' || departmentFilter !== 'all' 
-                            ? 'Tidak ada data yang sesuai dengan filter'
-                            : 'Belum ada data perjalanan dinas'
-                          }
-                        </TableCell>
-                      </TableRow>
-                    )}
-                  </TableBody>
-                </Table>
-              </CardContent>
-            </Card>
-          </main>
-          
-          <Footer />
-        </div>
-      </div>
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              className="p-2 text-red-600 hover:text-red-800"
+                              onClick={() => handleDelete(item)}
+                              title="Hapus"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          </>
+                        )}
+                        {item.status === 'Approved' && (
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            className="p-2 text-green-600 hover:text-green-800"
+                            onClick={() => handleClaim(item)}
+                            title="Claim Dinas"
+                          >
+                            <Receipt className="w-4 h-4" />
+                          </Button>
+                        )}
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+                {filteredTrips.length === 0 && (
+                  <TableRow>
+                    <TableCell colSpan={8} className="text-center py-8 text-gray-500">
+                      {searchTerm || statusFilter !== 'all' || departmentFilter !== 'all' 
+                        ? 'Tidak ada data yang sesuai dengan filter'
+                        : 'Belum ada data perjalanan dinas'
+                      }
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
+      </MainLayout>
 
       {/* Mobile menu button */}
       <button

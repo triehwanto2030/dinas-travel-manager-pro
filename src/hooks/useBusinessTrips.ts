@@ -125,6 +125,7 @@ export const useUpdateBusinessTrip = () => {
       if (updates.cash_advance !== undefined) updateData.cash_advance = updates.cash_advance;
       if (updates.accommodation) updateData.accommodation = updates.accommodation;
       if (updates.transportation) updateData.transportation = updates.transportation;
+      if (updates.notes) updateData.notes = updates.notes;
 
       const { data, error } = await supabase
         .from('business_trips')
