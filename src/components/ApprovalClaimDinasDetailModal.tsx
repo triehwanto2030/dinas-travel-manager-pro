@@ -1,9 +1,12 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { Calendar, MapPin, User, Building, DollarSign, FileText, Receipt, Plane, Hotel } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Calendar, MapPin, User, Building, DollarSign, FileText, Receipt, Plane, Hotel, Edit2 } from 'lucide-react';
 import UserAvatarCell from './AvatarCell';
+import { useTripClaimExpenses, useUpdateTripClaim, useUpdateTripClaimExpenses } from '@/hooks/useTripClaims';
+import { useQueryClient } from '@tanstack/react-query';
 
 interface TripClaim {
   id: string;
@@ -50,6 +53,38 @@ const ApprovalClaimDinasDetailModal: React.FC<ApprovalClaimDinasDetailModalProps
   onClose,
   claim
 }) => {
+  const queryClient = useQueryClient();
+  const { data: claimExpenses, isLoading: expensesLoading } = useTripClaimExpenses(claim?.id);
+  const updateTripClaim = useUpdateTripClaim();
+  const updateTripClaimExpenses = useUpdateTripClaimExpenses();
+  
+  const [expenses, setExpenses] = useState<Array<{
+    id: string;
+    expense_date: string | null;
+    expense_type: string | null;
+    description: string | null;
+    expense_amount: number;
+  }>>([]);
+  const [isEditing, setIsEditing] = useState(false);
+  const [totalAmount, setTotalAmount] = useState(0);
+
+  useEffect(() => {
+    if (claimExpenses) {
+      setExpenses(claimExpenses.map(exp => ({
+        id: exp.id,
+        expense_date: exp.expense_date,
+        expense_type: exp.expense_type,
+        description: exp.description,
+        expense_amount: exp.expense_amount || 0
+      })));
+    }
+  }, [claimExpenses]);
+
+  useEffect(() => {
+    const newTotal = expenses.reduce((sum, exp) => sum + (exp.expense_amount || 0), 0);
+    setTotalAmount(newTotal);
+  }, [expenses]);
+
   if (!claim) return null;
 
   const formatCurrency = (amount: number) => {
@@ -69,6 +104,15 @@ const ApprovalClaimDinasDetailModal: React.FC<ApprovalClaimDinasDetailModalProps
     });
   };
 
+  const formatShortDate = (dateString: string | null) => {
+    if (!dateString) return 'N/A';
+    return new Date(dateString).toLocaleDateString('id-ID', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric'
+    });
+  };
+
   const getStatusBadge = (status: string) => {
     const statusConfig: Record<string, { class: string; label: string }> = {
       'Draft': { class: 'bg-gray-100 text-gray-800', label: 'Draft' },
@@ -82,9 +126,49 @@ const ApprovalClaimDinasDetailModal: React.FC<ApprovalClaimDinasDetailModalProps
     return <Badge className={config.class}>{config.label}</Badge>;
   };
 
+  const getExpenseTypeLabel = (type: string | null) => {
+    const types: Record<string, string> = {
+      'transport': 'Transportasi',
+      'accommodation': 'Akomodasi',
+      'meals': 'Makan',
+      'other': 'Lainnya'
+    };
+    return types[type || ''] || type || '-';
+  };
+
+  const handleAmountChange = (index: number, value: string) => {
+    const numValue = parseInt(value.replace(/\D/g, '')) || 0;
+    const newExpenses = [...expenses];
+    newExpenses[index] = { ...newExpenses[index], expense_amount: numValue };
+    setExpenses(newExpenses);
+  };
+
+  const handleSaveExpenses = async () => {
+    // Update each expense in the database
+    for (const expense of expenses) {
+      await updateTripClaimExpenses.mutateAsync({
+        id: expense.id,
+        expense_amount: expense.expense_amount
+      });
+    }
+
+    // Update the total_amount in trip_claims
+    const newTotal = expenses.reduce((sum, exp) => sum + (exp.expense_amount || 0), 0);
+    await updateTripClaim.mutateAsync({
+      id: claim.id,
+      total_amount: newTotal
+    });
+
+    // Invalidate queries to refresh data
+    queryClient.invalidateQueries({ queryKey: ['trip_claims'] });
+    queryClient.invalidateQueries({ queryKey: ['claim_expenses', claim.id] });
+
+    setIsEditing(false);
+  };
+
   const cashAdvance = claim.business_trips.cash_advance || 0;
-  const totalClaim = claim.total_amount || 0;
-  const difference = cashAdvance - totalClaim;
+  const displayTotal = isEditing ? totalAmount : (claim.total_amount || 0);
+  const difference = cashAdvance - displayTotal;
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -195,6 +279,78 @@ const ApprovalClaimDinasDetailModal: React.FC<ApprovalClaimDinasDetailModalProps
 
           <Separator />
 
+          {/* Detail Pengeluaran - Editable */}
+          <div>
+            <div className="flex justify-between items-center mb-3">
+              <h3 className="text-sm font-semibold text-muted-foreground flex items-center gap-2">
+                <Receipt className="w-4 h-4" />
+                Detail Pengeluaran
+              </h3>
+              <button
+                onClick={() => {
+                  if (isEditing) {
+                    handleSaveExpenses();
+                  } else {
+                    setIsEditing(true);
+                  }
+                }}
+                className="flex items-center gap-1 text-sm text-blue-600 hover:text-blue-700"
+                disabled={updateTripClaimExpenses.isPending || updateTripClaim.isPending}
+              >
+                <Edit2 className="w-4 h-4" />
+                {isEditing ? (updateTripClaimExpenses.isPending || updateTripClaim.isPending ? 'Menyimpan...' : 'Simpan') : 'Edit'}
+              </button>
+            </div>
+            
+            {expensesLoading ? (
+              <p className="text-sm text-muted-foreground">Memuat data pengeluaran...</p>
+            ) : expenses.length > 0 ? (
+              <div className="space-y-3">
+                {expenses.map((expense, index) => (
+                  <div key={expense.id} className="p-3 bg-muted/30 rounded-lg">
+                    <div className="grid grid-cols-4 gap-4 text-sm">
+                      <div>
+                        <p className="text-muted-foreground">Tanggal</p>
+                        <p className="font-medium">{formatShortDate(expense.expense_date)}</p>
+                      </div>
+                      <div>
+                        <p className="text-muted-foreground">Jenis</p>
+                        <p className="font-medium">{getExpenseTypeLabel(expense.expense_type)}</p>
+                      </div>
+                      <div>
+                        <p className="text-muted-foreground">Keterangan</p>
+                        <p className="font-medium">{expense.description || '-'}</p>
+                      </div>
+                      <div>
+                        <p className="text-muted-foreground">Jumlah</p>
+                        {isEditing ? (
+                          <Input
+                            type="text"
+                            value={expense.expense_amount.toLocaleString('id-ID')}
+                            onChange={(e) => handleAmountChange(index, e.target.value)}
+                            className="h-8 text-sm"
+                          />
+                        ) : (
+                          <p className="font-medium">{formatCurrency(expense.expense_amount)}</p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+                
+                {/* Total Pengeluaran */}
+                <div className="p-3 bg-blue-50 dark:bg-blue-900/30 rounded-lg flex justify-between items-center">
+                  <span className="font-medium">Total Pengeluaran</span>
+                  <span className="text-lg font-bold text-blue-600">{formatCurrency(displayTotal)}</span>
+                </div>
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground">Tidak ada detail pengeluaran</p>
+            )}
+          </div>
+
+          <Separator />
+
           {/* Financial Summary */}
           <div>
             <h3 className="text-sm font-semibold text-muted-foreground mb-3 flex items-center gap-2">
@@ -208,7 +364,7 @@ const ApprovalClaimDinasDetailModal: React.FC<ApprovalClaimDinasDetailModalProps
               </div>
               <div className="flex justify-between items-center p-3 bg-muted/30 rounded-lg">
                 <span className="text-muted-foreground">Total Claim</span>
-                <span className="font-semibold">{formatCurrency(totalClaim)}</span>
+                <span className="font-semibold">{formatCurrency(displayTotal)}</span>
               </div>
               <div className={`flex justify-between items-center p-3 rounded-lg ${
                 difference >= 0 ? 'bg-green-100 dark:bg-green-900/30' : 'bg-red-100 dark:bg-red-900/30'
