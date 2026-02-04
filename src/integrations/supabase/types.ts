@@ -44,48 +44,90 @@ export type Database = {
       business_trips: {
         Row: {
           accommodation: string | null
+          bod_approved_at: string | null
+          bod_approved_by: string | null
           cash_advance: number | null
           created_at: string
+          current_approval_step: string | null
           destination: string
           employee_id: string | null
           end_date: string
+          hr_manager_approved_at: string | null
+          hr_manager_approved_by: string | null
           id: string
           notes: string | null
           purpose: string | null
+          rejected_at: string | null
+          rejected_by: string | null
+          rejection_reason: string | null
+          staff_fa_approved_at: string | null
+          staff_fa_approved_by: string | null
+          staff_ga_approved_at: string | null
+          staff_ga_approved_by: string | null
           start_date: string
           status: string
+          supervisor_approved_at: string | null
+          supervisor_approved_by: string | null
           transportation: string | null
           trip_number: string
           updated_at: string
         }
         Insert: {
           accommodation?: string | null
+          bod_approved_at?: string | null
+          bod_approved_by?: string | null
           cash_advance?: number | null
           created_at?: string
+          current_approval_step?: string | null
           destination: string
           employee_id?: string | null
           end_date: string
+          hr_manager_approved_at?: string | null
+          hr_manager_approved_by?: string | null
           id?: string
           notes?: string | null
           purpose?: string | null
+          rejected_at?: string | null
+          rejected_by?: string | null
+          rejection_reason?: string | null
+          staff_fa_approved_at?: string | null
+          staff_fa_approved_by?: string | null
+          staff_ga_approved_at?: string | null
+          staff_ga_approved_by?: string | null
           start_date: string
           status?: string
+          supervisor_approved_at?: string | null
+          supervisor_approved_by?: string | null
           transportation?: string | null
           trip_number: string
           updated_at?: string
         }
         Update: {
           accommodation?: string | null
+          bod_approved_at?: string | null
+          bod_approved_by?: string | null
           cash_advance?: number | null
           created_at?: string
+          current_approval_step?: string | null
           destination?: string
           employee_id?: string | null
           end_date?: string
+          hr_manager_approved_at?: string | null
+          hr_manager_approved_by?: string | null
           id?: string
           notes?: string | null
           purpose?: string | null
+          rejected_at?: string | null
+          rejected_by?: string | null
+          rejection_reason?: string | null
+          staff_fa_approved_at?: string | null
+          staff_fa_approved_by?: string | null
+          staff_ga_approved_at?: string | null
+          staff_ga_approved_by?: string | null
           start_date?: string
           status?: string
+          supervisor_approved_at?: string | null
+          supervisor_approved_by?: string | null
           transportation?: string | null
           trip_number?: string
           updated_at?: string
@@ -99,6 +141,39 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      claim_expenses: {
+        Row: {
+          created_at: string
+          description: string | null
+          expense_amount: number | null
+          expense_date: string | null
+          expense_type: string | null
+          id: string
+          trip_claim_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          expense_amount?: number | null
+          expense_date?: string | null
+          expense_type?: string | null
+          id?: string
+          trip_claim_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          expense_amount?: number | null
+          expense_date?: string | null
+          expense_type?: string | null
+          id?: string
+          trip_claim_id?: string | null
+          updated_at?: string
+        }
+        Relationships: []
       }
       companies: {
         Row: {
@@ -351,37 +426,79 @@ export type Database = {
       }
       trip_claims: {
         Row: {
+          bod_approved_at: string | null
+          bod_approved_by: string | null
           claim_number: string | null
           created_at: string
+          current_approval_step: string | null
           employee_id: string | null
+          hr_manager_approved_at: string | null
+          hr_manager_approved_by: string | null
           id: string
           notes: string | null
+          rejected_at: string | null
+          rejected_by: string | null
+          rejection_reason: string | null
+          staff_fa_approved_at: string | null
+          staff_fa_approved_by: string | null
+          staff_ga_approved_at: string | null
+          staff_ga_approved_by: string | null
           status: string
           submitted_at: string | null
+          supervisor_approved_at: string | null
+          supervisor_approved_by: string | null
           total_amount: number | null
           trip_id: string | null
           updated_at: string
         }
         Insert: {
+          bod_approved_at?: string | null
+          bod_approved_by?: string | null
           claim_number?: string | null
           created_at?: string
+          current_approval_step?: string | null
           employee_id?: string | null
+          hr_manager_approved_at?: string | null
+          hr_manager_approved_by?: string | null
           id?: string
           notes?: string | null
+          rejected_at?: string | null
+          rejected_by?: string | null
+          rejection_reason?: string | null
+          staff_fa_approved_at?: string | null
+          staff_fa_approved_by?: string | null
+          staff_ga_approved_at?: string | null
+          staff_ga_approved_by?: string | null
           status?: string
           submitted_at?: string | null
+          supervisor_approved_at?: string | null
+          supervisor_approved_by?: string | null
           total_amount?: number | null
           trip_id?: string | null
           updated_at?: string
         }
         Update: {
+          bod_approved_at?: string | null
+          bod_approved_by?: string | null
           claim_number?: string | null
           created_at?: string
+          current_approval_step?: string | null
           employee_id?: string | null
+          hr_manager_approved_at?: string | null
+          hr_manager_approved_by?: string | null
           id?: string
           notes?: string | null
+          rejected_at?: string | null
+          rejected_by?: string | null
+          rejection_reason?: string | null
+          staff_fa_approved_at?: string | null
+          staff_fa_approved_by?: string | null
+          staff_ga_approved_at?: string | null
+          staff_ga_approved_by?: string | null
           status?: string
           submitted_at?: string | null
+          supervisor_approved_at?: string | null
+          supervisor_approved_by?: string | null
           total_amount?: number | null
           trip_id?: string | null
           updated_at?: string
@@ -399,41 +516,6 @@ export type Database = {
             columns: ["trip_id"]
             isOneToOne: false
             referencedRelation: "business_trips"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      claim_expenses: {
-        Row: {
-          id: string
-          expense_date: string
-          expense_type: string
-          description: string | null
-          expense_amount: number | null
-          trip_claim_id: string | null
-        }
-        Insert: {
-          id?: string
-          expense_date?: string
-          expense_type?: string
-          description?: string | null
-          expense_amount?: number | null
-          trip_claim_id?: string | null
-        }
-        Update: {
-          id?: string
-          expense_date?: string
-          expense_type?: string
-          description?: string | null
-          expense_amount?: number | null
-          trip_claim_id?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "claims_expenses_trip_claim_id_fkey"
-            columns: ["trip_claim_id"]
-            isOneToOne: false
-            referencedRelation: "trip_claims"
             referencedColumns: ["id"]
           },
         ]
