@@ -5,11 +5,11 @@ import ClaimDinasDetailModal from '@/components/ClaimDinasDetailModal';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useTripClaims } from '@/hooks/useTripClaims';
 import MainLayout from '@/components/MainLayout';
 import UserAvatarCell from '@/components/AvatarCell';
+import StatusWithApproval from '@/components/StatusWithApproval';
 
 const ClaimDinas = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -25,18 +25,6 @@ const ClaimDinas = () => {
     setDetailModalOpen(true);
   };
 
-  const getStatusBadge = (status: string) => {
-    const statusConfig = {
-      'Draft': { class: 'bg-gray-100 text-gray-800', label: 'Draft' },
-      'Submitted': { class: 'bg-yellow-100 text-yellow-800', label: 'Submitted' },
-      'Approved': { class: 'bg-green-100 text-green-800', label: 'Approved' },
-      'Rejected': { class: 'bg-red-100 text-red-800', label: 'Rejected' },
-      'Paid': { class: 'bg-blue-100 text-blue-800', label: 'Paid' }
-    };
-    
-    const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.Draft;
-    return <Badge className={config.class}>{config.label}</Badge>;
-  };
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('id-ID', {
@@ -260,7 +248,23 @@ const ClaimDinas = () => {
                           </div>
                         </TableCell>
                         <TableCell>
-                          {getStatusBadge(claim.status)}
+                          <StatusWithApproval 
+                            status={claim.status} 
+                            approvalData={{
+                              supervisor_approved_at: claim.supervisor_approved_at,
+                              supervisor_approved_by: claim.supervisor_approved_by,
+                              staff_ga_approved_at: claim.staff_ga_approved_at,
+                              staff_ga_approved_by: claim.staff_ga_approved_by,
+                              hr_manager_approved_at: claim.hr_manager_approved_at,
+                              hr_manager_approved_by: claim.hr_manager_approved_by,
+                              bod_approved_at: claim.bod_approved_at,
+                              bod_approved_by: claim.bod_approved_by,
+                              staff_fa_approved_at: claim.staff_fa_approved_at,
+                              staff_fa_approved_by: claim.staff_fa_approved_by,
+                              rejected_at: claim.rejected_at,
+                              rejected_by: claim.rejected_by,
+                            }}
+                          />
                         </TableCell>
                         <TableCell>
                           <div className="flex items-center gap-2">
