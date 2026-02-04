@@ -10,10 +10,10 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useBusinessTrips, useUpdateBusinessTrip } from '@/hooks/useBusinessTrips';
 import { useToast } from '@/hooks/use-toast';
 import MainLayout from '@/components/MainLayout';
+import UserAvatarCell from '@/components/AvatarCell';
 
 const ApprovalPerjalananDinas = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -281,7 +281,7 @@ const ApprovalPerjalananDinas = () => {
                     <TableHead>Periode</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead>Cash Advance</TableHead>
-                    <TableHead>AKSI</TableHead>
+                    <TableHead>Aksi</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -292,21 +292,17 @@ const ApprovalPerjalananDinas = () => {
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center space-x-3">
-                          <Avatar className="w-8 h-8">
-                            <AvatarImage src={item.employees?.photo_url || ''} />
-                            <AvatarFallback className="bg-blue-100 text-blue-600 text-xs">
-                              {item.employees?.name?.split(' ').map(n => n[0]).join('') || 'N/A'}
-                            </AvatarFallback>
-                          </Avatar>
-                          <div>
-                            <p className="font-medium text-gray-900 dark:text-white">{item.employees?.name || 'N/A'}</p>
-                            <p className="text-sm text-gray-500 dark:text-gray-400">
-                              {item.employees?.employee_id || 'N/A'} 
-                              <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs ml-2">
-                                {item.employees?.grade || 'N/A'}
-                              </span>
-                            </p>
-                          </div>
+                          <UserAvatarCell employeeUsed={item.employees} classname="w-8 h-8">
+                            <div>
+                              <p className="font-medium text-gray-900 dark:text-white">{item.employees?.name || 'N/A'}</p>
+                              <p className="text-sm text-gray-500 dark:text-gray-400">
+                                {item.employees?.employee_id || 'N/A'} 
+                                <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs ml-2">
+                                  {item.employees?.grade || 'N/A'}
+                                </span>
+                              </p>
+                            </div>
+                          </UserAvatarCell>
                         </div>
                       </TableCell>
                       <TableCell>

@@ -2,10 +2,10 @@ import React from 'react';
 import { X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { ExpenseDetail } from './ExpenseDetail';
-import { useTripClaimExpenses, useUpdateTripClaimExpenses } from '@/hooks/useTripClaims';
+import { useUpdateTripClaim, useTripClaimExpenses, useUpdateTripClaimExpenses, useDeleteTripClaimExpenses } from '@/hooks/useTripClaims';
+import UserAvatarCell from './AvatarCell';
 
 interface ClaimDinasDetailModalProps {
   isOpen: boolean;
@@ -19,9 +19,15 @@ const ClaimDinasDetailModal: React.FC<ClaimDinasDetailModalProps> = ({ isOpen, o
     { id: '', date: undefined, type: '', description: '', amount: 0 }
   ]);
   const { data: claimExpenses, isLoading, error } = useTripClaimExpenses(claimData.id);
+  const employee = claimData.employees || {};
+  const trip = claimData.business_trips || {};
 
+  const cashAdvance = trip.cash_advance || 0;
+  const [totalAmount, setTotalAmount] = React.useState<number>(claimData.total_amount || 0);
+  const [remaining, setRemaining] = React.useState<number>(cashAdvance - (claimData.total_amount ?? 0));
+  
   React.useEffect(() => {
-    if (claimExpenses) {
+    if (claimExpenses) { // Dari database
       setExpenses(
         claimExpenses.map((expense) => ({
           id: expense.id,
@@ -32,13 +38,10 @@ const ClaimDinasDetailModal: React.FC<ClaimDinasDetailModalProps> = ({ isOpen, o
         }))
       );
     }
-  }, [claimExpenses]);
-
+  }, [claimExpenses]); // Dari database
   const [editExpenses, setEditExpenses] = React.useState(true);
   console.log('Claim Expenses Data in Modal:', claimExpenses);
 
-  const employee = claimData.employees || {};
-  const trip = claimData.business_trips || {};
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('id-ID', {
       style: 'currency',
@@ -47,7 +50,9 @@ const ClaimDinasDetailModal: React.FC<ClaimDinasDetailModalProps> = ({ isOpen, o
     }).format(amount);
   };
 
+  const updateTripClaim = useUpdateTripClaim();
   const updateTripClaimExpenses = useUpdateTripClaimExpenses();
+  const deleteTripClaimExpenses = useDeleteTripClaimExpenses();
 
   React.useEffect(() => {
     if (editExpenses) {
@@ -75,6 +80,15 @@ const ClaimDinasDetailModal: React.FC<ClaimDinasDetailModalProps> = ({ isOpen, o
     }
   }, [editExpenses]);
 
+  React.useEffect(() => {
+    console.log("Expenses changed:", expenses);
+    const newTotal = expenses.reduce((sum, exp) => sum + (exp.amount || 0), 0);
+    setTotalAmount(newTotal)
+    setRemaining(cashAdvance - newTotal);
+
+    
+  }, [expenses]);
+
   const formatDate = (dateString: string) => {
     if (!dateString) return 'N/A';
     return new Date(dateString).toLocaleDateString('id-ID', {
@@ -101,12 +115,12 @@ const ClaimDinasDetailModal: React.FC<ClaimDinasDetailModalProps> = ({ isOpen, o
     const newExpenses = [...expenses];
     newExpenses[index] = { ...newExpenses[index], [field]: value };
     setExpenses(newExpenses);
-    console.log("Updated expenses:", expenses);
+    console.log("Updated expenses:", newExpenses);
   };
 
-  const cashAdvance = trip.cash_advance || 0;
-  const totalAmount = claimData.total_amount || 0;
-  const remaining = cashAdvance - totalAmount;
+  const removeExpense = (index: number) => {
+    setExpenses(expenses.filter((_, i) => i !== index));
+  };
 
   if (isLoading) {
     return <div>Loading...</div>; // Display a loading state
@@ -144,21 +158,17 @@ const ClaimDinasDetailModal: React.FC<ClaimDinasDetailModalProps> = ({ isOpen, o
               <CardContent className="p-4">
                 <h3 className="font-medium text-gray-900 dark:text-white mb-4">Informasi Karyawan</h3>
                 <div className="flex items-center space-x-4 mb-4">
-                  <Avatar className="w-16 h-16">
-                    <AvatarImage src={employee.photo_url || ''} />
-                    <AvatarFallback className="bg-blue-500 text-white">
-                      {employee.name ? employee.name.split(' ').map((n: string) => n[0]).join('').substring(0, 2) : 'N/A'}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <h4 className="font-medium text-gray-900 dark:text-white">{employee.name || 'N/A'}</h4>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">
-                      ID: {employee.employee_id || 'N/A'} 
-                      <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs ml-2">
-                        {employee.grade || 'N/A'}
-                      </span>
-                    </p>
-                  </div>
+                  <UserAvatarCell employeeUsed={employee} classname="w-16 h-16">
+                    <div>
+                      <h4 className="font-medium text-gray-900 dark:text-white">{employee.name || 'N/A'}</h4>
+                      <p className="text-sm text-gray-500 dark:text-gray-400">
+                        ID: {employee.employee_id || 'N/A'} 
+                        <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs ml-2">
+                          {employee.grade || 'N/A'}
+                        </span>
+                      </p>
+                    </div>
+                  </UserAvatarCell>
                 </div>
                 
                 <div className="grid grid-cols-2 gap-4 text-sm">
@@ -256,7 +266,7 @@ const ClaimDinasDetailModal: React.FC<ClaimDinasDetailModalProps> = ({ isOpen, o
                 </div>
                 <div className="space-y-4">
                   {expenses.map((exp: any, index: number) => (
-                    <ExpenseDetail expense={exp} index={index} disabled={editExpenses} onlyOne={true} updateExp={updateExpense} />
+                    <ExpenseDetail expense={exp} index={index} disabled={editExpenses} onlyOne={expenses.length <= 1} updateExp={updateExpense} deleteExp={removeExpense} />
                   ))}
                 </div>
               </div>

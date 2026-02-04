@@ -7,7 +7,6 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
@@ -17,6 +16,7 @@ import { useCreateTripClaim, useCreateTripClaimExpense } from '@/hooks/useTripCl
 import { useUpdateBusinessTrip } from '@/hooks/useBusinessTrips';
 import { ExpenseDetail } from './ExpenseDetail';
 import { create } from 'domain';
+import UserAvatarCell from './AvatarCell';
 
 interface ClaimDinasFormProps {
   isOpen: boolean;
@@ -225,18 +225,14 @@ const ClaimDinasForm: React.FC<ClaimDinasFormProps> = ({ isOpen, onClose, tripDa
                 <CardContent className="p-4">
                   <h3 className="font-medium text-gray-900 mb-4">Informasi Karyawan</h3>
                   <div className="flex items-center space-x-4 mb-4">
-                    <Avatar className="w-16 h-16">
-                      <AvatarImage src={employee.photo_url || ''} />
-                      <AvatarFallback>
-                        {employee.name ? employee.name.split(' ').map((n: string) => n[0]).join('').substring(0, 2) : 'N/A'}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div>
-                      <h4 className="font-medium text-gray-900">{employee.name || 'N/A'}</h4>
-                      <p className="text-sm text-gray-500">
-                        ID: {employee.employee_id || 'N/A'} 
-                      </p>
-                    </div>
+                    <UserAvatarCell employeeUsed={employee} classname="w-16 h-16">
+                      <div>
+                        <h4 className="font-medium text-gray-900">{employee.name || 'N/A'}</h4>
+                        <p className="text-sm text-gray-500">
+                          ID: {employee.employee_id || 'N/A'} 
+                        </p>
+                      </div>
+                    </UserAvatarCell>
                   </div>
                   
                   <div className="grid grid-cols-2 gap-4 text-sm">

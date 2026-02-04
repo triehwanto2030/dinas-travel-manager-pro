@@ -234,3 +234,28 @@ export const useUpdateTripClaimExpenses = () => {
     },
   });
 };
+
+export const useDeleteTripClaimExpenses = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (id: string) => {
+      console.log('Deleting expenses:', id);
+      
+      const { error } = await supabase
+        .from('claim_expenses')
+        .delete()
+        .eq('id', id);
+
+      if (error) {
+        console.error('Error deleting expenses:', error);
+        throw new Error(error.message);
+      }
+
+      console.log('Expenses deleted successfully');
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['claim_expenses'] });
+    },
+  });
+};

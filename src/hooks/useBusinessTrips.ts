@@ -74,6 +74,7 @@ export const useCreateBusinessTrip = () => {
         accommodation: tripData.accommodation,
         transportation: tripData.transportation,
         cash_advance: tripData.cash_advance,
+        notes: tripData.notes || null,
         status: 'Submitted'
       };
 

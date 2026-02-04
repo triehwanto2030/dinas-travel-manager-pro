@@ -12,13 +12,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useEmployees } from '@/hooks/useEmployees';
 import { useLineApprovals } from '@/hooks/useLineApprovals';
 import { useCompanies } from '@/hooks/useCompanies';
 import { useCreateBusinessTrip, useUpdateBusinessTrip, BusinessTripWithRelations } from '@/hooks/useBusinessTrips';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
+import UserAvatarCell from './AvatarCell';
 
 const formSchema = z.object({
   employee_id: z.string().min(1, 'Pilih karyawan'),
@@ -123,6 +123,7 @@ const PerjalananDinasForm = ({ isOpen, onClose, mode, data }: PerjalananDinasFor
           supervisor: selectedSupervisor,
           staff_ga: costCenterApproval.staff_ga || null,
           hr_manager: costCenterApproval.hr_manager || null,
+          spv_ga: costCenterApproval.spv_ga || null,
           bod: costCenterApproval.bod || null,
           staff_fa: costCenterApproval.staff_fa || null
         };
@@ -316,19 +317,15 @@ const PerjalananDinasForm = ({ isOpen, onClose, mode, data }: PerjalananDinasFor
                   <div className="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
                     <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Detail Karyawan</h4>
                     <div className="flex items-start gap-4">
-                      <Avatar className="w-16 h-16">
-                        <AvatarImage src={selectedEmployee.photo_url} alt={selectedEmployee.name} />
-                        <AvatarFallback className="text-lg">
-                          {selectedEmployee.name.split(' ').map((n: string) => n[0]).join('').substring(0, 2)}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div className="space-y-1">
-                        <p className="font-medium text-gray-900 dark:text-white">{selectedEmployee.name}</p>
-                        <p className="text-sm text-gray-600 dark:text-gray-400">{selectedEmployee.employee_id}</p>
-                        <p className="text-sm text-gray-600 dark:text-gray-400">{selectedEmployee.grade}</p>
-                        <p className="text-sm text-gray-600 dark:text-gray-400">{selectedEmployee.position}</p>
-                        <p className="text-sm text-gray-600 dark:text-gray-400">{selectedEmployee.department}</p>
-                      </div>
+                      <UserAvatarCell employeeUsed={selectedEmployee} classname="w-16 h-16">
+                        <div className="space-y-1">
+                          <p className="font-medium text-gray-900 dark:text-white">{selectedEmployee.name}</p>
+                          <p className="text-sm text-gray-600 dark:text-gray-400">{selectedEmployee.employee_id}</p>
+                          <p className="text-sm text-gray-600 dark:text-gray-400">{selectedEmployee.grade}</p>
+                          <p className="text-sm text-gray-600 dark:text-gray-400">{selectedEmployee.position}</p>
+                          <p className="text-sm text-gray-600 dark:text-gray-400">{selectedEmployee.department}</p>
+                        </div>
+                      </UserAvatarCell>
                     </div>
                   </div>
                 )}
@@ -363,19 +360,15 @@ const PerjalananDinasForm = ({ isOpen, onClose, mode, data }: PerjalananDinasFor
                   <div className="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
                     <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Detail Atasan</h4>
                     <div className="flex items-start gap-4">
-                      <Avatar className="w-16 h-16">
-                        <AvatarImage src={selectedSupervisor.photo_url} alt={selectedSupervisor.name} />
-                        <AvatarFallback className="text-lg">
-                          {selectedSupervisor.name.split(' ').map((n: string) => n[0]).join('').substring(0, 2)}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div className="space-y-1">
-                        <p className="font-medium text-gray-900 dark:text-white">{selectedSupervisor.name}</p>
-                        <p className="text-sm text-gray-600 dark:text-gray-400">{selectedSupervisor.employee_id}</p>
-                        <p className="text-sm text-gray-600 dark:text-gray-400">{selectedSupervisor.grade}</p>
-                        <p className="text-sm text-gray-600 dark:text-gray-400">{selectedSupervisor.position}</p>
-                        <p className="text-sm text-gray-600 dark:text-gray-400">{selectedSupervisor.department}</p>
-                      </div>
+                      <UserAvatarCell employeeUsed={selectedSupervisor} classname="w-16 h-16">
+                        <div className="space-y-1">
+                          <p className="font-medium text-gray-900 dark:text-white">{selectedSupervisor.name}</p>
+                          <p className="text-sm text-gray-600 dark:text-gray-400">{selectedSupervisor.employee_id}</p>
+                          <p className="text-sm text-gray-600 dark:text-gray-400">{selectedSupervisor.grade}</p>
+                          <p className="text-sm text-gray-600 dark:text-gray-400">{selectedSupervisor.position}</p>
+                          <p className="text-sm text-gray-600 dark:text-gray-400">{selectedSupervisor.department}</p>
+                        </div>
+                      </UserAvatarCell>
                     </div>
                   </div>
                 )}
@@ -675,21 +668,17 @@ const PerjalananDinasForm = ({ isOpen, onClose, mode, data }: PerjalananDinasFor
             {approvalHierarchy && (
               <div className="space-y-4 border-t pt-4">
                 <h3 className="text-lg font-medium text-gray-900 dark:text-white">Line Approval</h3>
-                <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
                   {approvalHierarchy.supervisor && (
                     <div className="p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
                       <p className="text-sm text-gray-600 dark:text-gray-400">Atasan</p>
                       <div className="flex items-center gap-2 mt-2">
-                        <Avatar className="w-8 h-8">
-                          <AvatarImage src={approvalHierarchy.supervisor.photo_url} />
-                          <AvatarFallback className="text-xs">
-                            {approvalHierarchy.supervisor.name.split(' ').map((n: string) => n[0]).join('').substring(0, 2)}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div>
-                          <p className="font-medium">{approvalHierarchy.supervisor.name}</p>
-                          <p className="text-sm text-gray-500">{approvalHierarchy.supervisor.position}</p>
-                        </div>
+                        <UserAvatarCell employeeUsed={approvalHierarchy.supervisor} classname="w-8 h-8">
+                          <div>
+                            <p className="font-medium">{approvalHierarchy.supervisor.name}</p>
+                            <p className="text-sm text-gray-500">{approvalHierarchy.supervisor.position}</p>
+                          </div>
+                        </UserAvatarCell>
                       </div>
                     </div>
                   )}
@@ -697,16 +686,12 @@ const PerjalananDinasForm = ({ isOpen, onClose, mode, data }: PerjalananDinasFor
                     <div className="p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
                       <p className="text-sm text-gray-600 dark:text-gray-400">Staff GA</p>
                       <div className="flex items-center gap-2 mt-2">
-                        <Avatar className="w-8 h-8">
-                          <AvatarImage src={approvalHierarchy.staff_ga.photo_url} />
-                          <AvatarFallback className="text-xs">
-                            {approvalHierarchy.staff_ga.name.split(' ').map((n: string) => n[0]).join('').substring(0, 2)}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div>
-                          <p className="font-medium">{approvalHierarchy.staff_ga.name}</p>
-                          <p className="text-sm text-gray-500">{approvalHierarchy.staff_ga.position}</p>
-                        </div>
+                        <UserAvatarCell employeeUsed={approvalHierarchy.staff_ga} classname="w-8 h-8">
+                          <div>
+                            <p className="font-medium">{approvalHierarchy.staff_ga.name}</p>
+                            <p className="text-sm text-gray-500">{approvalHierarchy.staff_ga.position}</p>
+                          </div>
+                        </UserAvatarCell>
                       </div>
                     </div>
                   )}
@@ -714,16 +699,25 @@ const PerjalananDinasForm = ({ isOpen, onClose, mode, data }: PerjalananDinasFor
                     <div className="p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
                       <p className="text-sm text-gray-600 dark:text-gray-400">HR Manager</p>
                       <div className="flex items-center gap-2 mt-2">
-                        <Avatar className="w-8 h-8">
-                          <AvatarImage src={approvalHierarchy.hr_manager.photo_url} />
-                          <AvatarFallback className="text-xs">
-                            {approvalHierarchy.hr_manager.name.split(' ').map((n: string) => n[0]).join('').substring(0, 2)}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div>
-                          <p className="font-medium">{approvalHierarchy.hr_manager.name}</p>
-                          <p className="text-sm text-gray-500">{approvalHierarchy.hr_manager.position}</p>
-                        </div>
+                        <UserAvatarCell employeeUsed={approvalHierarchy.hr_manager} classname="w-8 h-8">
+                          <div>
+                            <p className="font-medium">{approvalHierarchy.hr_manager.name}</p>
+                            <p className="text-sm text-gray-500">{approvalHierarchy.hr_manager.position}</p>
+                          </div>
+                        </UserAvatarCell>
+                      </div>
+                    </div>
+                  )}
+                  {approvalHierarchy.spv_ga && (
+                    <div className="p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                      <p className="text-sm text-gray-600 dark:text-gray-400">SPV GA</p>
+                      <div className="flex items-center gap-2 mt-2">
+                        <UserAvatarCell employeeUsed={approvalHierarchy.spv_ga} classname="w-8 h-8">
+                          <div>
+                            <p className="font-medium">{approvalHierarchy.spv_ga.name}</p>
+                            <p className="text-sm text-gray-500">{approvalHierarchy.spv_ga.position}</p>
+                          </div>
+                        </UserAvatarCell>
                       </div>
                     </div>
                   )}
@@ -731,16 +725,12 @@ const PerjalananDinasForm = ({ isOpen, onClose, mode, data }: PerjalananDinasFor
                     <div className="p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
                       <p className="text-sm text-gray-600 dark:text-gray-400">BOD</p>
                       <div className="flex items-center gap-2 mt-2">
-                        <Avatar className="w-8 h-8">
-                          <AvatarImage src={approvalHierarchy.bod.photo_url} />
-                          <AvatarFallback className="text-xs">
-                            {approvalHierarchy.bod.name.split(' ').map((n: string) => n[0]).join('').substring(0, 2)}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div>
-                          <p className="font-medium">{approvalHierarchy.bod.name}</p>
-                          <p className="text-sm text-gray-500">{approvalHierarchy.bod.position}</p>
-                        </div>
+                        <UserAvatarCell employeeUsed={approvalHierarchy.bod} classname="w-8 h-8">
+                          <div>
+                            <p className="font-medium">{approvalHierarchy.bod.name}</p>
+                            <p className="text-sm text-gray-500">{approvalHierarchy.bod.position}</p>
+                          </div>
+                        </UserAvatarCell>
                       </div>
                     </div>
                   )}
@@ -748,16 +738,12 @@ const PerjalananDinasForm = ({ isOpen, onClose, mode, data }: PerjalananDinasFor
                     <div className="p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
                       <p className="text-sm text-gray-600 dark:text-gray-400">Staff FA</p>
                       <div className="flex items-center gap-2 mt-2">
-                        <Avatar className="w-8 h-8">
-                          <AvatarImage src={approvalHierarchy.staff_fa.photo_url} />
-                          <AvatarFallback className="text-xs">
-                            {approvalHierarchy.staff_fa.name.split(' ').map((n: string) => n[0]).join('').substring(0, 2)}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div>
-                          <p className="font-medium">{approvalHierarchy.staff_fa.name}</p>
-                          <p className="text-sm text-gray-500">{approvalHierarchy.staff_fa.position}</p>
-                        </div>
+                        <UserAvatarCell employeeUsed={approvalHierarchy.staff_fa} classname="w-8 h-8">
+                          <div>
+                            <p className="font-medium">{approvalHierarchy.staff_fa.name}</p>
+                            <p className="text-sm text-gray-500">{approvalHierarchy.staff_fa.position}</p>
+                          </div>
+                        </UserAvatarCell>
                       </div>
                     </div>
                   )}
@@ -768,7 +754,7 @@ const PerjalananDinasForm = ({ isOpen, onClose, mode, data }: PerjalananDinasFor
             {/* Form Actions */}
             <div className="flex justify-end gap-3 pt-6 border-t">
               <Button type="button" variant="outline" onClick={onClose}>
-                Batal
+                {mode !== "view" ? "Batal" : "Tutup"}
               </Button>
               {mode !== 'view' && (
                 <Button 

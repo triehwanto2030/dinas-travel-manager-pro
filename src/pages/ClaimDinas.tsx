@@ -1,18 +1,15 @@
 
 import React, { useState } from 'react';
 import { Search, Plus, Eye, Edit, Trash2, Download, Upload, Filter, TrendingDown, TrendingUp, DollarSign } from 'lucide-react';
-import Header from '@/components/Header';
-import Sidebar from '@/components/Sidebar';
-import Footer from '@/components/Footer';
 import ClaimDinasDetailModal from '@/components/ClaimDinasDetailModal';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useTripClaims } from '@/hooks/useTripClaims';
 import MainLayout from '@/components/MainLayout';
+import UserAvatarCell from '@/components/AvatarCell';
 
 const ClaimDinas = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -214,7 +211,7 @@ const ClaimDinas = () => {
                     <TableHead>Tanggal Claim</TableHead>
                     <TableHead>Nominal Bayar/Pengembalian</TableHead>
                     <TableHead>Status</TableHead>
-                    <TableHead>AKSI</TableHead>
+                    <TableHead>Aksi</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -235,16 +232,12 @@ const ClaimDinas = () => {
                         </TableCell>
                         <TableCell>
                           <div className="flex items-center gap-3">
-                            <Avatar className="w-10 h-10">
-                              <AvatarImage src={claim.employees.photo_url || undefined} />
-                              <AvatarFallback className="bg-blue-500 text-white text-sm">
-                                {claim.employees.name.split(' ').map(n => n[0]).join('').substring(0, 2)}
-                              </AvatarFallback>
-                            </Avatar>
-                            <div>
-                              <p className="font-medium text-gray-900 dark:text-white">{claim.employees.name}</p>
-                              <p className="text-sm text-gray-500 dark:text-gray-400">ID: {claim.employees.employee_id}</p>
-                            </div>
+                            <UserAvatarCell employeeUsed={claim.employees} classname="w-10 h-10">
+                              <div>
+                                <p className="font-medium text-gray-900 dark:text-white">{claim.employees.name}</p>
+                                <p className="text-sm text-gray-500 dark:text-gray-400">ID: {claim.employees.employee_id}</p>
+                              </div>
+                            </UserAvatarCell>
                           </div>
                         </TableCell>
                         <TableCell>

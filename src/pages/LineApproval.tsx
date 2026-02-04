@@ -5,13 +5,14 @@ import Header from '@/components/Header';
 import Sidebar from '@/components/Sidebar';
 import Footer from '@/components/Footer';
 import LineApprovalForm from '@/components/LineApprovalForm';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useLineApprovals, useCreateLineApproval, useUpdateLineApproval, useDeleteLineApproval } from '@/hooks/useLineApprovals';
 import { useToast } from '@/hooks/use-toast';
 import Swal from 'sweetalert2';
+import UserAvatarCell from '@/components/AvatarCell';
+import MainLayout from '@/components/MainLayout';
 
 const LineApproval = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -114,196 +115,165 @@ const LineApproval = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors w-full">
-      <Header />
-      
-      <div className="flex w-full">
-        <Sidebar isOpen={sidebarOpen} onToggle={() => setSidebarOpen(!sidebarOpen)} />
-        
-        <div className="flex-1 w-full">
-          <main className="p-6 w-full">
-            {/* Header Section */}
-            <div className="mb-8">
-              <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
-                <div>
-                  <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Line Approval Perusahaan</h1>
-                  <p className="text-gray-600 dark:text-gray-400">Kelola alur persetujuan berdasarkan perusahaan</p>
-                </div>
-                <div className="flex gap-3 mt-4 md:mt-0">
-                  <Button variant="outline" className="flex items-center gap-2">
-                    <Upload className="w-4 h-4" />
-                    Import Excel
-                  </Button>
-                  <Button variant="outline" className="flex items-center gap-2">
-                    <Download className="w-4 h-4" />
-                    Export Excel
-                  </Button>
-                  <Button 
-                    className="flex items-center gap-2 bg-purple-600 hover:bg-purple-700"
-                    onClick={() => openForm('add')}
-                  >
-                    <Plus className="w-4 h-4" />
-                    Tambah Line Approval Perusahaan
-                  </Button>
-                </div>
+      <MainLayout sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen}>
+        <div className="mb-8">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Line Approval Perusahaan</h1>
+              <p className="text-gray-600 dark:text-gray-400">Kelola alur persetujuan berdasarkan perusahaan</p>
+            </div>
+            <div className="flex gap-3 mt-4 md:mt-0">
+              <Button variant="outline" className="flex items-center gap-2">
+                <Upload className="w-4 h-4" />
+                Import Excel
+              </Button>
+              <Button variant="outline" className="flex items-center gap-2">
+                <Download className="w-4 h-4" />
+                Export Excel
+              </Button>
+              <Button 
+                className="flex items-center gap-2 bg-purple-600 hover:bg-purple-700"
+                onClick={() => openForm('add')}
+              >
+                <Plus className="w-4 h-4" />
+                Tambah Line Approval Perusahaan
+              </Button>
+            </div>
+          </div>
+        </div>
+
+        {/* Table Section */}
+        <Card className="bg-white dark:bg-gray-800">
+          <CardHeader>
+            <CardTitle className="text-xl font-semibold text-gray-900 dark:text-white">
+              Daftar Line Approval Perusahaan
+            </CardTitle>
+            
+            {/* Search */}
+            <div className="flex flex-col md:flex-row gap-4 mt-4">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                <input
+                  type="text"
+                  placeholder="Cari perusahaan..."
+                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
               </div>
             </div>
-
-            {/* Table Section */}
-            <Card className="bg-white dark:bg-gray-800">
-              <CardHeader>
-                <CardTitle className="text-xl font-semibold text-gray-900 dark:text-white">
-                  Daftar Line Approval Perusahaan
-                </CardTitle>
-                
-                {/* Search */}
-                <div className="flex flex-col md:flex-row gap-4 mt-4">
-                  <div className="relative flex-1">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                    <input
-                      type="text"
-                      placeholder="Cari perusahaan..."
-                      className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                    />
-                  </div>
-                </div>
-              </CardHeader>
-              
-              <CardContent>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Nama Perusahaan</TableHead>
-                      <TableHead>Staff GA</TableHead>
-                      <TableHead>SPV GA</TableHead>
-                      <TableHead>HR Manager</TableHead>
-                      <TableHead>BOD</TableHead>
-                      <TableHead>Staff FA</TableHead>
-                      <TableHead>Aksi</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {filteredData.map((item) => (
-                      <TableRow key={item.id}>
-                        <TableCell>
-                          <p className="font-medium text-gray-900 dark:text-white">{item.companies.name}</p>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-3">
-                            <Avatar className="w-12 h-12">
-                              <AvatarImage src={item.staff_ga?.photo_url || undefined} />
-                              <AvatarFallback className="bg-blue-500 text-white font-medium">
-                                {item.staff_ga?.name.split(' ').map(n => n[0]).join('').toUpperCase()}
-                              </AvatarFallback>
-                            </Avatar>
-                            <div>
-                              <p className="font-medium text-gray-900 dark:text-white">{item.staff_ga?.name}</p>
-                              <p className="font-medium text-gray-500 dark:text-white">{item.staff_ga?.employee_id}</p>
-                              <p className="text-sm text-gray-500 dark:text-gray-400">{item.staff_ga?.position}</p>
-                            </div>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-3">
-                            <Avatar className="w-12 h-12">
-                              <AvatarImage src={item.spv_ga?.photo_url || undefined} />
-                              <AvatarFallback className="bg-blue-500 text-white font-medium">
-                                {item.spv_ga?.name.split(' ').map(n => n[0]).join('').toUpperCase()}
-                              </AvatarFallback>
-                            </Avatar>
-                            <div>
-                              <p className="font-medium text-gray-900 dark:text-white">{item.spv_ga?.name}</p>
-                              <p className="font-medium text-gray-500 dark:text-white">{item.spv_ga?.employee_id}</p>
-                              <p className="text-sm text-gray-500 dark:text-gray-400">{item.spv_ga?.position}</p>
-                            </div>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-3">
-                            <Avatar className="w-12 h-12">
-                              <AvatarImage src={item.hr_manager?.photo_url || undefined} />
-                              <AvatarFallback className="bg-blue-500 text-white font-medium">
-                                {item.hr_manager?.name.split(' ').map(n => n[0]).join('').toUpperCase()}
-                              </AvatarFallback>
-                            </Avatar>
-                            <div>
-                              <p className="font-medium text-gray-900 dark:text-white">{item.hr_manager?.name}</p>
-                              <p className="font-medium text-gray-500 dark:text-white">{item.hr_manager?.employee_id}</p>
-                              <p className="text-sm text-gray-500 dark:text-gray-400">{item.hr_manager?.position}</p>
-                            </div>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-3">
-                            <Avatar className="w-12 h-12">
-                              <AvatarImage src={item.bod?.photo_url || undefined} />
-                              <AvatarFallback className="bg-blue-500 text-white font-medium">
-                                {item.bod?.name.split(' ').map(n => n[0]).join('').toUpperCase()}
-                              </AvatarFallback>
-                            </Avatar>
-                            <div>
-                              <p className="font-medium text-gray-900 dark:text-white">{item.bod?.name}</p>
-                              <p className="font-medium text-gray-500 dark:text-white">{item.bod?.employee_id}</p>
-                              <p className="text-sm text-gray-500 dark:text-gray-400">{item.bod?.position}</p>
-                            </div>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-3">
-                            <Avatar className="w-12 h-12">
-                              <AvatarImage src={item.staff_fa?.photo_url || undefined} />
-                              <AvatarFallback className="bg-blue-500 text-white font-medium">
-                                {item.staff_fa?.name.split(' ').map(n => n[0]).join('').toUpperCase()}
-                              </AvatarFallback>
-                            </Avatar>
-                            <div>
-                              <p className="font-medium text-gray-900 dark:text-white">{item.staff_fa?.name}</p>
-                              <p className="font-medium text-gray-500 dark:text-white">{item.staff_fa?.employee_id}</p>
-                              <p className="text-sm text-gray-500 dark:text-gray-400">{item.staff_fa?.position}</p>
-                            </div>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-2">
-                            <Button 
-                              variant="ghost" 
-                              size="sm" 
-                              className="p-2"
-                              onClick={() => openForm('view', item)}
-                            >
-                              <Eye className="w-4 h-4" />
-                            </Button>
-                            <Button 
-                              variant="ghost" 
-                              size="sm" 
-                              className="p-2"
-                              onClick={() => openForm('edit', item)}
-                            >
-                              <Edit className="w-4 h-4" />
-                            </Button>
-                            <Button 
-                              variant="ghost" 
-                              size="sm" 
-                              className="p-2 text-red-600 hover:text-red-800"
-                              onClick={() => handleDelete(item)}
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </Button>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </CardContent>
-            </Card>
-          </main>
+          </CardHeader>
           
-          <Footer />
-        </div>
-      </div>
-
+          <CardContent>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Nama Perusahaan</TableHead>
+                  <TableHead>Staff GA</TableHead>
+                  <TableHead>HR Manager</TableHead>
+                  <TableHead>SPV GA</TableHead>
+                  <TableHead>BOD</TableHead>
+                  <TableHead>Staff FA</TableHead>
+                  <TableHead>Aksi</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredData.map((item) => (
+                  <TableRow key={item.id}>
+                    <TableCell>
+                      <p className="font-medium text-gray-900 dark:text-white">{item.companies.name}</p>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-3">
+                        <UserAvatarCell employeeUsed={item.staff_ga} classname="w-12 h-12">
+                          <div>
+                            <p className="font-medium text-gray-900 dark:text-white">{item.staff_ga?.name}</p>
+                            <p className="font-medium text-gray-500 dark:text-white">{item.staff_ga?.employee_id}</p>
+                            <p className="text-sm text-gray-500 dark:text-gray-400">{item.staff_ga?.position}</p>
+                          </div>
+                        </UserAvatarCell>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-3">
+                        <UserAvatarCell employeeUsed={item.spv_ga} classname="w-12 h-12">
+                          <div>
+                            <p className="font-medium text-gray-900 dark:text-white">{item.spv_ga?.name}</p>
+                            <p className="font-medium text-gray-500 dark:text-white">{item.spv_ga?.employee_id}</p>
+                            <p className="text-sm text-gray-500 dark:text-gray-400">{item.spv_ga?.position}</p>
+                          </div>
+                        </UserAvatarCell>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-3">
+                        <UserAvatarCell employeeUsed={item.hr_manager} classname="w-12 h-12">
+                          <div>
+                            <p className="font-medium text-gray-900 dark:text-white">{item.hr_manager?.name}</p>
+                            <p className="font-medium text-gray-500 dark:text-white">{item.hr_manager?.employee_id}</p>
+                            <p className="text-sm text-gray-500 dark:text-gray-400">{item.hr_manager?.position}</p>
+                          </div>
+                        </UserAvatarCell>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-3">
+                        <UserAvatarCell employeeUsed={item.bod} classname="w-12 h-12">
+                          <div>
+                            <p className="font-medium text-gray-900 dark:text-white">{item.bod?.name}</p>
+                            <p className="font-medium text-gray-500 dark:text-white">{item.bod?.employee_id}</p>
+                            <p className="text-sm text-gray-500 dark:text-gray-400">{item.bod?.position}</p>
+                          </div>
+                        </UserAvatarCell>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-3">
+                        <UserAvatarCell employeeUsed={item.staff_fa} classname="w-12 h-12">
+                          <div>
+                            <p className="font-medium text-gray-900 dark:text-white">{item.staff_fa?.name}</p>
+                            <p className="font-medium text-gray-500 dark:text-white">{item.staff_fa?.employee_id}</p>
+                            <p className="text-sm text-gray-500 dark:text-gray-400">{item.staff_fa?.position}</p>
+                          </div>
+                        </UserAvatarCell>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          className="p-2"
+                          onClick={() => openForm('view', item)}
+                        >
+                          <Eye className="w-4 h-4" />
+                        </Button>
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          className="p-2"
+                          onClick={() => openForm('edit', item)}
+                        >
+                          <Edit className="w-4 h-4" />
+                        </Button>
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          className="p-2 text-red-600 hover:text-red-800"
+                          onClick={() => handleDelete(item)}
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
+      </MainLayout>
+          
       {/* Mobile menu button */}
       <button
         onClick={() => setSidebarOpen(!sidebarOpen)}

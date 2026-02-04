@@ -13,8 +13,8 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useBusinessTrips, useUpdateBusinessTrip, useDeleteBusinessTrip } from '@/hooks/useBusinessTrips';
 import { useToast } from '@/hooks/use-toast';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import MainLayout from '@/components/MainLayout';
+import UserAvatarCell from '@/components/AvatarCell';
 
 const PerjalananDinas = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -263,7 +263,7 @@ const PerjalananDinas = () => {
                   <TableHead>Periode</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Cash Advance</TableHead>
-                  <TableHead>AKSI</TableHead>
+                  <TableHead>Aksi</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -274,21 +274,17 @@ const PerjalananDinas = () => {
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center space-x-3">
-                        <Avatar className="w-8 h-8">
-                          <AvatarImage src={item.employees?.photo_url || ''} />
-                          <AvatarFallback className="bg-blue-100 text-blue-600 text-xs">
-                            {item.employees?.name?.split(' ').map(n => n[0]).join('') || 'N/A'}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div>
-                          <p className="font-medium text-gray-900 dark:text-white">{item.employees?.name || 'N/A'}</p>
-                          <p className="text-sm text-gray-500 dark:text-gray-400">
-                            {item.employees?.employee_id || 'N/A'} 
-                            <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs ml-2">
-                              {item.employees?.grade || 'N/A'}
-                            </span>
-                          </p>
-                        </div>
+                        <UserAvatarCell employeeUsed={item.employees} classname="w-8 h-8">
+                          <div>
+                            <p className="font-medium text-gray-900 dark:text-white">{item.employees?.name || 'N/A'}</p>
+                            <p className="text-sm text-gray-500 dark:text-gray-400">
+                              {item.employees?.employee_id || 'N/A'} 
+                              <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs ml-2">
+                                {item.employees?.grade || 'N/A'}
+                              </span>
+                            </p>
+                          </div>
+                        </UserAvatarCell>
                       </div>
                     </TableCell>
                     <TableCell>
@@ -330,7 +326,7 @@ const PerjalananDinas = () => {
                         >
                           <Eye className="w-4 h-4" />
                         </Button>
-                        {item.status === 'Submitted' && (
+                        {/* {item.status === 'Submitted' && ( */}
                           <>
                             <Button 
                               variant="ghost" 
@@ -351,18 +347,18 @@ const PerjalananDinas = () => {
                               <Trash2 className="w-4 h-4" />
                             </Button>
                           </>
-                        )}
-                        {item.status === 'Approved' && (
-                          <Button 
-                            variant="ghost" 
-                            size="sm" 
-                            className="p-2 text-green-600 hover:text-green-800"
-                            onClick={() => handleClaim(item)}
-                            title="Claim Dinas"
-                          >
-                            <Receipt className="w-4 h-4" />
-                          </Button>
-                        )}
+                        {/* )} */}
+                          {item.status === 'Approved' && (
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              className="p-2 text-green-600 hover:text-green-800"
+                              onClick={() => handleClaim(item)}
+                              title="Claim Dinas"
+                            >
+                              <Receipt className="w-4 h-4" />
+                            </Button>
+                          )}
                       </div>
                     </TableCell>
                   </TableRow>

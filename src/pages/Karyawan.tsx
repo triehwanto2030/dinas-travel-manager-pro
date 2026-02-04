@@ -1,18 +1,16 @@
 import React, { useState } from 'react';
 import { Search, Plus, Eye, Edit, Trash2, Download, ArrowUpDown } from 'lucide-react';
-import Header from '@/components/Header';
-import Sidebar from '@/components/Sidebar';
-import Footer from '@/components/Footer';
 import KaryawanForm from '@/components/KaryawanForm';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { useEmployees, useCreateEmployee, useUpdateEmployee, useDeleteEmployee, EmployeeFormData } from '@/hooks/useEmployees';
 import { useCompanies } from '@/hooks/useCompanies';
 import { useToast } from '@/hooks/use-toast';
 import Swal from 'sweetalert2';
+import UserAvatarCell from '@/components/AvatarCell';
+import MainLayout from '@/components/MainLayout';
 
 const Karyawan = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -131,217 +129,202 @@ const Karyawan = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors flex flex-col">
-      <Header />
-      
-      <div className="flex flex-1">
-        <Sidebar isOpen={sidebarOpen} onToggle={() => setSidebarOpen(!sidebarOpen)} />
-        
-        <div className="flex-1 flex flex-col">
-          <main className="flex-1 p-6">
-            {/* Header Section */}
-            <div className="mb-8">
-              <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
-                <div>
-                  <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Data Karyawan</h1>
-                  {/* <p className="text-gray-600 dark:text-gray-400">Kelola data karyawan perusahaan</p> */}
-                </div>
-                <div className="flex gap-3 mt-4 md:mt-0">
-                  <Button variant="outline" className="flex items-center gap-2">
-                    <Download className="w-4 h-4" />
-                    Export
-                  </Button>
-                  <Button 
-                    className="flex items-center gap-2 bg-green-600 hover:bg-green-700"
-                    onClick={() => openForm('add')}
-                  >
-                    <Plus className="w-4 h-4" />
-                    Tambah Karyawan
-                  </Button>
-                </div>
-              </div>
-
-              {/* Stats Cards */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                {stats.map((stat, index) => (
-                  <Card key={index} className="bg-white dark:bg-gray-800">
-                    <CardContent className="p-6">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">{stat.title}</p>
-                          <p className="text-2xl font-bold text-gray-900 dark:text-white">{stat.value}</p>
-                        </div>
-                        <div className={`w-12 h-12 rounded-lg ${stat.color} flex items-center justify-center`}>
-                          <ArrowUpDown className="w-6 h-6 text-white" />
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
+      <MainLayout sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen}>
+        <div className="mb-8">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Data Karyawan</h1>
+              {/* <p className="text-gray-600 dark:text-gray-400">Kelola data karyawan perusahaan</p> */}
             </div>
+            <div className="flex gap-3 mt-4 md:mt-0">
+              <Button variant="outline" className="flex items-center gap-2">
+                <Download className="w-4 h-4" />
+                Export
+              </Button>
+              <Button 
+                className="flex items-center gap-2 bg-green-600 hover:bg-green-700"
+                onClick={() => openForm('add')}
+              >
+                <Plus className="w-4 h-4" />
+                Tambah Karyawan
+              </Button>
+            </div>
+          </div>
 
-            {/* Table Section */}
-            <Card className="bg-white dark:bg-gray-800">
-              <CardHeader>
-                <CardTitle className="text-xl font-semibold text-gray-900 dark:text-white">
-                  Daftar Karyawan
-                </CardTitle>
-                
-                {/* Search and Filters */}
-                <div className="flex flex-col md:flex-row gap-4 mt-4">
-                  <div className="relative flex-1">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                    <input
-                      type="text"
-                      placeholder="Cari karyawan..."
-                      className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                    />
+          {/* Stats Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            {stats.map((stat, index) => (
+              <Card key={index} className="bg-white dark:bg-gray-800">
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">{stat.title}</p>
+                      <p className="text-2xl font-bold text-gray-900 dark:text-white">{stat.value}</p>
+                    </div>
+                    <div className={`w-12 h-12 rounded-lg ${stat.color} flex items-center justify-center`}>
+                      <ArrowUpDown className="w-6 h-6 text-white" />
+                    </div>
                   </div>
-                  <select 
-                    className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                    value={departmentFilter}
-                    onChange={(e) => setDepartmentFilter(e.target.value)}
-                  >
-                    <option value="">Departemen</option>
-                    <option value="HR">HR</option>
-                    <option value="Finance">Finance</option>
-                    <option value="Sales">Sales</option>
-                    <option value="Marketing">Marketing</option>
-                    <option value="IT">IT</option>
-                    <option value="Operations">Operations</option>
-                  </select>
-                  <select 
-                    className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                    value={statusFilter}
-                    onChange={(e) => setStatusFilter(e.target.value)}
-                  >
-                    <option value="">Status</option>
-                    <option value="Aktif">Aktif</option>
-                    <option value="Tidak Aktif">Tidak Aktif</option>
-                  </select>
-                </div>
-              </CardHeader>
-              
-              <CardContent>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Karyawan</TableHead>
-                      <TableHead>Kontak</TableHead>
-                      <TableHead>Jabatan</TableHead>
-                      <TableHead>Perusahaan</TableHead>
-                      <TableHead>Atasan</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Tanggal Bergabung</TableHead>
-                      <TableHead>Aksi</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {filteredData.map((karyawan) => (
-                      <TableRow key={karyawan.id}>
-                        <TableCell>
-                          <div className="flex items-center gap-3">
-                            <Avatar className="w-12 h-12">
-                              <AvatarImage src={karyawan.photo_url || undefined} />
-                              <AvatarFallback className="bg-blue-500 text-white font-medium">
-                                {karyawan.name.split(' ').map(n => n[0]).join('').toUpperCase()}
-                              </AvatarFallback>
-                            </Avatar>
-                            <div>
-                              <p className="font-medium text-gray-900 dark:text-white">{karyawan.name}</p>
-                              <p className="text-sm text-gray-500 dark:text-gray-400">{karyawan.employee_id}
-                                <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs ml-2">{karyawan.grade || 'N/A'}</span>
-                              </p>
-                            </div>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div>
-                            <p className="text-sm text-gray-900 dark:text-white">{karyawan.email}</p>
-                            <p className="text-sm text-gray-500 dark:text-gray-400">{karyawan.phone}</p>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div>
-                            <p className="font-medium text-gray-900 dark:text-white">{karyawan.position}</p>
-                            <p className="text-sm text-gray-500 dark:text-gray-400">{karyawan.department}</p>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <p className="text-sm text-gray-900 dark:text-white">{karyawan.companies.name}</p>
-                        </TableCell>
-                        <TableCell>
-                          {karyawan.supervisor_id ? (
-                            <div>
-                              <p className="text-sm text-gray-900 dark:text-white">
-                                {employees.find(emp => emp.id === karyawan.supervisor_id)?.name || 'Tidak ditemukan'}
-                              </p>
-                              <p className="text-xs text-gray-500 dark:text-gray-400">
-                                {employees.find(emp => emp.id === karyawan.supervisor_id)?.position || ''}
-                              </p>
-                            </div>
-                          ) : (
-                            <p className="text-sm text-gray-500 dark:text-gray-400">Tidak ada atasan</p>
-                          )}
-                        </TableCell>
-                        <TableCell>
-                          <Badge 
-                            variant="default"
-                            className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300"
-                          >
-                            Aktif
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="text-gray-600 dark:text-gray-400">
-                          {new Date(karyawan.created_at).toLocaleDateString('id-ID')}
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-2">
-                            <Button 
-                              variant="ghost" 
-                              size="sm" 
-                              className="p-2"
-                              onClick={() => openForm('view', {
-                                ...karyawan,
-                                namaPerusahaan: karyawan.companies.name
-                              })}
-                            >
-                              <Eye className="w-4 h-4" />
-                            </Button>
-                            <Button 
-                              variant="ghost" 
-                              size="sm" 
-                              className="p-2"
-                              onClick={() => openForm('edit', {
-                                ...karyawan,
-                                namaPerusahaan: karyawan.companies.name
-                              })}
-                            >
-                              <Edit className="w-4 h-4" />
-                            </Button>
-                            <Button 
-                              variant="ghost" 
-                              size="sm" 
-                              className="p-2 text-red-600 hover:text-red-800"
-                              onClick={() => handleDelete(karyawan)}
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </Button>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </CardContent>
-            </Card>
-          </main>
-          
-          <Footer />
+                </CardContent>
+              </Card>
+            ))}
+          </div>
         </div>
-      </div>
+
+        {/* Table Section */}
+        <Card className="bg-white dark:bg-gray-800">
+          <CardHeader>
+            <CardTitle className="text-xl font-semibold text-gray-900 dark:text-white">
+              Daftar Karyawan
+            </CardTitle>
+            
+            {/* Search and Filters */}
+            <div className="flex flex-col md:flex-row gap-4 mt-4">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                <input
+                  type="text"
+                  placeholder="Cari karyawan..."
+                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+              </div>
+              <select 
+                className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                value={departmentFilter}
+                onChange={(e) => setDepartmentFilter(e.target.value)}
+              >
+                <option value="">Departemen</option>
+                <option value="HR">HR</option>
+                <option value="Finance">Finance</option>
+                <option value="Sales">Sales</option>
+                <option value="Marketing">Marketing</option>
+                <option value="IT">IT</option>
+                <option value="Operations">Operations</option>
+              </select>
+              <select 
+                className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+              >
+                <option value="">Status</option>
+                <option value="Aktif">Aktif</option>
+                <option value="Tidak Aktif">Tidak Aktif</option>
+              </select>
+            </div>
+          </CardHeader>
+          
+          <CardContent>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Karyawan</TableHead>
+                  <TableHead>Kontak</TableHead>
+                  <TableHead>Jabatan</TableHead>
+                  <TableHead>Perusahaan</TableHead>
+                  <TableHead>Atasan</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Tanggal Bergabung</TableHead>
+                  <TableHead>Aksi</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredData.map((karyawan) => (
+                  <TableRow key={karyawan.id}>
+                    <TableCell>
+                      <div className="flex items-center gap-3">
+                        <UserAvatarCell employeeUsed={karyawan} classname="w-12 h-12">
+                          <div>
+                            <p className="font-medium text-gray-900 dark:text-white">{karyawan.name}</p>
+                            <p className="text-sm text-gray-500 dark:text-gray-400">{karyawan.employee_id}
+                              <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs ml-2">{karyawan.grade || 'N/A'}</span>
+                            </p>
+                          </div>
+                        </UserAvatarCell>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div>
+                        <p className="text-sm text-gray-900 dark:text-white">{karyawan.email}</p>
+                        <p className="text-sm text-gray-500 dark:text-gray-400">{karyawan.phone}</p>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div>
+                        <p className="font-medium text-gray-900 dark:text-white">{karyawan.position}</p>
+                        <p className="text-sm text-gray-500 dark:text-gray-400">{karyawan.department}</p>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <p className="text-sm text-gray-900 dark:text-white">{karyawan.companies.name}</p>
+                    </TableCell>
+                    <TableCell>
+                      {karyawan.supervisor_id ? (
+                        <div>
+                          <p className="text-sm text-gray-900 dark:text-white">
+                            {employees.find(emp => emp.id === karyawan.supervisor_id)?.name || 'Tidak ditemukan'}
+                          </p>
+                          <p className="text-xs text-gray-500 dark:text-gray-400">
+                            {employees.find(emp => emp.id === karyawan.supervisor_id)?.position || ''}
+                          </p>
+                        </div>
+                      ) : (
+                        <p className="text-sm text-gray-500 dark:text-gray-400">Tidak ada atasan</p>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      <Badge 
+                        variant="default"
+                        className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300"
+                      >
+                        Aktif
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-gray-600 dark:text-gray-400">
+                      {new Date(karyawan.created_at).toLocaleDateString('id-ID')}
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          className="p-2"
+                          onClick={() => openForm('view', {
+                            ...karyawan,
+                            namaPerusahaan: karyawan.companies.name
+                          })}
+                        >
+                          <Eye className="w-4 h-4" />
+                        </Button>
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          className="p-2"
+                          onClick={() => openForm('edit', {
+                            ...karyawan,
+                            namaPerusahaan: karyawan.companies.name
+                          })}
+                        >
+                          <Edit className="w-4 h-4" />
+                        </Button>
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          className="p-2 text-red-600 hover:text-red-800"
+                          onClick={() => handleDelete(karyawan)}
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
+      </MainLayout>
 
       {/* Mobile menu button */}
       <button

@@ -1,9 +1,9 @@
 import React from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
 import { Calendar, MapPin, User, Building, DollarSign, FileText, Receipt, Plane, Hotel } from 'lucide-react';
+import UserAvatarCell from './AvatarCell';
 
 interface TripClaim {
   id: string;
@@ -116,24 +116,20 @@ const ApprovalClaimDinasDetailModal: React.FC<ApprovalClaimDinasDetailModalProps
               Informasi Karyawan
             </h3>
             <div className="flex items-center gap-4 p-4 bg-muted/30 rounded-lg">
-              <Avatar className="w-16 h-16">
-                <AvatarImage src={claim.employees?.photo_url || undefined} />
-                <AvatarFallback className="bg-primary text-primary-foreground text-lg">
-                  {claim.employees?.name?.split(' ').map(n => n[0]).join('').substring(0, 2) || 'NA'}
-                </AvatarFallback>
-              </Avatar>
-              <div className="flex-1">
-                <p className="text-lg font-semibold">{claim.employees?.name || 'N/A'}</p>
-                <p className="text-sm text-muted-foreground">ID: {claim.employees?.employee_id || 'N/A'}</p>
-                <div className="flex items-center gap-2 mt-1">
-                  <Badge variant="outline">{claim.employees?.grade || 'N/A'}</Badge>
-                  <span className="text-sm">{claim.employees?.position || 'N/A'}</span>
+              <UserAvatarCell employeeUsed={claim.employees} classname="w-16 h-16">
+                <div className="flex-1">
+                  <p className="text-lg font-semibold">{claim.employees?.name || 'N/A'}</p>
+                  <p className="text-sm text-muted-foreground">ID: {claim.employees?.employee_id || 'N/A'}</p>
+                  <div className="flex items-center gap-2 mt-1">
+                    <Badge variant="outline">{claim.employees?.grade || 'N/A'}</Badge>
+                    <span className="text-sm">{claim.employees?.position || 'N/A'}</span>
+                  </div>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    <Building className="w-3 h-3 inline mr-1" />
+                    {claim.employees?.department || 'N/A'}
+                  </p>
                 </div>
-                <p className="text-sm text-muted-foreground mt-1">
-                  <Building className="w-3 h-3 inline mr-1" />
-                  {claim.employees?.department || 'N/A'}
-                </p>
-              </div>
+              </UserAvatarCell>
             </div>
           </div>
 

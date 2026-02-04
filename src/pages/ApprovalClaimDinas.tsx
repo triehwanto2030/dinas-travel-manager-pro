@@ -1,15 +1,11 @@
 
 import React, { useState } from 'react';
 import { Search, Eye, Check, X, DollarSign, Receipt, User } from 'lucide-react';
-import Header from '@/components/Header';
-import Sidebar from '@/components/Sidebar';
-import Footer from '@/components/Footer';
 import ApprovalClaimDinasDetailModal from '@/components/ApprovalClaimDinasDetailModal';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
@@ -17,6 +13,7 @@ import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { useTripClaims, useUpdateTripClaim } from '@/hooks/useTripClaims';
 import MainLayout from '@/components/MainLayout';
+import UserAvatarCell from '@/components/AvatarCell';
 
 const ApprovalClaimDinas = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -282,16 +279,12 @@ const ApprovalClaimDinas = () => {
                         </TableCell>
                         <TableCell>
                           <div className="flex items-center gap-3">
-                            <Avatar className="w-10 h-10">
-                              <AvatarImage src={claim.employees.photo_url || undefined} />
-                              <AvatarFallback className="bg-blue-500 text-white text-sm">
-                                {claim.employees.name.split(' ').map(n => n[0]).join('').substring(0, 2)}
-                              </AvatarFallback>
-                            </Avatar>
-                            <div>
-                              <p className="font-medium text-gray-900 dark:text-white">{claim.employees.name}</p>
-                              <p className="text-sm text-gray-500 dark:text-gray-400">ID: {claim.employees.employee_id}</p>
-                            </div>
+                            <UserAvatarCell employeeUsed={claim.employees} classname="w-10 h-10">
+                              <div>
+                                <p className="font-medium text-gray-900 dark:text-white">{claim.employees.name}</p>
+                                <p className="text-sm text-gray-500 dark:text-gray-400">ID: {claim.employees.employee_id}</p>
+                              </div>
+                            </UserAvatarCell>
                           </div>
                         </TableCell>
                         <TableCell>
