@@ -1,12 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { X, Edit2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
 import { Input } from '@/components/ui/input';
-import { Calendar, MapPin, User, Building, DollarSign, FileText, Receipt, Plane, Hotel, Edit2 } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
 import UserAvatarCell from './AvatarCell';
 import { useTripClaimExpenses, useUpdateTripClaim, useUpdateTripClaimExpenses } from '@/hooks/useTripClaims';
 import { useQueryClient } from '@tanstack/react-query';
+import { useToast } from '@/hooks/use-toast';
 
 interface TripClaim {
   id: string;
@@ -46,14 +50,19 @@ interface ApprovalClaimDinasDetailModalProps {
   isOpen: boolean;
   onClose: () => void;
   claim: TripClaim | null;
+  onApprove?: (claimId: string) => void;
+  onReject?: (claimId: string, reason: string) => void;
 }
 
 const ApprovalClaimDinasDetailModal: React.FC<ApprovalClaimDinasDetailModalProps> = ({
   isOpen,
   onClose,
-  claim
+  claim,
+  onApprove,
+  onReject
 }) => {
   const queryClient = useQueryClient();
+  const { toast } = useToast();
   const { data: claimExpenses, isLoading: expensesLoading } = useTripClaimExpenses(claim?.id);
   const updateTripClaim = useUpdateTripClaim();
   const updateTripClaimExpenses = useUpdateTripClaimExpenses();
@@ -67,6 +76,8 @@ const ApprovalClaimDinasDetailModal: React.FC<ApprovalClaimDinasDetailModalProps
   }>>([]);
   const [isEditing, setIsEditing] = useState(false);
   const [totalAmount, setTotalAmount] = useState(0);
+  const [isRejectDialogOpen, setIsRejectDialogOpen] = useState(false);
+  const [rejectReason, setRejectReason] = useState('');
 
   useEffect(() => {
     if (claimExpenses) {
@@ -86,6 +97,13 @@ const ApprovalClaimDinasDetailModal: React.FC<ApprovalClaimDinasDetailModalProps
   }, [expenses]);
 
   if (!claim) return null;
+  if (!isOpen) return null;
+
+  const employee = claim.employees;
+  const trip = claim.business_trips;
+  const cashAdvance = trip.cash_advance || 0;
+  const displayTotal = isEditing ? totalAmount : (claim.total_amount || 0);
+  const remaining = cashAdvance - displayTotal;
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('id-ID', {
@@ -95,16 +113,7 @@ const ApprovalClaimDinasDetailModal: React.FC<ApprovalClaimDinasDetailModalProps
     }).format(amount);
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('id-ID', {
-      weekday: 'long',
-      day: '2-digit',
-      month: 'long',
-      year: 'numeric'
-    });
-  };
-
-  const formatShortDate = (dateString: string | null) => {
+  const formatDate = (dateString: string | null) => {
     if (!dateString) return 'N/A';
     return new Date(dateString).toLocaleDateString('id-ID', {
       day: '2-digit',
@@ -116,10 +125,10 @@ const ApprovalClaimDinasDetailModal: React.FC<ApprovalClaimDinasDetailModalProps
   const getStatusBadge = (status: string) => {
     const statusConfig: Record<string, { class: string; label: string }> = {
       'Draft': { class: 'bg-gray-100 text-gray-800', label: 'Draft' },
-      'Submitted': { class: 'bg-yellow-100 text-yellow-800', label: 'Menunggu Approval' },
-      'Approved': { class: 'bg-green-100 text-green-800', label: 'Disetujui' },
-      'Rejected': { class: 'bg-red-100 text-red-800', label: 'Ditolak' },
-      'Paid': { class: 'bg-blue-100 text-blue-800', label: 'Dibayar' }
+      'Submitted': { class: 'bg-yellow-100 text-yellow-800', label: 'Submitted' },
+      'Approved': { class: 'bg-green-100 text-green-800', label: 'Approved' },
+      'Rejected': { class: 'bg-red-100 text-red-800', label: 'Rejected' },
+      'Paid': { class: 'bg-blue-100 text-blue-800', label: 'Paid' }
     };
     
     const config = statusConfig[status] || statusConfig.Draft;
@@ -144,271 +153,299 @@ const ApprovalClaimDinasDetailModal: React.FC<ApprovalClaimDinasDetailModalProps
   };
 
   const handleSaveExpenses = async () => {
-    // Update each expense in the database
-    for (const expense of expenses) {
-      await updateTripClaimExpenses.mutateAsync({
-        id: expense.id,
-        expense_amount: expense.expense_amount
+    try {
+      for (const expense of expenses) {
+        await updateTripClaimExpenses.mutateAsync({
+          id: expense.id,
+          expense_amount: expense.expense_amount
+        });
+      }
+      const newTotal = expenses.reduce((sum, exp) => sum + (exp.expense_amount || 0), 0);
+      await updateTripClaim.mutateAsync({
+        id: claim.id,
+        total_amount: newTotal
       });
+      queryClient.invalidateQueries({ queryKey: ['trip_claims'] });
+      queryClient.invalidateQueries({ queryKey: ['claim_expenses', claim.id] });
+      toast({ title: "Berhasil!", description: "Data pengeluaran berhasil disimpan" });
+      setIsEditing(false);
+    } catch (error) {
+      toast({ title: "Error!", description: "Gagal menyimpan data pengeluaran", variant: "destructive" });
     }
-
-    // Update the total_amount in trip_claims
-    const newTotal = expenses.reduce((sum, exp) => sum + (exp.expense_amount || 0), 0);
-    await updateTripClaim.mutateAsync({
-      id: claim.id,
-      total_amount: newTotal
-    });
-
-    // Invalidate queries to refresh data
-    queryClient.invalidateQueries({ queryKey: ['trip_claims'] });
-    queryClient.invalidateQueries({ queryKey: ['claim_expenses', claim.id] });
-
-    setIsEditing(false);
   };
 
-  const cashAdvance = claim.business_trips.cash_advance || 0;
-  const displayTotal = isEditing ? totalAmount : (claim.total_amount || 0);
-  const difference = cashAdvance - displayTotal;
+  const handleApproveClick = async () => {
+    try {
+      await updateTripClaim.mutateAsync({ id: claim.id, status: 'Approved' });
+      toast({ title: "Berhasil!", description: "Claim dinas telah disetujui" });
+      queryClient.invalidateQueries({ queryKey: ['trip_claims'] });
+      onClose();
+    } catch (error) {
+      toast({ title: "Error!", description: "Gagal menyetujui claim dinas", variant: "destructive" });
+    }
+  };
+
+  const handleRejectClick = async () => {
+    if (!rejectReason.trim()) {
+      toast({ title: "Error!", description: "Alasan penolakan harus diisi", variant: "destructive" });
+      return;
+    }
+    try {
+      await updateTripClaim.mutateAsync({ id: claim.id, status: 'Rejected', rejection_reason: rejectReason });
+      toast({ title: "Berhasil!", description: "Claim dinas telah ditolak" });
+      queryClient.invalidateQueries({ queryKey: ['trip_claims'] });
+      setIsRejectDialogOpen(false);
+      setRejectReason('');
+      onClose();
+    } catch (error) {
+      toast({ title: "Error!", description: "Gagal menolak claim dinas", variant: "destructive" });
+    }
+  };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="text-xl font-bold flex items-center gap-2">
-            Detail Claim Dinas
-            {getStatusBadge(claim.status)}
-          </DialogTitle>
-        </DialogHeader>
-
-        <div className="space-y-6">
-          {/* Claim Info */}
-          <div className="grid grid-cols-2 gap-4">
-            <div className="bg-muted/50 p-3 rounded-lg">
-              <p className="text-sm text-muted-foreground">Nomor Claim</p>
-              <p className="text-lg font-semibold">{claim.claim_number || '-'}</p>
+    <>
+      <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+        <div className="bg-white dark:bg-gray-800 rounded-lg max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col">
+          {/* Header */}
+          <div className="flex items-center justify-between p-6 border-b">
+            <div>
+              <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Detail Claim Dinas</h2>
+              <p className="text-sm text-gray-500 dark:text-gray-400">
+                {claim.claim_number || `CL-${new Date(claim.created_at).getTime().toString().slice(-6)}`}
+              </p>
             </div>
-            <div className="bg-muted/50 p-3 rounded-lg">
-              <p className="text-sm text-muted-foreground">Nomor Perjalanan</p>
-              <p className="text-lg font-semibold">{claim.business_trips.trip_number}</p>
+            <div className="flex items-center gap-3">
+              {getStatusBadge(claim.status)}
+              <Button variant="ghost" size="sm" onClick={onClose}>
+                <X className="w-5 h-5" />
+              </Button>
             </div>
           </div>
 
-          {/* Employee Info */}
-          <div>
-            <h3 className="text-sm font-semibold text-muted-foreground mb-3 flex items-center gap-2">
-              <User className="w-4 h-4" />
-              Informasi Karyawan
-            </h3>
-            <div className="flex items-center gap-4 p-4 bg-muted/30 rounded-lg">
-              <UserAvatarCell employeeUsed={claim.employees} classname="w-16 h-16">
-                <div className="flex-1">
-                  <p className="text-lg font-semibold">{claim.employees?.name || 'N/A'}</p>
-                  <p className="text-sm text-muted-foreground">ID: {claim.employees?.employee_id || 'N/A'}</p>
-                  <div className="flex items-center gap-2 mt-1">
-                    <Badge variant="outline">{claim.employees?.grade || 'N/A'}</Badge>
-                    <span className="text-sm">{claim.employees?.position || 'N/A'}</span>
+          {/* Scrollable Content */}
+          <div className="flex-1 overflow-y-auto p-6 space-y-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Informasi Karyawan */}
+              <Card>
+                <CardContent className="p-4">
+                  <h3 className="font-medium text-gray-900 dark:text-white mb-4">Informasi Karyawan</h3>
+                  <div className="flex items-center space-x-4 mb-4">
+                    <UserAvatarCell employeeUsed={employee} classname="w-16 h-16">
+                      <div>
+                        <h4 className="font-medium text-gray-900 dark:text-white">{employee.name || 'N/A'}</h4>
+                        <p className="text-sm text-gray-500 dark:text-gray-400">
+                          ID: {employee.employee_id || 'N/A'} 
+                          <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs ml-2">
+                            {employee.grade || 'N/A'}
+                          </span>
+                        </p>
+                      </div>
+                    </UserAvatarCell>
                   </div>
-                  <p className="text-sm text-muted-foreground mt-1">
-                    <Building className="w-3 h-3 inline mr-1" />
-                    {claim.employees?.department || 'N/A'}
-                  </p>
-                </div>
-              </UserAvatarCell>
-            </div>
-          </div>
+                  <div className="grid grid-cols-2 gap-4 text-sm">
+                    <div>
+                      <p className="text-gray-500 dark:text-gray-400">Jabatan:</p>
+                      <p className="font-medium text-gray-900 dark:text-white">{employee.position || 'N/A'}</p>
+                    </div>
+                    <div>
+                      <p className="text-gray-500 dark:text-gray-400">Departemen:</p>
+                      <p className="font-medium text-gray-900 dark:text-white">{employee.department || 'N/A'}</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
 
-          <Separator />
-
-          {/* Trip Details */}
-          <div>
-            <h3 className="text-sm font-semibold text-muted-foreground mb-3 flex items-center gap-2">
-              <MapPin className="w-4 h-4" />
-              Detail Perjalanan
-            </h3>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="p-3 bg-muted/30 rounded-lg">
-                <p className="text-sm text-muted-foreground">Tujuan</p>
-                <p className="font-medium">{claim.business_trips.destination}</p>
-              </div>
-              <div className="p-3 bg-muted/30 rounded-lg">
-                <p className="text-sm text-muted-foreground">Tujuan Perjalanan</p>
-                <p className="font-medium">{claim.business_trips.purpose || '-'}</p>
-              </div>
-            </div>
-          </div>
-
-          {/* Period */}
-          <div>
-            <h3 className="text-sm font-semibold text-muted-foreground mb-3 flex items-center gap-2">
-              <Calendar className="w-4 h-4" />
-              Periode Perjalanan
-            </h3>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="p-3 bg-muted/30 rounded-lg">
-                <p className="text-sm text-muted-foreground">Tanggal Mulai</p>
-                <p className="font-medium">{formatDate(claim.business_trips.start_date)}</p>
-              </div>
-              <div className="p-3 bg-muted/30 rounded-lg">
-                <p className="text-sm text-muted-foreground">Tanggal Selesai</p>
-                <p className="font-medium">{formatDate(claim.business_trips.end_date)}</p>
-              </div>
-            </div>
-          </div>
-
-          {/* Accommodation & Transportation */}
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <h3 className="text-sm font-semibold text-muted-foreground mb-3 flex items-center gap-2">
-                <Hotel className="w-4 h-4" />
-                Akomodasi
-              </h3>
-              <div className="p-3 bg-muted/30 rounded-lg">
-                <p className="font-medium capitalize">{claim.business_trips.accommodation || '-'}</p>
-              </div>
-            </div>
-            <div>
-              <h3 className="text-sm font-semibold text-muted-foreground mb-3 flex items-center gap-2">
-                <Plane className="w-4 h-4" />
-                Transportasi
-              </h3>
-              <div className="p-3 bg-muted/30 rounded-lg">
-                <p className="font-medium capitalize">{claim.business_trips.transportation || '-'}</p>
-              </div>
-            </div>
-          </div>
-
-          <Separator />
-
-          {/* Detail Pengeluaran - Editable */}
-          <div>
-            <div className="flex justify-between items-center mb-3">
-              <h3 className="text-sm font-semibold text-muted-foreground flex items-center gap-2">
-                <Receipt className="w-4 h-4" />
-                Detail Pengeluaran
-              </h3>
-              <button
-                onClick={() => {
-                  if (isEditing) {
-                    handleSaveExpenses();
-                  } else {
-                    setIsEditing(true);
-                  }
-                }}
-                className="flex items-center gap-1 text-sm text-blue-600 hover:text-blue-700"
-                disabled={updateTripClaimExpenses.isPending || updateTripClaim.isPending}
-              >
-                <Edit2 className="w-4 h-4" />
-                {isEditing ? (updateTripClaimExpenses.isPending || updateTripClaim.isPending ? 'Menyimpan...' : 'Simpan') : 'Edit'}
-              </button>
-            </div>
-            
-            {expensesLoading ? (
-              <p className="text-sm text-muted-foreground">Memuat data pengeluaran...</p>
-            ) : expenses.length > 0 ? (
-              <div className="space-y-3">
-                {expenses.map((expense, index) => (
-                  <div key={expense.id} className="p-3 bg-muted/30 rounded-lg">
-                    <div className="grid grid-cols-4 gap-4 text-sm">
+              {/* Detail Perjalanan */}
+              <Card>
+                <CardContent className="p-4">
+                  <h3 className="font-medium text-gray-900 dark:text-white mb-4">Detail Perjalanan</h3>
+                  <div className="space-y-3 text-sm">
+                    <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <p className="text-muted-foreground">Tanggal</p>
-                        <p className="font-medium">{formatShortDate(expense.expense_date)}</p>
+                        <p className="text-gray-500 dark:text-gray-400">No. Perjalanan:</p>
+                        <p className="font-medium text-gray-900 dark:text-white">{trip.trip_number || 'N/A'}</p>
                       </div>
                       <div>
-                        <p className="text-muted-foreground">Jenis</p>
-                        <p className="font-medium">{getExpenseTypeLabel(expense.expense_type)}</p>
+                        <p className="text-gray-500 dark:text-gray-400">Tujuan:</p>
+                        <p className="font-medium text-gray-900 dark:text-white">{trip.destination || 'N/A'}</p>
+                      </div>
+                    </div>
+                    <div>
+                      <p className="text-gray-500 dark:text-gray-400">Keperluan:</p>
+                      <p className="font-medium text-gray-900 dark:text-white">{trip.purpose || 'N/A'}</p>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <p className="text-gray-500 dark:text-gray-400">Tanggal Berangkat:</p>
+                        <p className="font-medium text-gray-900 dark:text-white">{formatDate(trip.start_date)}</p>
                       </div>
                       <div>
-                        <p className="text-muted-foreground">Keterangan</p>
-                        <p className="font-medium">{expense.description || '-'}</p>
+                        <p className="text-gray-500 dark:text-gray-400">Tanggal Pulang:</p>
+                        <p className="font-medium text-gray-900 dark:text-white">{formatDate(trip.end_date)}</p>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <p className="text-gray-500 dark:text-gray-400">Transportasi:</p>
+                        <p className="font-medium text-gray-900 dark:text-white">{trip.transportation || 'N/A'}</p>
                       </div>
                       <div>
-                        <p className="text-muted-foreground">Jumlah</p>
-                        {isEditing ? (
-                          <Input
-                            type="text"
-                            value={expense.expense_amount.toLocaleString('id-ID')}
-                            onChange={(e) => handleAmountChange(index, e.target.value)}
-                            className="h-8 text-sm"
-                          />
-                        ) : (
-                          <p className="font-medium">{formatCurrency(expense.expense_amount)}</p>
-                        )}
+                        <p className="text-gray-500 dark:text-gray-400">Akomodasi:</p>
+                        <p className="font-medium text-gray-900 dark:text-white">{trip.accommodation || 'N/A'}</p>
                       </div>
                     </div>
                   </div>
-                ))}
-                
-                {/* Total Pengeluaran */}
-                <div className="p-3 bg-blue-50 dark:bg-blue-900/30 rounded-lg flex justify-between items-center">
-                  <span className="font-medium">Total Pengeluaran</span>
-                  <span className="text-lg font-bold text-blue-600">{formatCurrency(displayTotal)}</span>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Detail Klaim */}
+            <Card>
+              <CardContent className="p-4">
+                <h3 className="font-medium text-gray-900 dark:text-white mb-4">Detail Klaim</h3>
+                <div className="grid grid-cols-2 gap-4 text-sm mb-4">
+                  <div>
+                    <p className="text-gray-500 dark:text-gray-400">Tanggal Pengajuan:</p>
+                    <p className="font-medium text-gray-900 dark:text-white">{formatDate(claim.submitted_at || claim.created_at)}</p>
+                  </div>
+                  <div>
+                    <p className="text-gray-500 dark:text-gray-400">Status:</p>
+                    {getStatusBadge(claim.status)}
+                  </div>
                 </div>
+
+                {claim.notes && (
+                  <div className="mb-4">
+                    <p className="text-gray-500 dark:text-gray-400 text-sm">Catatan:</p>
+                    <p className="font-medium text-gray-900 dark:text-white">{claim.notes}</p>
+                  </div>
+                )}
+                
+                {/* Detail Pengeluaran - Editable */}
+                <div className="mb-4">
+                  <div className="flex justify-between items-center mb-4">
+                    <h3 className="font-medium text-gray-900 dark:text-white">Detail Pengeluaran</h3>
+                    <button
+                      onClick={() => isEditing ? handleSaveExpenses() : setIsEditing(true)}
+                      className="flex items-center gap-1 text-sm text-blue-600 hover:text-blue-700"
+                      disabled={updateTripClaimExpenses.isPending || updateTripClaim.isPending}
+                    >
+                      <Edit2 className="w-4 h-4" />
+                      {isEditing ? (updateTripClaimExpenses.isPending || updateTripClaim.isPending ? 'Menyimpan...' : 'Simpan') : 'Edit'}
+                    </button>
+                  </div>
+                  
+                  {expensesLoading ? (
+                    <p className="text-sm text-gray-500">Memuat data pengeluaran...</p>
+                  ) : (
+                    <div className="space-y-3">
+                      {expenses.length > 0 ? (
+                        expenses.map((expense, index) => (
+                          <div key={expense.id} className="p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                            <div className="grid grid-cols-4 gap-4 text-sm">
+                              <div>
+                                <p className="text-gray-500 dark:text-gray-400">Tanggal</p>
+                                <p className="font-medium text-gray-900 dark:text-white">{formatDate(expense.expense_date)}</p>
+                              </div>
+                              <div>
+                                <p className="text-gray-500 dark:text-gray-400">Jenis</p>
+                                <p className="font-medium text-gray-900 dark:text-white">{getExpenseTypeLabel(expense.expense_type)}</p>
+                              </div>
+                              <div>
+                                <p className="text-gray-500 dark:text-gray-400">Keterangan</p>
+                                <p className="font-medium text-gray-900 dark:text-white">{expense.description || '-'}</p>
+                              </div>
+                              <div>
+                                <p className="text-gray-500 dark:text-gray-400">Jumlah</p>
+                                {isEditing ? (
+                                  <Input
+                                    type="text"
+                                    value={expense.expense_amount.toLocaleString('id-ID')}
+                                    onChange={(e) => handleAmountChange(index, e.target.value)}
+                                    className="h-8 text-sm"
+                                  />
+                                ) : (
+                                  <p className="font-medium text-gray-900 dark:text-white">{formatCurrency(expense.expense_amount)}</p>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        ))
+                      ) : (
+                        <p className="text-gray-500 dark:text-gray-400 text-sm">Tidak ada detail pengeluaran</p>
+                      )}
+                    </div>
+                  )}
+                </div>
+
+                {/* Summary */}
+                <div className="grid grid-cols-3 gap-4 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                  <div className="text-center">
+                    <p className="text-sm text-gray-500 dark:text-gray-400">Cash Advance</p>
+                    <p className="text-lg font-semibold text-blue-600">{formatCurrency(cashAdvance)}</p>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-sm text-gray-500 dark:text-gray-400">Total Klaim</p>
+                    <p className="text-lg font-semibold text-purple-600">{formatCurrency(displayTotal)}</p>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-sm text-gray-500 dark:text-gray-400">Sisa/Pengembalian</p>
+                    <p className={`text-lg font-semibold ${remaining >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                      {formatCurrency(Math.abs(remaining))}
+                    </p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">{remaining >= 0 ? 'Sisa' : 'Kekurangan'}</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Footer with Approve/Reject buttons */}
+          <div className="p-6 border-t flex justify-between">
+            <Button variant="outline" onClick={onClose}>Tutup</Button>
+            {claim.status === 'Submitted' && (
+              <div className="flex gap-2">
+                <Button variant="destructive" onClick={() => setIsRejectDialogOpen(true)} disabled={updateTripClaim.isPending}>
+                  Tolak
+                </Button>
+                <Button onClick={handleApproveClick} disabled={updateTripClaim.isPending} className="bg-green-600 hover:bg-green-700">
+                  {updateTripClaim.isPending ? 'Menyetujui...' : 'Setuju'}
+                </Button>
               </div>
-            ) : (
-              <p className="text-sm text-muted-foreground">Tidak ada detail pengeluaran</p>
             )}
           </div>
-
-          <Separator />
-
-          {/* Financial Summary */}
-          <div>
-            <h3 className="text-sm font-semibold text-muted-foreground mb-3 flex items-center gap-2">
-              <DollarSign className="w-4 h-4" />
-              Ringkasan Keuangan
-            </h3>
-            <div className="space-y-3">
-              <div className="flex justify-between items-center p-3 bg-muted/30 rounded-lg">
-                <span className="text-muted-foreground">Cash Advance</span>
-                <span className="font-semibold">{formatCurrency(cashAdvance)}</span>
-              </div>
-              <div className="flex justify-between items-center p-3 bg-muted/30 rounded-lg">
-                <span className="text-muted-foreground">Total Claim</span>
-                <span className="font-semibold">{formatCurrency(displayTotal)}</span>
-              </div>
-              <div className={`flex justify-between items-center p-3 rounded-lg ${
-                difference >= 0 ? 'bg-green-100 dark:bg-green-900/30' : 'bg-red-100 dark:bg-red-900/30'
-              }`}>
-                <span className="font-medium">
-                  {difference >= 0 ? 'Sisa Cash Advance' : 'Kekurangan'}
-                </span>
-                <span className={`text-lg font-bold ${
-                  difference >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
-                }`}>
-                  {formatCurrency(Math.abs(difference))}
-                </span>
-              </div>
-            </div>
-          </div>
-
-          {/* Submission Date */}
-          <div>
-            <h3 className="text-sm font-semibold text-muted-foreground mb-3 flex items-center gap-2">
-              <Receipt className="w-4 h-4" />
-              Tanggal Pengajuan
-            </h3>
-            <div className="p-3 bg-muted/30 rounded-lg">
-              <p className="font-medium">
-                {claim.submitted_at ? formatDate(claim.submitted_at) : '-'}
-              </p>
-            </div>
-          </div>
-
-          {/* Notes */}
-          {claim.notes && (
-            <div>
-              <h3 className="text-sm font-semibold text-muted-foreground mb-3 flex items-center gap-2">
-                <FileText className="w-4 h-4" />
-                Catatan
-              </h3>
-              <div className="p-3 bg-muted/30 rounded-lg">
-                <p className="text-sm">{claim.notes}</p>
-              </div>
-            </div>
-          )}
         </div>
-      </DialogContent>
-    </Dialog>
+      </div>
+
+      {/* Reject Reason Dialog */}
+      <Dialog open={isRejectDialogOpen} onOpenChange={setIsRejectDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Tolak Claim Dinas</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="rejectReason">Alasan Penolakan</Label>
+              <Textarea
+                id="rejectReason"
+                placeholder="Masukkan alasan penolakan..."
+                value={rejectReason}
+                onChange={(e) => setRejectReason(e.target.value)}
+                className="mt-1"
+              />
+            </div>
+            <div className="flex gap-2 justify-end">
+              <Button variant="outline" onClick={() => { setIsRejectDialogOpen(false); setRejectReason(''); }}>
+                Batal
+              </Button>
+              <Button variant="destructive" onClick={handleRejectClick} disabled={!rejectReason.trim() || updateTripClaim.isPending}>
+                {updateTripClaim.isPending ? 'Menolak...' : 'Tolak Claim'}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 };
 
