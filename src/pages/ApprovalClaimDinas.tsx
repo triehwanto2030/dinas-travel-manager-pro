@@ -14,6 +14,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useTripClaims, useUpdateTripClaim } from '@/hooks/useTripClaims';
 import MainLayout from '@/components/MainLayout';
 import UserAvatarCell from '@/components/AvatarCell';
+import StatusWithApproval from '@/components/StatusWithApproval';
 
 const ApprovalClaimDinas = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -255,9 +256,9 @@ const ApprovalClaimDinas = () => {
                     <TableHead>ID Claim</TableHead>
                     <TableHead>Karyawan</TableHead>
                     <TableHead>Tujuan & Alasan</TableHead>
-                    <TableHead>Tanggal Claim</TableHead>
                     <TableHead>Total Amount</TableHead>
                     <TableHead>Tanggal Pengajuan</TableHead>
+                    <TableHead>Status</TableHead>
                     <TableHead>Aksi</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -293,14 +294,30 @@ const ApprovalClaimDinas = () => {
                             <p className="text-sm text-gray-500 dark:text-gray-400">{claim.business_trips.purpose}</p>
                           </div>
                         </TableCell>
-                        <TableCell className="text-gray-600 dark:text-gray-400">
-                          {formatDate(claim.created_at)}
-                        </TableCell>
                         <TableCell className="font-medium text-gray-900 dark:text-white">
                           {formatCurrency(claim.total_amount).replace('IDR', 'Rp')}
                         </TableCell>
                         <TableCell className="text-gray-600 dark:text-gray-400">
                           {claim.submitted_at ? formatDate(claim.submitted_at) : '-'}
+                        </TableCell>
+                        <TableCell>
+                          <StatusWithApproval 
+                            status={claim.status}
+                            approvalData={{
+                              supervisor_approved_at: claim.supervisor_approved_at,
+                              supervisor_approved_by: claim.supervisor_approved_by,
+                              staff_ga_approved_at: claim.staff_ga_approved_at,
+                              staff_ga_approved_by: claim.staff_ga_approved_by,
+                              hr_manager_approved_at: claim.hr_manager_approved_at,
+                              hr_manager_approved_by: claim.hr_manager_approved_by,
+                              bod_approved_at: claim.bod_approved_at,
+                              bod_approved_by: claim.bod_approved_by,
+                              staff_fa_approved_at: claim.staff_fa_approved_at,
+                              staff_fa_approved_by: claim.staff_fa_approved_by,
+                              rejected_at: claim.rejected_at,
+                              rejected_by: claim.rejected_by,
+                            }}
+                          />
                         </TableCell>
                         <TableCell>
                           <div className="flex items-center gap-2">
