@@ -1,14 +1,14 @@
-import React, { useState, useEffect } from 'react';
-import { X, Edit2 } from 'lucide-react';
+import React, { useState, useEffect, useMemo } from 'react';
+import { X, Edit2, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import UserAvatarCell from './AvatarCell';
-import { useTripClaimExpenses, useUpdateTripClaim, useUpdateTripClaimExpenses } from '@/hooks/useTripClaims';
+import { ExpenseDetail } from './ExpenseDetail';
+import { useTripClaimExpenses, useUpdateTripClaim, useUpdateTripClaimExpenses, useCreateTripClaimExpense, useDeleteTripClaimExpenses } from '@/hooks/useTripClaims';
 import { useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
 
@@ -46,6 +46,15 @@ interface TripClaim {
   };
 }
 
+interface ExpenseItem {
+  id?: string;
+  date: Date | undefined;
+  type: string;
+  description: string;
+  amount: number;
+  isNew?: boolean;
+}
+
 interface ApprovalClaimDinasDetailModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -66,34 +75,31 @@ const ApprovalClaimDinasDetailModal: React.FC<ApprovalClaimDinasDetailModalProps
   const { data: claimExpenses, isLoading: expensesLoading } = useTripClaimExpenses(claim?.id);
   const updateTripClaim = useUpdateTripClaim();
   const updateTripClaimExpenses = useUpdateTripClaimExpenses();
+  const createTripClaimExpense = useCreateTripClaimExpense();
+  const deleteTripClaimExpenses = useDeleteTripClaimExpenses();
   
-  const [expenses, setExpenses] = useState<Array<{
-    id: string;
-    expense_date: string | null;
-    expense_type: string | null;
-    description: string | null;
-    expense_amount: number;
-  }>>([]);
+  const [expenses, setExpenses] = useState<ExpenseItem[]>([]);
   const [isEditing, setIsEditing] = useState(false);
-  const [totalAmount, setTotalAmount] = useState(0);
   const [isRejectDialogOpen, setIsRejectDialogOpen] = useState(false);
   const [rejectReason, setRejectReason] = useState('');
 
+  // Initialize expenses from claimExpenses
   useEffect(() => {
     if (claimExpenses) {
       setExpenses(claimExpenses.map(exp => ({
         id: exp.id,
-        expense_date: exp.expense_date,
-        expense_type: exp.expense_type,
-        description: exp.description,
-        expense_amount: exp.expense_amount || 0
+        date: exp.expense_date ? new Date(exp.expense_date) : undefined,
+        type: exp.expense_type || '',
+        description: exp.description || '',
+        amount: exp.expense_amount || 0,
+        isNew: false
       })));
     }
   }, [claimExpenses]);
 
-  useEffect(() => {
-    const newTotal = expenses.reduce((sum, exp) => sum + (exp.expense_amount || 0), 0);
-    setTotalAmount(newTotal);
+  // Calculate live total from expenses state
+  const liveTotal = useMemo(() => {
+    return expenses.reduce((sum, exp) => sum + (exp.amount || 0), 0);
   }, [expenses]);
 
   if (!claim) return null;
@@ -102,8 +108,7 @@ const ApprovalClaimDinasDetailModal: React.FC<ApprovalClaimDinasDetailModalProps
   const employee = claim.employees;
   const trip = claim.business_trips;
   const cashAdvance = trip.cash_advance || 0;
-  const displayTotal = isEditing ? totalAmount : (claim.total_amount || 0);
-  const remaining = cashAdvance - displayTotal;
+  const remaining = cashAdvance - liveTotal;
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('id-ID', {
@@ -135,43 +140,83 @@ const ApprovalClaimDinasDetailModal: React.FC<ApprovalClaimDinasDetailModalProps
     return <Badge className={config.class}>{config.label}</Badge>;
   };
 
-  const getExpenseTypeLabel = (type: string | null) => {
-    const types: Record<string, string> = {
-      'transport': 'Transportasi',
-      'accommodation': 'Akomodasi',
-      'meals': 'Makan',
-      'other': 'Lainnya'
-    };
-    return types[type || ''] || type || '-';
+  const handleExpenseUpdate = (index: number, field: string, value: any) => {
+    const newExpenses = [...expenses];
+    newExpenses[index] = { ...newExpenses[index], [field]: value };
+    setExpenses(newExpenses);
   };
 
-  const handleAmountChange = (index: number, value: string) => {
-    const numValue = parseInt(value.replace(/\D/g, '')) || 0;
-    const newExpenses = [...expenses];
-    newExpenses[index] = { ...newExpenses[index], expense_amount: numValue };
-    setExpenses(newExpenses);
+  const handleDeleteExpense = (index: number) => {
+    setExpenses(expenses.filter((_, i) => i !== index));
+  };
+
+  const handleAddExpense = () => {
+    setExpenses([...expenses, {
+      date: undefined,
+      type: '',
+      description: '',
+      amount: 0,
+      isNew: true
+    }]);
   };
 
   const handleSaveExpenses = async () => {
     try {
-      for (const expense of expenses) {
+      // Handle existing expenses (update)
+      const existingExpenses = expenses.filter(exp => exp.id && !exp.isNew);
+      for (const expense of existingExpenses) {
         await updateTripClaimExpenses.mutateAsync({
-          id: expense.id,
-          expense_amount: expense.expense_amount
+          id: expense.id!,
+          expense_amount: expense.amount,
+          expense_type: expense.type,
+          description: expense.description,
+          expense_date: expense.date ? expense.date.toISOString().split('T')[0] : null
         });
       }
-      const newTotal = expenses.reduce((sum, exp) => sum + (exp.expense_amount || 0), 0);
+
+      // Handle new expenses (create)
+      const newExpenses = expenses.filter(exp => exp.isNew);
+      if (newExpenses.length > 0) {
+        const newExpenseData = newExpenses.map(exp => ({
+          expense_date: exp.date ? exp.date.toISOString().split('T')[0] : null,
+          expense_type: exp.type,
+          description: exp.description,
+          expense_amount: exp.amount,
+          trip_claim_id: claim.id
+        }));
+        await createTripClaimExpense.mutateAsync(newExpenseData);
+      }
+
+      // Update total amount in trip_claims
       await updateTripClaim.mutateAsync({
         id: claim.id,
-        total_amount: newTotal
+        total_amount: liveTotal
       });
+
       queryClient.invalidateQueries({ queryKey: ['trip_claims'] });
       queryClient.invalidateQueries({ queryKey: ['claim_expenses', claim.id] });
+      
       toast({ title: "Berhasil!", description: "Data pengeluaran berhasil disimpan" });
       setIsEditing(false);
     } catch (error) {
+      console.error('Error saving expenses:', error);
       toast({ title: "Error!", description: "Gagal menyimpan data pengeluaran", variant: "destructive" });
     }
+  };
+
+  const handleCancelEdit = () => {
+    // Reset to original data
+    if (claimExpenses) {
+      setExpenses(claimExpenses.map(exp => ({
+        id: exp.id,
+        date: exp.expense_date ? new Date(exp.expense_date) : undefined,
+        type: exp.expense_type || '',
+        description: exp.description || '',
+        amount: exp.expense_amount || 0,
+        isNew: false
+      })));
+    }
+    setIsEditing(false);
   };
 
   const handleApproveClick = async () => {
@@ -201,6 +246,8 @@ const ApprovalClaimDinasDetailModal: React.FC<ApprovalClaimDinasDetailModalProps
       toast({ title: "Error!", description: "Gagal menolak claim dinas", variant: "destructive" });
     }
   };
+
+  const isSaving = updateTripClaimExpenses.isPending || updateTripClaim.isPending || createTripClaimExpense.isPending;
 
   return (
     <>
@@ -321,18 +368,52 @@ const ApprovalClaimDinasDetailModal: React.FC<ApprovalClaimDinasDetailModalProps
                   </div>
                 )}
                 
-                {/* Detail Pengeluaran - Editable */}
+                {/* Detail Pengeluaran - Editable with ExpenseDetail */}
                 <div className="mb-4">
                   <div className="flex justify-between items-center mb-4">
                     <h3 className="font-medium text-gray-900 dark:text-white">Detail Pengeluaran</h3>
-                    <button
-                      onClick={() => isEditing ? handleSaveExpenses() : setIsEditing(true)}
-                      className="flex items-center gap-1 text-sm text-blue-600 hover:text-blue-700"
-                      disabled={updateTripClaimExpenses.isPending || updateTripClaim.isPending}
-                    >
-                      <Edit2 className="w-4 h-4" />
-                      {isEditing ? (updateTripClaimExpenses.isPending || updateTripClaim.isPending ? 'Menyimpan...' : 'Simpan') : 'Edit'}
-                    </button>
+                    <div className="flex gap-2">
+                      {isEditing && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={handleAddExpense}
+                          disabled={isSaving}
+                        >
+                          <Plus className="w-4 h-4 mr-2" />
+                          Tambah Pengeluaran
+                        </Button>
+                      )}
+                      {isEditing ? (
+                        <>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={handleCancelEdit}
+                            disabled={isSaving}
+                          >
+                            Batal
+                          </Button>
+                          <Button
+                            size="sm"
+                            onClick={handleSaveExpenses}
+                            disabled={isSaving}
+                          >
+                            <Edit2 className="w-4 h-4 mr-1" />
+                            {isSaving ? 'Menyimpan...' : 'Simpan'}
+                          </Button>
+                        </>
+                      ) : (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setIsEditing(true)}
+                        >
+                          <Edit2 className="w-4 h-4 mr-1" />
+                          Edit
+                        </Button>
+                      )}
+                    </div>
                   </div>
                   
                   {expensesLoading ? (
@@ -341,35 +422,15 @@ const ApprovalClaimDinasDetailModal: React.FC<ApprovalClaimDinasDetailModalProps
                     <div className="space-y-3">
                       {expenses.length > 0 ? (
                         expenses.map((expense, index) => (
-                          <div key={expense.id} className="p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                            <div className="grid grid-cols-4 gap-4 text-sm">
-                              <div>
-                                <p className="text-gray-500 dark:text-gray-400">Tanggal</p>
-                                <p className="font-medium text-gray-900 dark:text-white">{formatDate(expense.expense_date)}</p>
-                              </div>
-                              <div>
-                                <p className="text-gray-500 dark:text-gray-400">Jenis</p>
-                                <p className="font-medium text-gray-900 dark:text-white">{getExpenseTypeLabel(expense.expense_type)}</p>
-                              </div>
-                              <div>
-                                <p className="text-gray-500 dark:text-gray-400">Keterangan</p>
-                                <p className="font-medium text-gray-900 dark:text-white">{expense.description || '-'}</p>
-                              </div>
-                              <div>
-                                <p className="text-gray-500 dark:text-gray-400">Jumlah</p>
-                                {isEditing ? (
-                                  <Input
-                                    type="text"
-                                    value={expense.expense_amount.toLocaleString('id-ID')}
-                                    onChange={(e) => handleAmountChange(index, e.target.value)}
-                                    className="h-8 text-sm"
-                                  />
-                                ) : (
-                                  <p className="font-medium text-gray-900 dark:text-white">{formatCurrency(expense.expense_amount)}</p>
-                                )}
-                              </div>
-                            </div>
-                          </div>
+                          <ExpenseDetail 
+                            key={expense.id || `new-${index}`}
+                            index={index} 
+                            disabled={!isEditing} 
+                            expense={expense} 
+                            updateExp={handleExpenseUpdate}
+                            deleteExp={handleDeleteExpense}
+                            onlyOne={expenses.length <= 1}
+                          />
                         ))
                       ) : (
                         <p className="text-gray-500 dark:text-gray-400 text-sm">Tidak ada detail pengeluaran</p>
@@ -378,7 +439,7 @@ const ApprovalClaimDinasDetailModal: React.FC<ApprovalClaimDinasDetailModalProps
                   )}
                 </div>
 
-                {/* Summary */}
+                {/* Summary - Uses liveTotal for real-time updates */}
                 <div className="grid grid-cols-3 gap-4 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
                   <div className="text-center">
                     <p className="text-sm text-gray-500 dark:text-gray-400">Cash Advance</p>
@@ -386,7 +447,7 @@ const ApprovalClaimDinasDetailModal: React.FC<ApprovalClaimDinasDetailModalProps
                   </div>
                   <div className="text-center">
                     <p className="text-sm text-gray-500 dark:text-gray-400">Total Klaim</p>
-                    <p className="text-lg font-semibold text-purple-600">{formatCurrency(displayTotal)}</p>
+                    <p className="text-lg font-semibold text-purple-600">{formatCurrency(liveTotal)}</p>
                   </div>
                   <div className="text-center">
                     <p className="text-sm text-gray-500 dark:text-gray-400">Sisa/Pengembalian</p>

@@ -5,6 +5,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useTripClaimExpenses } from '@/hooks/useTripClaims';
 import UserAvatarCell from './AvatarCell';
+import { ExpenseDetail } from './ExpenseDetail';
 
 interface ClaimDinasDetailModalProps {
   isOpen: boolean;
@@ -53,16 +54,6 @@ const ClaimDinasDetailModal: React.FC<ClaimDinasDetailModalProps> = ({ isOpen, o
     return <Badge className={config.class}>{config.label}</Badge>;
   };
 
-  const getExpenseTypeLabel = (type: string) => {
-    const types: Record<string, string> = {
-      'transport': 'Transportasi',
-      'accommodation': 'Akomodasi',
-      'meals': 'Makan',
-      'other': 'Lainnya'
-    };
-    return types[type] || type;
-  };
-
   if (isLoading) {
     return <div>Loading...</div>;
   }
@@ -71,6 +62,14 @@ const ClaimDinasDetailModal: React.FC<ClaimDinasDetailModalProps> = ({ isOpen, o
     console.error('Error fetching claim expenses:', error);
     return <div>Error loading claim expenses. Please try again later.</div>;
   }
+
+  // Convert claimExpenses to format expected by ExpenseDetail
+  const expensesForDisplay = claimExpenses?.map(exp => ({
+    date: exp.expense_date ? new Date(exp.expense_date) : undefined,
+    type: exp.expense_type || '',
+    description: exp.description || '',
+    amount: exp.expense_amount || 0
+  })) || [];
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
@@ -195,40 +194,19 @@ const ClaimDinasDetailModal: React.FC<ClaimDinasDetailModalProps> = ({ isOpen, o
                 </div>
               )}
               
-              {/* Detail Pengeluaran - Display Only */}
+              {/* Detail Pengeluaran - Display Only using ExpenseDetail */}
               <div className="mb-4">
                 <h3 className="font-medium text-gray-900 dark:text-white mb-4">Detail Pengeluaran</h3>
                 <div className="space-y-3">
-                  {claimExpenses && claimExpenses.length > 0 ? (
-                    claimExpenses.map((expense: any, index: number) => (
-                      <div key={expense.id || index} className="p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                        <div className="grid grid-cols-4 gap-4 text-sm">
-                          <div>
-                            <p className="text-gray-500 dark:text-gray-400">Tanggal</p>
-                            <p className="font-medium text-gray-900 dark:text-white">
-                              {expense.expense_date ? formatDate(expense.expense_date) : 'N/A'}
-                            </p>
-                          </div>
-                          <div>
-                            <p className="text-gray-500 dark:text-gray-400">Jenis</p>
-                            <p className="font-medium text-gray-900 dark:text-white">
-                              {getExpenseTypeLabel(expense.expense_type || '')}
-                            </p>
-                          </div>
-                          <div>
-                            <p className="text-gray-500 dark:text-gray-400">Keterangan</p>
-                            <p className="font-medium text-gray-900 dark:text-white">
-                              {expense.description || '-'}
-                            </p>
-                          </div>
-                          <div>
-                            <p className="text-gray-500 dark:text-gray-400">Jumlah</p>
-                            <p className="font-medium text-gray-900 dark:text-white">
-                              {formatCurrency(expense.expense_amount || 0)}
-                            </p>
-                          </div>
-                        </div>
-                      </div>
+                  {expensesForDisplay.length > 0 ? (
+                    expensesForDisplay.map((expense, index) => (
+                      <ExpenseDetail 
+                        key={index}
+                        index={index} 
+                        disabled={true} 
+                        expense={expense} 
+                        onlyOne={true}
+                      />
                     ))
                   ) : (
                     <p className="text-gray-500 dark:text-gray-400 text-sm">Tidak ada detail pengeluaran</p>
