@@ -695,19 +695,6 @@ const PerjalananDinasForm = ({ isOpen, onClose, mode, data }: PerjalananDinasFor
                       </div>
                     </div>
                   )}
-                  {approvalHierarchy.hr_manager && (
-                    <div className="p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                      <p className="text-sm text-gray-600 dark:text-gray-400">HR Manager</p>
-                      <div className="flex items-center gap-2 mt-2">
-                        <UserAvatarCell employeeUsed={approvalHierarchy.hr_manager} classname="w-8 h-8">
-                          <div>
-                            <p className="font-medium">{approvalHierarchy.hr_manager.name}</p>
-                            <p className="text-sm text-gray-500">{approvalHierarchy.hr_manager.position}</p>
-                          </div>
-                        </UserAvatarCell>
-                      </div>
-                    </div>
-                  )}
                   {approvalHierarchy.spv_ga && (
                     <div className="p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
                       <p className="text-sm text-gray-600 dark:text-gray-400">SPV GA</p>
@@ -716,6 +703,19 @@ const PerjalananDinasForm = ({ isOpen, onClose, mode, data }: PerjalananDinasFor
                           <div>
                             <p className="font-medium">{approvalHierarchy.spv_ga.name}</p>
                             <p className="text-sm text-gray-500">{approvalHierarchy.spv_ga.position}</p>
+                          </div>
+                        </UserAvatarCell>
+                      </div>
+                    </div>
+                  )}
+                  {approvalHierarchy.hr_manager && (
+                    <div className="p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                      <p className="text-sm text-gray-600 dark:text-gray-400">HR Manager</p>
+                      <div className="flex items-center gap-2 mt-2">
+                        <UserAvatarCell employeeUsed={approvalHierarchy.hr_manager} classname="w-8 h-8">
+                          <div>
+                            <p className="font-medium">{approvalHierarchy.hr_manager.name}</p>
+                            <p className="text-sm text-gray-500">{approvalHierarchy.hr_manager.position}</p>
                           </div>
                         </UserAvatarCell>
                       </div>

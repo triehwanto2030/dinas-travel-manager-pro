@@ -90,7 +90,7 @@ const ClaimDinasForm: React.FC<ClaimDinasFormProps> = ({ isOpen, onClose, tripDa
     if (!start || !end) return '0 hari';
     const startDate = new Date(start);
     const endDate = new Date(end);
-    const diffTime = Math.abs(endDate.getTime() - startDate.getTime());
+    const diffTime = Math.abs(endDate.getTime() - startDate.getTime()) + 1;
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
     return `${diffDays} hari`;
   }

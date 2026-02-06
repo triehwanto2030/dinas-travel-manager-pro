@@ -170,8 +170,8 @@ const LineApproval = () => {
                 <TableRow>
                   <TableHead>Nama Perusahaan</TableHead>
                   <TableHead>Staff GA</TableHead>
-                  <TableHead>HR Manager</TableHead>
                   <TableHead>SPV GA</TableHead>
+                  <TableHead>HR Manager</TableHead>
                   <TableHead>BOD</TableHead>
                   <TableHead>Staff FA</TableHead>
                   <TableHead>Aksi</TableHead>
