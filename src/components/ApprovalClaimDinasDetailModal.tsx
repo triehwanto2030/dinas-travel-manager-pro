@@ -11,6 +11,7 @@ import { ExpenseDetail } from './ExpenseDetail';
 import { useTripClaimExpenses, useUpdateTripClaim, useUpdateTripClaimExpenses, useCreateTripClaimExpense, useDeleteTripClaimExpenses } from '@/hooks/useTripClaims';
 import { useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
+import { format } from 'date-fns';
 
 interface TripClaim {
   id: string;
@@ -59,16 +60,12 @@ interface ApprovalClaimDinasDetailModalProps {
   isOpen: boolean;
   onClose: () => void;
   claim: TripClaim | null;
-  onApprove?: (claimId: string) => void;
-  onReject?: (claimId: string, reason: string) => void;
 }
 
 const ApprovalClaimDinasDetailModal: React.FC<ApprovalClaimDinasDetailModalProps> = ({
   isOpen,
   onClose,
-  claim,
-  onApprove,
-  onReject
+  claim
 }) => {
   const queryClient = useQueryClient();
   const { toast } = useToast();
@@ -82,6 +79,8 @@ const ApprovalClaimDinasDetailModal: React.FC<ApprovalClaimDinasDetailModalProps
   const [isEditing, setIsEditing] = useState(false);
   const [isRejectDialogOpen, setIsRejectDialogOpen] = useState(false);
   const [rejectReason, setRejectReason] = useState('');
+  const [editExpenses, setEditExpenses] = useState<boolean>(false);
+  const [deletedExpenseIds, setDeletedExpenseIds] = useState<string[]>([]);
 
   // Initialize expenses from claimExpenses
   useEffect(() => {
@@ -141,13 +140,18 @@ const ApprovalClaimDinasDetailModal: React.FC<ApprovalClaimDinasDetailModalProps
   };
 
   const handleExpenseUpdate = (index: number, field: string, value: any) => {
+    console.log('Updating expense at index', index, 'field', field, 'to value', value);
     const newExpenses = [...expenses];
     newExpenses[index] = { ...newExpenses[index], [field]: value };
     setExpenses(newExpenses);
   };
 
   const handleDeleteExpense = (index: number) => {
-    setExpenses(expenses.filter((_, i) => i !== index));
+    const expenseToDelete = expenses[index];
+    if (expenseToDelete.id && !expenseToDelete.isNew) {
+      setDeletedExpenseIds([...deletedExpenseIds, expenseToDelete.id]);
+      setExpenses(expenses.filter((_, i) => i !== index));
+    }
   };
 
   const handleAddExpense = () => {
@@ -165,6 +169,7 @@ const ApprovalClaimDinasDetailModal: React.FC<ApprovalClaimDinasDetailModalProps
       // Handle existing expenses (update)
       const existingExpenses = expenses.filter(exp => exp.id && !exp.isNew);
       for (const expense of existingExpenses) {
+        console.log('Updating existing expense:', expense);
         await updateTripClaimExpenses.mutateAsync({
           id: expense.id!,
           expense_amount: expense.amount,
@@ -193,11 +198,19 @@ const ApprovalClaimDinasDetailModal: React.FC<ApprovalClaimDinasDetailModalProps
         total_amount: liveTotal
       });
 
+      // Handle deleted expenses
+      if (deletedExpenseIds.length > 0) {
+        for (const expId of deletedExpenseIds) {
+          deleteTripClaimExpenses.mutate(expId);
+        }
+      }
+
       queryClient.invalidateQueries({ queryKey: ['trip_claims'] });
       queryClient.invalidateQueries({ queryKey: ['claim_expenses', claim.id] });
       
       toast({ title: "Berhasil!", description: "Data pengeluaran berhasil disimpan" });
       setIsEditing(false);
+      setEditExpenses(false);
     } catch (error) {
       console.error('Error saving expenses:', error);
       toast({ title: "Error!", description: "Gagal menyimpan data pengeluaran", variant: "destructive" });
@@ -217,6 +230,8 @@ const ApprovalClaimDinasDetailModal: React.FC<ApprovalClaimDinasDetailModalProps
       })));
     }
     setIsEditing(false);
+    setEditExpenses(false);
+    setDeletedExpenseIds([]);
   };
 
   const handleApproveClick = async () => {
@@ -248,6 +263,13 @@ const ApprovalClaimDinasDetailModal: React.FC<ApprovalClaimDinasDetailModalProps
   };
 
   const isSaving = updateTripClaimExpenses.isPending || updateTripClaim.isPending || createTripClaimExpense.isPending;
+  
+  const formatLocalDate = (date: Date) => {
+    const year = date.getFullYear();
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const day = date.getDate().toString().padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
 
   return (
     <>
@@ -407,7 +429,7 @@ const ApprovalClaimDinasDetailModal: React.FC<ApprovalClaimDinasDetailModalProps
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => setIsEditing(true)}
+                          onClick={() => {setIsEditing(true); setEditExpenses(true);}}
                         >
                           <Edit2 className="w-4 h-4 mr-1" />
                           Edit
@@ -463,13 +485,13 @@ const ApprovalClaimDinasDetailModal: React.FC<ApprovalClaimDinasDetailModalProps
 
           {/* Footer with Approve/Reject buttons */}
           <div className="p-6 border-t flex justify-between">
-            <Button variant="outline" onClick={onClose}>Tutup</Button>
+            <Button variant="outline" onClick={onClose} disabled={editExpenses}>Tutup</Button>
             {claim.status === 'Submitted' && (
               <div className="flex gap-2">
-                <Button variant="destructive" onClick={() => setIsRejectDialogOpen(true)} disabled={updateTripClaim.isPending}>
+                <Button variant="destructive" onClick={() => setIsRejectDialogOpen(true)} disabled={updateTripClaim.isPending || editExpenses}>
                   Tolak
                 </Button>
-                <Button onClick={handleApproveClick} disabled={updateTripClaim.isPending} className="bg-green-600 hover:bg-green-700">
+                <Button onClick={handleApproveClick} disabled={updateTripClaim.isPending || editExpenses} className="bg-green-600 hover:bg-green-700">
                   {updateTripClaim.isPending ? 'Menyetujui...' : 'Setuju'}
                 </Button>
               </div>

@@ -26,6 +26,7 @@ export interface BusinessTripFormData {
   cost_center: string;
   department: string;
   notes?: string;
+  rejection_reason?: string;
 }
 
 export const useBusinessTrips = () => {
@@ -127,6 +128,7 @@ export const useUpdateBusinessTrip = () => {
       if (updates.accommodation) updateData.accommodation = updates.accommodation;
       if (updates.transportation) updateData.transportation = updates.transportation;
       if (updates.notes) updateData.notes = updates.notes;
+      if (updates.rejection_reason) updateData.rejection_reason = updates.rejection_reason;
 
       const { data, error } = await supabase
         .from('business_trips')
