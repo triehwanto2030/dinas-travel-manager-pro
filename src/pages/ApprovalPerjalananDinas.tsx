@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Search, Eye, Check, X, Calendar, MapPin, User, Building } from 'lucide-react';
+import { Search, Eye, Check, X, Calendar } from 'lucide-react';
 import Header from '@/components/Header';
 import Sidebar from '@/components/Sidebar';
 import Footer from '@/components/Footer';
@@ -49,54 +49,14 @@ const ApprovalPerjalananDinas = () => {
   };
 
 
-  const handleApprove = async (item: any) => {
-    try {
-      console.log('Approving trip:', item.id);
-      await updateBusinessTrip.mutateAsync({
-        id: item.id,
-        status: 'Approved'
-      });
-      
-      toast({
-        title: "Berhasil!",
-        description: "Perjalanan dinas telah disetujui",
-      });
-    } catch (error) {
-      console.error('Error approving trip:', error);
-      toast({
-        title: "Error!",
-        description: "Gagal menyetujui perjalanan dinas",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const handleReject = async (item: any) => {
-    try {
-      console.log('Rejecting trip:', item.id);
-      await updateBusinessTrip.mutateAsync({
-        id: item.id,
-        status: 'Rejected'
-      });
-      
-      toast({
-        title: "Berhasil!",
-        description: "Perjalanan dinas telah ditolak",
-        variant: "destructive",
-      });
-    } catch (error) {
-      console.error('Error rejecting trip:', error);
-      toast({
-        title: "Error!",
-        description: "Gagal menolak perjalanan dinas",
-        variant: "destructive",
-      });
-    }
-  };
-
   const handleView = (item: any) => {
     setSelectedTrip(item);
     setDetailModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setDetailModalOpen(false);
+    setSelectedTrip(null);
   };
 
   // Filter business trips based on search term, status, and department
@@ -348,28 +308,6 @@ const ApprovalPerjalananDinas = () => {
                           >
                             <Eye className="w-4 h-4" />
                           </Button>
-                          {item.status === 'Submitted' && (
-                            <>
-                              <Button 
-                                variant="ghost" 
-                                size="sm" 
-                                className="p-2 text-green-600 hover:text-green-800"
-                                onClick={() => handleApprove(item)}
-                                title="Setujui"
-                              >
-                                <Check className="w-4 h-4" />
-                              </Button>
-                              <Button 
-                                variant="ghost" 
-                                size="sm" 
-                                className="p-2 text-red-600 hover:text-red-800"
-                                onClick={() => handleReject(item)}
-                                title="Tolak"
-                              >
-                                <X className="w-4 h-4" />
-                              </Button>
-                            </>
-                          )}
                         </div>
                       </TableCell>
                     </TableRow>
@@ -394,10 +332,7 @@ const ApprovalPerjalananDinas = () => {
       {/* Detail Modal */}
       <ApprovalPerjalananDinasDetailModal
         isOpen={detailModalOpen}
-        onClose={() => {
-          setDetailModalOpen(false);
-          setSelectedTrip(null);
-        }}
+        onClose={handleCloseModal}
         trip={selectedTrip}
       />
 
