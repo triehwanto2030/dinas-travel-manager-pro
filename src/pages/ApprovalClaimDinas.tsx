@@ -283,7 +283,11 @@ const ApprovalClaimDinas = () => {
                             <UserAvatarCell employeeUsed={claim.employees} classname="w-10 h-10">
                               <div>
                                 <p className="font-medium text-gray-900 dark:text-white">{claim.employees.name}</p>
-                                <p className="text-sm text-gray-500 dark:text-gray-400">ID: {claim.employees.employee_id}</p>
+                                <p className="text-sm text-gray-500 dark:text-gray-400">{claim.employees.employee_id}
+                                  <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs ml-2">
+                                    {claim.employees?.grade || 'N/A'}
+                                  </span>
+                                </p>
                               </div>
                             </UserAvatarCell>
                           </div>
@@ -332,7 +336,7 @@ const ApprovalClaimDinas = () => {
                             >
                               <Eye className="w-4 h-4" />
                             </Button>
-                            <Button 
+                            {/* <Button 
                               variant="ghost" 
                               size="sm" 
                               className="p-2 text-green-600 hover:text-green-800"
@@ -349,7 +353,7 @@ const ApprovalClaimDinas = () => {
                               disabled={updateTripClaim.isPending}
                             >
                               <X className="w-4 h-4" />
-                            </Button>
+                            </Button> */}
                           </div>
                         </TableCell>
                       </TableRow>
