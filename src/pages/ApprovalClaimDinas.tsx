@@ -336,24 +336,6 @@ const ApprovalClaimDinas = () => {
                             >
                               <Eye className="w-4 h-4" />
                             </Button>
-                            {/* <Button 
-                              variant="ghost" 
-                              size="sm" 
-                              className="p-2 text-green-600 hover:text-green-800"
-                              onClick={() => handleApprove(claim.id)}
-                              disabled={updateTripClaim.isPending}
-                            >
-                              <Check className="w-4 h-4" />
-                            </Button>
-                            <Button 
-                              variant="ghost" 
-                              size="sm" 
-                              className="p-2 text-red-600 hover:text-red-800"
-                              onClick={() => openRejectDialog(claim.id)}
-                              disabled={updateTripClaim.isPending}
-                            >
-                              <X className="w-4 h-4" />
-                            </Button> */}
                           </div>
                         </TableCell>
                       </TableRow>
