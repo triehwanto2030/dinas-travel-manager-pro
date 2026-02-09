@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Search, Plus, Eye, Edit, Trash2, Download, Upload, Filter, TrendingDown, TrendingUp, DollarSign } from 'lucide-react';
+import { Search, Plus, Eye, Edit, Trash2, Download, Upload, Filter, TrendingDown, TrendingUp, Printer } from 'lucide-react';
 import ClaimDinasDetailModal from '@/components/ClaimDinasDetailModal';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -281,8 +281,8 @@ const ClaimDinas = () => {
                             >
                               <Eye className="w-4 h-4" />
                             </Button>
-                            <Button variant="ghost" size="sm" className="p-2 h-8 w-8">
-                              <Edit className="w-4 h-4" />
+                            <Button variant="ghost" size="sm" className={claim.status === 'Approved' ? 'p-2 h-8 w-8 text-blue-600 hover:text-blue-800' : 'p-2 h-8 w-8'}>
+                              {claim.status === 'Approved' ? <Printer className="w-4 h-4" /> : <Edit className="w-4 h-4" />}
                             </Button>
                             <Button variant="ghost" size="sm" className="p-2 h-8 w-8 text-red-600 hover:text-red-800">
                               <Trash2 className="w-4 h-4" />

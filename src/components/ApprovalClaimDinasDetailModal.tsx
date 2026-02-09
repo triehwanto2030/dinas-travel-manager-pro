@@ -320,6 +320,14 @@ const ApprovalClaimDinasDetailModal: React.FC<ApprovalClaimDinasDetailModalProps
                       <p className="text-gray-500 dark:text-gray-400">Departemen:</p>
                       <p className="font-medium text-gray-900 dark:text-white">{employee.department || 'N/A'}</p>
                     </div>
+                    <div>
+                      <p className="text-gray-500 dark:text-gray-400">Perusahaan:</p>
+                      <p className="text-gray-500 dark:text-gray-400">{employee.position || 'N/A'}</p>
+                    </div>
+                    <div>
+                      <p className="text-gray-500 dark:text-gray-400">Cost Center:</p>
+                      <p className="font-medium text-gray-900 dark:text-white">{employee.position || 'N/A'}</p>
+                    </div>
                   </div>
                 </CardContent>
               </Card>

@@ -140,14 +140,14 @@ const ClaimDinasForm: React.FC<ClaimDinasFormProps> = ({ isOpen, onClose, tripDa
       // Validate expenses
       const validExpenses = expenses.filter(exp => exp.type && exp.description && exp.amount > 0);
       
-      if (validExpenses.length === 0) {
-        toast({
-          title: "Error!",
-          description: "Minimal harus ada satu pengeluaran yang valid",
-          variant: "destructive",
-        });
-        return;
-      }
+      // if (validExpenses.length === 0) {
+      //   toast({
+      //     title: "Error!",
+      //     description: "Minimal harus ada satu pengeluaran yang valid",
+      //     variant: "destructive",
+      //   });
+      //   return;
+      // }
 
       // Create claim data with proper validation
       const claimData = {
@@ -163,16 +163,18 @@ const ClaimDinasForm: React.FC<ClaimDinasFormProps> = ({ isOpen, onClose, tripDa
       const result = await createTripClaim.mutateAsync(claimData);
       console.log('Claim submission result:', result);
 
-      const claimExpenses = expenses.map(exp => ({
-        expense_date: exp.date ? exp.date.toISOString().split('T')[0] : null,
-        expense_type: exp.type,
-        description: exp.description,
-        expense_amount: exp.amount,
-        trip_claim_id: result.id
-      }));
+      if (validExpenses.length > 0) {
+        const claimExpenses = expenses.map(exp => ({
+          expense_date: exp.date ? exp.date.toISOString().split('T')[0] : null,
+          expense_type: exp.type,
+          description: exp.description,
+          expense_amount: exp.amount,
+          trip_claim_id: result.id
+        }));
 
-      const expenseResult = await createExpenses.mutateAsync(claimExpenses);
-      console.log('Claim submission expense result:', expenseResult);
+        const expenseResult = await createExpenses.mutateAsync(claimExpenses);
+        console.log('Claim submission expense result:', expenseResult);
+      }
 
       // Update business trip status to "Completed"
       await updateBusinessTrip.mutateAsync({
