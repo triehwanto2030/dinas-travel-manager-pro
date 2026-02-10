@@ -115,7 +115,10 @@ const ClaimDinasPrintModal: React.FC<ClaimDinasPrintModalProps> = ({ isOpen, onC
             * { margin: 0; padding: 0; box-sizing: border-box; }
             body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color: #1a1a1a; padding: 24px; }
             .print-page { max-width: 800px; margin: 0 auto; }
-            .header { text-align: center; margin-bottom: 16px; border-bottom: 2px solid #1e3a5f; padding-bottom: 12px; }
+            .header { display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid #1e3a5f; padding-bottom: 12px; margin-bottom: 16px; }
+            .header-center { text-align: center; flex: 1; }
+            .header-logo { width: 100px; }
+            .header-logo img { max-width: 100%; height: auto; }
             .header h1 { font-size: 18px; font-weight: 700; color: #1e3a5f; }
             .header p { font-size: 13px; color: #1e3a5f; }
             .claim-number { position: absolute; right: 24px; top: 24px; font-size: 13px; font-weight: 600; text-decoration: underline; }
