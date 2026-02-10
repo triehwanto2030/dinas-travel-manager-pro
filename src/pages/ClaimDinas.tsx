@@ -324,6 +324,12 @@ const ClaimDinas = () => {
         onClose={() => setDetailModalOpen(false)}
         claimData={selectedClaim}
       />
+
+      <ClaimDinasPrintModal
+        isOpen={printModalOpen}
+        onClose={() => setPrintModalOpen(false)}
+        claimData={selectedClaim}
+      />
     </div>
   );
 };
