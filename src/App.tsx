@@ -5,6 +5,8 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ThemeProvider } from "@/hooks/useTheme";
+import { AuthProvider } from "@/contexts/AuthContext";
+import ProtectedRoute from "@/components/ProtectedRoute";
 import Dashboard from "./pages/Dashboard";
 import Karyawan from "./pages/Karyawan";
 import ManajemenKaryawan from "./pages/ManajemenKaryawan";
@@ -16,6 +18,7 @@ import ApprovalClaimDinas from "./pages/ApprovalClaimDinas";
 import ManajemenUser from "./pages/ManajemenUser";
 import RoleManajemen from "./pages/RoleManajemen";
 import PengaturanAplikasi from "./pages/PengaturanAplikasi";
+import Login from "./pages/Login";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -23,27 +26,30 @@ const queryClient = new QueryClient();
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <ThemeProvider>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<Dashboard />} />
-            <Route path="/perjalanan-dinas" element={<PerjalananDinas />} />
-            <Route path="/approval-perjalanan-dinas" element={<ApprovalPerjalananDinas />} />
-            <Route path="/claim-dinas" element={<ClaimDinas />} />
-            <Route path="/approval-claim-dinas" element={<ApprovalClaimDinas />} />
-            <Route path="/karyawan" element={<Karyawan />} />
-            <Route path="/manajemen-karyawan" element={<ManajemenKaryawan />} />
-            <Route path="/approval" element={<LineApproval />} />
-            <Route path="/manajemen-user" element={<ManajemenUser />} />
-            <Route path="/role-manajemen" element={<RoleManajemen />} />
-            <Route path="/pengaturan-aplikasi" element={<PengaturanAplikasi />} />
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
-      </TooltipProvider>
+      <AuthProvider>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <Routes>
+              <Route path="/login" element={<Login />} />
+              <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+              <Route path="/perjalanan-dinas" element={<ProtectedRoute><PerjalananDinas /></ProtectedRoute>} />
+              <Route path="/approval-perjalanan-dinas" element={<ProtectedRoute><ApprovalPerjalananDinas /></ProtectedRoute>} />
+              <Route path="/claim-dinas" element={<ProtectedRoute><ClaimDinas /></ProtectedRoute>} />
+              <Route path="/approval-claim-dinas" element={<ProtectedRoute><ApprovalClaimDinas /></ProtectedRoute>} />
+              <Route path="/karyawan" element={<ProtectedRoute><Karyawan /></ProtectedRoute>} />
+              <Route path="/manajemen-karyawan" element={<ProtectedRoute><ManajemenKaryawan /></ProtectedRoute>} />
+              <Route path="/approval" element={<ProtectedRoute><LineApproval /></ProtectedRoute>} />
+              <Route path="/manajemen-user" element={<ProtectedRoute><ManajemenUser /></ProtectedRoute>} />
+              <Route path="/role-manajemen" element={<ProtectedRoute><RoleManajemen /></ProtectedRoute>} />
+              <Route path="/pengaturan-aplikasi" element={<ProtectedRoute><PengaturanAplikasi /></ProtectedRoute>} />
+              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </BrowserRouter>
+        </TooltipProvider>
+      </AuthProvider>
     </ThemeProvider>
   </QueryClientProvider>
 );
