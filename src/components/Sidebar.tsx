@@ -1,9 +1,10 @@
 
 import React from 'react';
-import { Home, Plane, Users, Building, ChevronDown, ChevronRight, FileText, UserCheck, Settings, Circle, CheckSquare, Receipt } from 'lucide-react';
+import { Home, Plane, Users, Building, ChevronDown, ChevronRight, FileText, UserCheck, Settings, Circle, CheckSquare, Receipt, LogOut } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { useState } from 'react';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface SidebarProps {
   isOpen: boolean;
@@ -90,8 +91,20 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle }) => {
       label: 'Pengaturan Aplikasi',
       path: '/pengaturan-aplikasi',
       isActive: location.pathname === '/pengaturan-aplikasi'
+    },
+    {
+      icon: LogOut,
+      label: 'Keluar',
+      path: '/login',
+      clicked: () => doLogout()
     }
   ];
+
+  const doLogout = () => {
+    const { logout } = useAuth();
+
+    logout();
+  };
 
   return (
     <>
@@ -220,7 +233,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle }) => {
                             ? 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-200'
                             : 'text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700'
                         }`}
-                        onClick={() => window.innerWidth < 1024 && onToggle()}
+                        onClick={subItem.clicked ? subItem.clicked : () => window.innerWidth < 1024 && onToggle()}
                       >
                         <subItem.icon className="w-4 h-4 mr-3" />
                         {subItem.label}

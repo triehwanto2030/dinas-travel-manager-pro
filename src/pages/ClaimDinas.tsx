@@ -283,6 +283,17 @@ const ClaimDinas = () => {
                             >
                               <Eye className="w-4 h-4" />
                             </Button>
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              className="p-2 h-8 w-8"
+                              title="Edit"
+                            >
+                              <Edit className="w-4 h-4" />
+                            </Button>
+                            <Button variant="ghost" size="sm" className="p-2 h-8 w-8 text-red-600 hover:text-red-800">
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
                             {claim.status === 'Approved' && (
                               <Button 
                                 variant="ghost" 
@@ -294,9 +305,6 @@ const ClaimDinas = () => {
                                 <Printer className="w-4 h-4" />
                               </Button>
                             )}
-                            <Button variant="ghost" size="sm" className="p-2 h-8 w-8 text-red-600 hover:text-red-800">
-                              <Trash2 className="w-4 h-4" />
-                            </Button>
                           </div>
                         </TableCell>
                       </TableRow>
