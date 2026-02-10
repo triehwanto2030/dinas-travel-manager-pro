@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { Search, Plus, Eye, Edit, Trash2, Download, Upload, Filter, TrendingDown, TrendingUp, Printer } from 'lucide-react';
 import ClaimDinasDetailModal from '@/components/ClaimDinasDetailModal';
+import ClaimDinasPrintModal from '@/components/ClaimDinasPrintModal';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -16,6 +17,7 @@ const ClaimDinas = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [detailModalOpen, setDetailModalOpen] = useState(false);
+  const [printModalOpen, setPrintModalOpen] = useState(false);
   const [selectedClaim, setSelectedClaim] = useState<any>(null);
 
   const { data: claims = [], isLoading } = useTripClaims();
@@ -281,9 +283,17 @@ const ClaimDinas = () => {
                             >
                               <Eye className="w-4 h-4" />
                             </Button>
-                            <Button variant="ghost" size="sm" className={claim.status === 'Approved' ? 'p-2 h-8 w-8 text-blue-600 hover:text-blue-800' : 'p-2 h-8 w-8'}>
-                              {claim.status === 'Approved' ? <Printer className="w-4 h-4" /> : <Edit className="w-4 h-4" />}
-                            </Button>
+                            {claim.status === 'Approved' && (
+                              <Button 
+                                variant="ghost" 
+                                size="sm" 
+                                className="p-2 h-8 w-8 text-blue-600 hover:text-blue-800"
+                                onClick={() => { setSelectedClaim(claim); setPrintModalOpen(true); }}
+                                title="Cetak Claim"
+                              >
+                                <Printer className="w-4 h-4" />
+                              </Button>
+                            )}
                             <Button variant="ghost" size="sm" className="p-2 h-8 w-8 text-red-600 hover:text-red-800">
                               <Trash2 className="w-4 h-4" />
                             </Button>
@@ -313,6 +323,12 @@ const ClaimDinas = () => {
       <ClaimDinasDetailModal
         isOpen={detailModalOpen}
         onClose={() => setDetailModalOpen(false)}
+        claimData={selectedClaim}
+      />
+
+      <ClaimDinasPrintModal
+        isOpen={printModalOpen}
+        onClose={() => setPrintModalOpen(false)}
         claimData={selectedClaim}
       />
     </div>
