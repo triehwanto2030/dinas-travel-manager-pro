@@ -183,12 +183,15 @@ const ClaimDinasPrintModal: React.FC<ClaimDinasPrintModalProps> = ({ isOpen, onC
         <div className="flex-1 overflow-y-auto p-6 bg-gray-100 dark:bg-gray-900">
           <div ref={printRef} className="bg-white max-w-[800px] mx-auto p-8 shadow-lg" style={{ fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif", color: '#1a1a1a' }}>
             {/* Header */}
-            <div style={{ position: 'relative' }}>
-              <div style={{ textAlign: 'center', borderBottom: '2px solid #1e3a5f', paddingBottom: '12px', marginBottom: '16px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '2px solid #1e3a5f', paddingBottom: '12px', marginBottom: '16px' }}>
+              <div style={{ width: '100px' }}>
+                <img src={pjmLogo} alt="PJM Group" style={{ maxWidth: '100%', height: 'auto' }} />
+              </div>
+              <div style={{ textAlign: 'center', flex: 1 }}>
                 <h1 style={{ fontSize: '18px', fontWeight: 700, color: '#1e3a5f' }}>{companyName}</h1>
                 <p style={{ fontSize: '13px', color: '#1e3a5f' }}>Claim Perjalanan Dinas</p>
               </div>
-              <div style={{ position: 'absolute', right: 0, top: 0, fontSize: '13px', fontWeight: 600, textDecoration: 'underline' }}>
+              <div style={{ fontSize: '13px', fontWeight: 600, textDecoration: 'underline', width: '100px', textAlign: 'right' }}>
                 {claimData.claim_number || `CL-${new Date(claimData.created_at).getTime().toString().slice(-6)}`}
               </div>
             </div>
