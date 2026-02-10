@@ -16,6 +16,7 @@ const ClaimDinas = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [detailModalOpen, setDetailModalOpen] = useState(false);
+  const [printModalOpen, setPrintModalOpen] = useState(false);
   const [selectedClaim, setSelectedClaim] = useState<any>(null);
 
   const { data: claims = [], isLoading } = useTripClaims();
