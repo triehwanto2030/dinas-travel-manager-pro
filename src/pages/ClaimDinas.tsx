@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { Search, Plus, Eye, Edit, Trash2, Download, Upload, Filter, TrendingDown, TrendingUp, Printer } from 'lucide-react';
 import ClaimDinasDetailModal from '@/components/ClaimDinasDetailModal';
+import ClaimDinasPrintModal from '@/components/ClaimDinasPrintModal';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
