@@ -3,6 +3,7 @@ import { X, Printer, Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useTripClaimExpenses } from '@/hooks/useTripClaims';
+import pjmLogo from '@/assets/pjm-logo.png';
 import { useLineApprovals } from '@/hooks/useLineApprovals';
 import { useCompanies } from '@/hooks/useCompanies';
 
