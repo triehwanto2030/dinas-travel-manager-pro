@@ -22,11 +22,11 @@ serve(async (req: Request) => {
   }
 
   try {
-    const { username, password } = await req.json();
+    const { email, password } = await req.json();
 
-    if (!username || !password) {
+    if (!email || !password) {
       return new Response(
-        JSON.stringify({ error: "Username dan password wajib diisi" }),
+        JSON.stringify({ error: "Email dan password wajib diisi" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
@@ -38,12 +38,12 @@ serve(async (req: Request) => {
     const { data: user, error } = await supabase
       .from("users")
       .select("id, username, email, role, employee_id, is_active, password_hash")
-      .eq("username", username)
+      .eq("email", email)
       .maybeSingle();
 
     if (error || !user) {
       return new Response(
-        JSON.stringify({ error: "Username atau password salah" }),
+        JSON.stringify({ error: "Email atau password salah" }),
         { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
@@ -59,7 +59,7 @@ serve(async (req: Request) => {
 
     if (user.password_hash !== inputHash) {
       return new Response(
-        JSON.stringify({ error: "Username atau password salah" }),
+        JSON.stringify({ error: "Email atau password salah" }),
         { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }

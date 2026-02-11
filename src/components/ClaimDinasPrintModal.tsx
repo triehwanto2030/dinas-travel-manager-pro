@@ -234,7 +234,7 @@ const ClaimDinasPrintModal: React.FC<ClaimDinasPrintModalProps> = ({ isOpen, onC
                   </div>
                   <div>
                     <div style={{ color: '#6b7280', fontSize: '11px' }}>Cost Center:</div>
-                    <div style={{ fontWeight: 500 }}>{employee.department || 'N/A'}</div>
+                    <div style={{ fontWeight: 500 }}>{companyName}</div>
                   </div>
                 </div>
               </div>

@@ -9,6 +9,8 @@ import { Calendar, MapPin, User, Building, Plane, Hotel, DollarSign, FileText } 
 import UserAvatarCell from './AvatarCell';
 import { useUpdateBusinessTrip } from '@/hooks/useBusinessTrips';
 import { useToast } from '@/hooks/use-toast';
+import { useLineApprovals } from '@/hooks/useLineApprovals';
+import { useEmployees } from '@/hooks/useEmployees';
 
 interface BusinessTrip {
   id: string;
@@ -33,6 +35,8 @@ interface BusinessTrip {
     photo_url: string | null;
     email: string | null;
     phone: string | null;
+    company_id: string | null;
+    supervisor_id: string | null;
   } | null;
 }
 
@@ -51,6 +55,8 @@ const ApprovalPerjalananDinasDetailModal: React.FC<ApprovalPerjalananDinasDetail
   const [rejectReason, setRejectReason] = useState('');
   const updateBusinessTrip = useUpdateBusinessTrip();
   const { toast } = useToast();
+  const { data: lineApprovals = [] } = useLineApprovals();
+  const { data: allEmployees = [] } = useEmployees();
 
   if (!trip) return null;
 
@@ -278,6 +284,88 @@ const ApprovalPerjalananDinasDetailModal: React.FC<ApprovalPerjalananDinasDetail
                 </div>
               </div>
             )}
+
+            {/* Line Approval */}
+            {(() => {
+              const companyLineApproval = lineApprovals.find(la => la.company_id === trip.employees?.company_id);
+              const supervisor = trip.employees?.supervisor_id ? allEmployees.find(e => e.id === trip.employees?.supervisor_id) : null;
+              if (!companyLineApproval) return null;
+              return (
+                <div>
+                  <h3 className="text-sm font-semibold text-muted-foreground mb-3 flex items-center gap-2">
+                    <Building className="w-4 h-4" />
+                    Line Approval
+                  </h3>
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                    {supervisor && (
+                      <div className="p-3 bg-muted/30 rounded-lg">
+                        <p className="text-xs text-muted-foreground">Atasan</p>
+                        <div className="flex items-center gap-2 mt-1">
+                          <UserAvatarCell employeeUsed={supervisor} classname="w-8 h-8">
+                            <div>
+                              <p className="font-medium text-sm">{supervisor.name}</p>
+                              <p className="text-xs text-muted-foreground">{supervisor.position}</p>
+                            </div>
+                          </UserAvatarCell>
+                        </div>
+                      </div>
+                    )}
+                    {companyLineApproval.staff_ga && (
+                      <div className="p-3 bg-muted/30 rounded-lg">
+                        <p className="text-xs text-muted-foreground">Staff GA</p>
+                        <div className="flex items-center gap-2 mt-1">
+                          <UserAvatarCell employeeUsed={companyLineApproval.staff_ga} classname="w-8 h-8">
+                            <div>
+                              <p className="font-medium text-sm">{companyLineApproval.staff_ga.name}</p>
+                              <p className="text-xs text-muted-foreground">{companyLineApproval.staff_ga.position}</p>
+                            </div>
+                          </UserAvatarCell>
+                        </div>
+                      </div>
+                    )}
+                    {companyLineApproval.hr_manager && (
+                      <div className="p-3 bg-muted/30 rounded-lg">
+                        <p className="text-xs text-muted-foreground">HR Manager</p>
+                        <div className="flex items-center gap-2 mt-1">
+                          <UserAvatarCell employeeUsed={companyLineApproval.hr_manager} classname="w-8 h-8">
+                            <div>
+                              <p className="font-medium text-sm">{companyLineApproval.hr_manager.name}</p>
+                              <p className="text-xs text-muted-foreground">{companyLineApproval.hr_manager.position}</p>
+                            </div>
+                          </UserAvatarCell>
+                        </div>
+                      </div>
+                    )}
+                    {companyLineApproval.bod && (
+                      <div className="p-3 bg-muted/30 rounded-lg">
+                        <p className="text-xs text-muted-foreground">BOD</p>
+                        <div className="flex items-center gap-2 mt-1">
+                          <UserAvatarCell employeeUsed={companyLineApproval.bod} classname="w-8 h-8">
+                            <div>
+                              <p className="font-medium text-sm">{companyLineApproval.bod.name}</p>
+                              <p className="text-xs text-muted-foreground">{companyLineApproval.bod.position}</p>
+                            </div>
+                          </UserAvatarCell>
+                        </div>
+                      </div>
+                    )}
+                    {companyLineApproval.staff_fa && (
+                      <div className="p-3 bg-muted/30 rounded-lg">
+                        <p className="text-xs text-muted-foreground">Staff FA</p>
+                        <div className="flex items-center gap-2 mt-1">
+                          <UserAvatarCell employeeUsed={companyLineApproval.staff_fa} classname="w-8 h-8">
+                            <div>
+                              <p className="font-medium text-sm">{companyLineApproval.staff_fa.name}</p>
+                              <p className="text-xs text-muted-foreground">{companyLineApproval.staff_fa.position}</p>
+                            </div>
+                          </UserAvatarCell>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              );
+            })()}
           </div>
 
           {/* Footer with Approve/Reject buttons */}

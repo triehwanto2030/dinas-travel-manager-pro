@@ -12,6 +12,9 @@ import { useTripClaimExpenses, useUpdateTripClaim, useUpdateTripClaimExpenses, u
 import { useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
+import { useCompanies } from '@/hooks/useCompanies';
+import { useLineApprovals } from '@/hooks/useLineApprovals';
+import { useEmployees } from '@/hooks/useEmployees';
 
 interface TripClaim {
   id: string;
@@ -32,6 +35,8 @@ interface TripClaim {
     photo_url: string | null;
     email: string | null;
     phone: string | null;
+    company_id: string | null;
+    supervisor_id: string | null;
   };
   business_trips: {
     id: string;
@@ -81,6 +86,9 @@ const ApprovalClaimDinasDetailModal: React.FC<ApprovalClaimDinasDetailModalProps
   const [rejectReason, setRejectReason] = useState('');
   const [editExpenses, setEditExpenses] = useState<boolean>(false);
   const [deletedExpenseIds, setDeletedExpenseIds] = useState<string[]>([]);
+  const { data: companies = [] } = useCompanies();
+  const { data: lineApprovals = [] } = useLineApprovals();
+  const { data: employees = [] } = useEmployees();
 
   // Initialize expenses from claimExpenses
   useEffect(() => {
@@ -108,6 +116,13 @@ const ApprovalClaimDinasDetailModal: React.FC<ApprovalClaimDinasDetailModalProps
   const trip = claim.business_trips;
   const cashAdvance = trip.cash_advance || 0;
   const remaining = cashAdvance - liveTotal;
+
+  const companyObj = companies.find(c => c.id === employee.company_id);
+  const companyName = companyObj?.name || 'N/A';
+  const companyLineApproval = lineApprovals.find(la => la.company_id === employee.company_id);
+  
+  // Build approval hierarchy
+  const supervisor = employee.supervisor_id ? employees.find(e => e.id === employee.supervisor_id) : null;
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('id-ID', {
@@ -175,7 +190,7 @@ const ApprovalClaimDinasDetailModal: React.FC<ApprovalClaimDinasDetailModalProps
           expense_amount: expense.amount,
           expense_type: expense.type,
           description: expense.description,
-          expense_date: expense.date ? expense.date.toISOString().split('T')[0] : null
+          expense_date: expense.date ? formatLocalDate(expense.date) : null
         });
       }
 
@@ -183,7 +198,7 @@ const ApprovalClaimDinasDetailModal: React.FC<ApprovalClaimDinasDetailModalProps
       const newExpenses = expenses.filter(exp => exp.isNew);
       if (newExpenses.length > 0) {
         const newExpenseData = newExpenses.map(exp => ({
-          expense_date: exp.date ? exp.date.toISOString().split('T')[0] : null,
+          expense_date: exp.date ? formatLocalDate(exp.date) : null,
           expense_type: exp.type,
           description: exp.description,
           expense_amount: exp.amount,
@@ -322,11 +337,11 @@ const ApprovalClaimDinasDetailModal: React.FC<ApprovalClaimDinasDetailModalProps
                     </div>
                     <div>
                       <p className="text-gray-500 dark:text-gray-400">Perusahaan:</p>
-                      <p className="text-gray-500 dark:text-gray-400">{employee.position || 'N/A'}</p>
+                      <p className="font-medium text-gray-900 dark:text-white">{companyName}</p>
                     </div>
                     <div>
                       <p className="text-gray-500 dark:text-gray-400">Cost Center:</p>
-                      <p className="font-medium text-gray-900 dark:text-white">{employee.position || 'N/A'}</p>
+                      <p className="font-medium text-gray-900 dark:text-white">{companyName}</p>
                     </div>
                   </div>
                 </CardContent>
@@ -489,6 +504,82 @@ const ApprovalClaimDinasDetailModal: React.FC<ApprovalClaimDinasDetailModalProps
                 </div>
               </CardContent>
             </Card>
+
+            {/* Line Approval */}
+            {companyLineApproval && (
+              <Card>
+                <CardContent className="p-4">
+                  <h3 className="font-medium text-gray-900 dark:text-white mb-4">Line Approval</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
+                    {supervisor && (
+                      <div className="p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                        <p className="text-sm text-gray-600 dark:text-gray-400">Atasan</p>
+                        <div className="flex items-center gap-2 mt-2">
+                          <UserAvatarCell employeeUsed={supervisor} classname="w-8 h-8">
+                            <div>
+                              <p className="font-medium text-sm">{supervisor.name}</p>
+                              <p className="text-xs text-gray-500">{supervisor.position}</p>
+                            </div>
+                          </UserAvatarCell>
+                        </div>
+                      </div>
+                    )}
+                    {companyLineApproval.staff_ga && (
+                      <div className="p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                        <p className="text-sm text-gray-600 dark:text-gray-400">Staff GA</p>
+                        <div className="flex items-center gap-2 mt-2">
+                          <UserAvatarCell employeeUsed={companyLineApproval.staff_ga} classname="w-8 h-8">
+                            <div>
+                              <p className="font-medium text-sm">{companyLineApproval.staff_ga.name}</p>
+                              <p className="text-xs text-gray-500">{companyLineApproval.staff_ga.position}</p>
+                            </div>
+                          </UserAvatarCell>
+                        </div>
+                      </div>
+                    )}
+                    {companyLineApproval.hr_manager && (
+                      <div className="p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                        <p className="text-sm text-gray-600 dark:text-gray-400">HR Manager</p>
+                        <div className="flex items-center gap-2 mt-2">
+                          <UserAvatarCell employeeUsed={companyLineApproval.hr_manager} classname="w-8 h-8">
+                            <div>
+                              <p className="font-medium text-sm">{companyLineApproval.hr_manager.name}</p>
+                              <p className="text-xs text-gray-500">{companyLineApproval.hr_manager.position}</p>
+                            </div>
+                          </UserAvatarCell>
+                        </div>
+                      </div>
+                    )}
+                    {companyLineApproval.bod && (
+                      <div className="p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                        <p className="text-sm text-gray-600 dark:text-gray-400">BOD</p>
+                        <div className="flex items-center gap-2 mt-2">
+                          <UserAvatarCell employeeUsed={companyLineApproval.bod} classname="w-8 h-8">
+                            <div>
+                              <p className="font-medium text-sm">{companyLineApproval.bod.name}</p>
+                              <p className="text-xs text-gray-500">{companyLineApproval.bod.position}</p>
+                            </div>
+                          </UserAvatarCell>
+                        </div>
+                      </div>
+                    )}
+                    {companyLineApproval.staff_fa && (
+                      <div className="p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                        <p className="text-sm text-gray-600 dark:text-gray-400">Staff FA</p>
+                        <div className="flex items-center gap-2 mt-2">
+                          <UserAvatarCell employeeUsed={companyLineApproval.staff_fa} classname="w-8 h-8">
+                            <div>
+                              <p className="font-medium text-sm">{companyLineApproval.staff_fa.name}</p>
+                              <p className="text-xs text-gray-500">{companyLineApproval.staff_fa.position}</p>
+                            </div>
+                          </UserAvatarCell>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
           </div>
 
           {/* Footer with Approve/Reject buttons */}
