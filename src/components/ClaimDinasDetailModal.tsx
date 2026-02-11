@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { useTripClaimExpenses } from '@/hooks/useTripClaims';
 import UserAvatarCell from './AvatarCell';
 import { ExpenseDetail } from './ExpenseDetail';
+import { useCompanies } from '@/hooks/useCompanies';
 
 interface ClaimDinasDetailModalProps {
   isOpen: boolean;
@@ -17,8 +18,11 @@ const ClaimDinasDetailModal: React.FC<ClaimDinasDetailModalProps> = ({ isOpen, o
   if (!isOpen || !claimData) return null;
 
   const { data: claimExpenses, isLoading, error } = useTripClaimExpenses(claimData.id);
+  const { data: companies = [] } = useCompanies();
   const employee = claimData.employees || {};
   const trip = claimData.business_trips || {};
+  const companyObj = companies.find((c: any) => c.id === employee.company_id);
+  const companyName = companyObj?.name || 'N/A';
 
   const cashAdvance = trip.cash_advance || 0;
   const totalAmount = claimData.total_amount || 0;
@@ -122,11 +126,11 @@ const ClaimDinasDetailModal: React.FC<ClaimDinasDetailModalProps> = ({ isOpen, o
                   </div>
                   <div>
                     <p className="text-gray-500 dark:text-gray-400">Perusahaan:</p>
-                    <p className="text-gray-500 dark:text-gray-400">{employee.position || 'N/A'}</p>
+                    <p className="font-medium text-gray-900 dark:text-white">{companyName}</p>
                   </div>
                   <div>
                     <p className="text-gray-500 dark:text-gray-400">Cost Center:</p>
-                    <p className="font-medium text-gray-900 dark:text-white">{employee.position || 'N/A'}</p>
+                    <p className="font-medium text-gray-900 dark:text-white">{companyName}</p>
                   </div>
                 </div>
               </CardContent>

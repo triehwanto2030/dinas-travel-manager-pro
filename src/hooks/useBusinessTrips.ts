@@ -60,6 +60,13 @@ export const useBusinessTrips = () => {
 export const useCreateBusinessTrip = () => {
   const queryClient = useQueryClient();
 
+  const formatLocalDate = (date: Date) => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
   return useMutation({
     mutationFn: async (tripData: BusinessTripFormData) => {
       console.log('Creating business trip with data:', tripData);
@@ -69,8 +76,8 @@ export const useCreateBusinessTrip = () => {
         trip_number: `TRIP-${Date.now()}`,
         employee_id: tripData.employee_id,
         destination: tripData.destination,
-        start_date: tripData.start_date.toISOString().split('T')[0],
-        end_date: tripData.end_date.toISOString().split('T')[0],
+        start_date: formatLocalDate(tripData.start_date),
+        end_date: formatLocalDate(tripData.end_date),
         purpose: tripData.purpose,
         accommodation: tripData.accommodation,
         transportation: tripData.transportation,
@@ -111,6 +118,13 @@ export const useUpdateBusinessTrip = () => {
   return useMutation({
     mutationFn: async ({ id, status, ...updates }: { id: string; status?: string } & Partial<BusinessTripFormData>) => {
       console.log('Updating business trip:', id, 'with status:', status, 'and data:', updates);
+
+      const formatLocalDate = (date: Date) => {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+      };
       
       const updateData: TablesUpdate<'business_trips'> = {};
       
@@ -121,8 +135,8 @@ export const useUpdateBusinessTrip = () => {
       
       // Handle other updates
       if (updates.destination) updateData.destination = updates.destination;
-      if (updates.start_date) updateData.start_date = updates.start_date.toISOString().split('T')[0];
-      if (updates.end_date) updateData.end_date = updates.end_date.toISOString().split('T')[0];
+      if (updates.start_date) updateData.start_date = formatLocalDate(updates.start_date);
+      if (updates.end_date) updateData.end_date = formatLocalDate(updates.end_date);
       if (updates.purpose) updateData.purpose = updates.purpose;
       if (updates.cash_advance !== undefined) updateData.cash_advance = updates.cash_advance;
       if (updates.accommodation) updateData.accommodation = updates.accommodation;

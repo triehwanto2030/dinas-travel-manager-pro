@@ -1,12 +1,36 @@
 
-import React from 'react';
-import { Search, Bell, User, Sun, Moon } from 'lucide-react';
+import React, { useState, useRef, useEffect } from 'react';
+import { Search, Bell, Sun, Moon, LogOut, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useTheme } from '@/hooks/useTheme';
+import { useAuth } from '@/contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
 
 const Header = () => {
   const { theme, toggleTheme } = useTheme();
+  const { user, employee, logout } = useAuth();
+  const navigate = useNavigate();
+  const [showProfileMenu, setShowProfileMenu] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setShowProfileMenu(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const handleLogout = () => {
+    logout();
+    navigate('/login', { replace: true });
+  };
+
+  const displayName = employee?.name || user?.username || user?.email || 'User';
+  const initials = displayName.split(' ').map((n: string) => n[0]).join('').substring(0, 2).toUpperCase();
 
   return (
     <header className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 py-4">
@@ -46,11 +70,40 @@ const Header = () => {
             </span>
           </Button>
           
-          <div className="flex items-center space-x-2">
-            <div className="w-8 h-8 bg-gradient-to-r from-green-400 to-blue-500 rounded-full flex items-center justify-center">
-              <User className="w-4 h-4 text-white" />
-            </div>
-            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">AD</span>
+          {/* Profile with dropdown */}
+          <div className="relative" ref={menuRef}>
+            <button
+              onClick={() => setShowProfileMenu(!showProfileMenu)}
+              className="flex items-center space-x-2 cursor-pointer hover:opacity-80 transition-opacity"
+            >
+              <div className="w-8 h-8 bg-gradient-to-r from-green-400 to-blue-500 rounded-full flex items-center justify-center">
+                {employee?.photo_url ? (
+                  <img src={employee.photo_url} alt={displayName} className="w-8 h-8 rounded-full object-cover" />
+                ) : (
+                  <span className="text-white text-xs font-semibold">{initials}</span>
+                )}
+              </div>
+              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">{displayName}</span>
+            </button>
+
+            {showProfileMenu && (
+              <div className="absolute right-0 top-full mt-2 w-56 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 z-50">
+                <div className="p-3 border-b border-gray-200 dark:border-gray-700">
+                  <p className="text-sm font-medium text-gray-900 dark:text-white">{displayName}</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">{user?.email}</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 capitalize">{user?.role}</p>
+                </div>
+                <div className="p-1">
+                  <button
+                    onClick={handleLogout}
+                    className="flex items-center gap-2 w-full px-3 py-2 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-md transition-colors"
+                  >
+                    <LogOut className="w-4 h-4" />
+                    Keluar
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>

@@ -10,7 +10,7 @@ import { toast } from 'sonner';
 import pjmLogo from '@/assets/pjm-logo.png';
 
 const Login = () => {
-  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -19,14 +19,14 @@ const Login = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!username.trim() || !password.trim()) {
-      toast.error('Username dan password wajib diisi');
+    if (!email.trim() || !password.trim()) {
+      toast.error('Email dan password wajib diisi');
       return;
     }
 
     setLoading(true);
     try {
-      await login(username.trim(), password);
+      await login(email.trim(), password);
       toast.success('Login berhasil');
       navigate('/', { replace: true });
     } catch (err: any) {
@@ -51,13 +51,14 @@ const Login = () => {
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="username">Username</Label>
+              <Label htmlFor="email">Email</Label>
               <Input
-                id="username"
-                placeholder="Masukkan username"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                autoComplete="username"
+                id="email"
+                type="email"
+                placeholder="Masukkan email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                autoComplete="email"
                 disabled={loading}
               />
             </div>
