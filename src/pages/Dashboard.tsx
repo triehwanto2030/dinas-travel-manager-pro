@@ -63,7 +63,7 @@ const Dashboard = () => {
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors w-full">
       <MainLayout sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen}>
         {/* Welcome Section */}
-        <div className="bg-gradient-to-r from-blue-600 via-purple-600 to-pink-500 rounded-2xl p-8 mb-8 text-white w-full">
+        {/* <div className="bg-gradient-to-r from-blue-600 via-purple-600 to-pink-500 rounded-2xl p-8 mb-8 text-white w-full">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center">
             <div>
               <h1 className="text-3xl font-bold mb-2">Selamat Datang di Travel Pro</h1>
@@ -79,7 +79,7 @@ const Dashboard = () => {
               <div className="text-6xl">✈️</div>
             </div>
           </div>
-        </div>
+        </div> */}
 
         {/* Stats Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8 w-full">

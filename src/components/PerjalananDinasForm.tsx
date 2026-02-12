@@ -568,7 +568,7 @@ const PerjalananDinasForm = ({ isOpen, onClose, mode, data }: PerjalananDinasFor
                   name="cash_advance"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Cash Advance *</FormLabel>
+                      <FormLabel>Cash Advance</FormLabel>
                       <FormControl>
                         <Input 
                           type="text"

@@ -9,6 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
+import { useUsers } from '@/hooks/useUsers';
 
 const ManajemenUser = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -16,35 +17,7 @@ const ManajemenUser = () => {
   const { toast } = useToast();
 
   // Mock data - akan diganti dengan real data dari Supabase
-  const users = [
-    {
-      id: 1,
-      name: 'Lisa Anderson',
-      email: 'lisa.anderson@company.com',
-      role: 'Admin',
-      status: 'Active',
-      lastLogin: '2025-07-09',
-      createdAt: '2025-01-15'
-    },
-    {
-      id: 2,
-      name: 'John Doe',
-      email: 'john.doe@company.com',
-      role: 'User',
-      status: 'Active',
-      lastLogin: '2025-07-08',
-      createdAt: '2025-02-20'
-    },
-    {
-      id: 3,
-      name: 'Jane Smith',
-      email: 'jane.smith@company.com',
-      role: 'Manager',
-      status: 'Inactive',
-      lastLogin: '2025-07-01',
-      createdAt: '2025-03-10'
-    }
-  ];
+  const { data: users = [], isLoading } = useUsers();
 
   const getStatusBadge = (status: string) => {
     const statusConfig = {
@@ -58,23 +31,23 @@ const ManajemenUser = () => {
 
   const getRoleBadge = (role: string) => {
     const roleConfig = {
-      'Admin': { class: 'bg-purple-100 text-purple-800', label: 'Admin' },
-      'Manager': { class: 'bg-blue-100 text-blue-800', label: 'Manager' },
-      'User': { class: 'bg-gray-100 text-gray-800', label: 'User' }
+      'admin': { class: 'bg-purple-100 text-purple-800', label: 'Admin' },
+      'manager': { class: 'bg-blue-100 text-blue-800', label: 'Manager' },
+      'user': { class: 'bg-gray-100 text-gray-800', label: 'User' }
     };
     
-    const config = roleConfig[role as keyof typeof roleConfig] || roleConfig.User;
+    const config = roleConfig[role as keyof typeof roleConfig] || roleConfig.user;
     return <Badge className={config.class}>{config.label}</Badge>;
   };
 
-  const handleActivate = (id: number) => {
+  const handleActivate = (id: string) => {
     toast({
       title: "Berhasil!",
       description: "User berhasil diaktifkan",
     });
   };
 
-  const handleDeactivate = (id: number) => {
+  const handleDeactivate = (id: string) => {
     toast({
       title: "Berhasil!",
       description: "User berhasil dinonaktifkan",
@@ -176,7 +149,7 @@ const ManajemenUser = () => {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Nama</TableHead>
+                      <TableHead>Username</TableHead>
                       <TableHead>Email</TableHead>
                       <TableHead>Role</TableHead>
                       <TableHead>Status</TableHead>
@@ -189,7 +162,7 @@ const ManajemenUser = () => {
                     {users.map((user) => (
                       <TableRow key={user.id}>
                         <TableCell className="font-medium text-gray-900 dark:text-white">
-                          {user.name}
+                          {user.username}
                         </TableCell>
                         <TableCell className="text-gray-600 dark:text-gray-400">
                           {user.email}
@@ -198,13 +171,13 @@ const ManajemenUser = () => {
                           {getRoleBadge(user.role)}
                         </TableCell>
                         <TableCell>
-                          {getStatusBadge(user.status)}
+                          {getStatusBadge(user.is_active ? 'Active' : 'Inactive')}
                         </TableCell>
                         <TableCell className="text-gray-600 dark:text-gray-400">
-                          {user.lastLogin}
+                          {user.last_login}
                         </TableCell>
                         <TableCell className="text-gray-600 dark:text-gray-400">
-                          {user.createdAt}
+                          {user.created_at}
                         </TableCell>
                         <TableCell>
                           <div className="flex items-center gap-2">
@@ -214,7 +187,7 @@ const ManajemenUser = () => {
                             <Button variant="ghost" size="sm" className="p-2">
                               <Edit className="w-4 h-4" />
                             </Button>
-                            {user.status === 'Active' ? (
+                            {user.is_active ? (
                               <Button 
                                 variant="ghost" 
                                 size="sm" 

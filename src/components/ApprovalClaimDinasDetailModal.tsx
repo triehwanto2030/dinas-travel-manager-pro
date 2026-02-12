@@ -522,6 +522,8 @@ const ApprovalClaimDinasDetailModal: React.FC<ApprovalClaimDinasDetailModalProps
                             </div>
                           </UserAvatarCell>
                         </div>
+                        <p>Approved at:</p>
+                        <p></p>
                       </div>
                     )}
                     {companyLineApproval.staff_ga && (
@@ -535,6 +537,23 @@ const ApprovalClaimDinasDetailModal: React.FC<ApprovalClaimDinasDetailModalProps
                             </div>
                           </UserAvatarCell>
                         </div>
+                        <p>Approved at:</p>
+                        <p></p>
+                      </div>
+                    )}
+                    {companyLineApproval.spv_ga && (
+                      <div className="p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                        <p className="text-sm text-gray-600 dark:text-gray-400">SPV GA</p>
+                        <div className="flex items-center gap-2 mt-2">
+                          <UserAvatarCell employeeUsed={companyLineApproval.spv_ga} classname="w-8 h-8">
+                            <div>
+                              <p className="font-medium text-sm">{companyLineApproval.spv_ga.name}</p>
+                              <p className="text-xs text-gray-500">{companyLineApproval.spv_ga.position}</p>
+                            </div>
+                          </UserAvatarCell>
+                        </div>
+                        <p>Approved at:</p>
+                        <p></p>
                       </div>
                     )}
                     {companyLineApproval.hr_manager && (
@@ -548,6 +567,8 @@ const ApprovalClaimDinasDetailModal: React.FC<ApprovalClaimDinasDetailModalProps
                             </div>
                           </UserAvatarCell>
                         </div>
+                        <p>Approved at:</p>
+                        <p></p>
                       </div>
                     )}
                     {companyLineApproval.bod && (
@@ -561,6 +582,8 @@ const ApprovalClaimDinasDetailModal: React.FC<ApprovalClaimDinasDetailModalProps
                             </div>
                           </UserAvatarCell>
                         </div>
+                        <p>Approved at:</p>
+                        <p></p>
                       </div>
                     )}
                     {companyLineApproval.staff_fa && (
@@ -574,6 +597,8 @@ const ApprovalClaimDinasDetailModal: React.FC<ApprovalClaimDinasDetailModalProps
                             </div>
                           </UserAvatarCell>
                         </div>
+                        <p>Approved at:</p>
+                        <p></p>
                       </div>
                     )}
                   </div>
