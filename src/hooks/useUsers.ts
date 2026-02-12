@@ -15,19 +15,23 @@ export interface UserFormData {
     username: string
 }
 
+export interface UserWithEmployee extends User {
+  employees: { name: string } | null;
+}
+
 export const useUsers = () => {
   return useQuery({
     queryKey: ['users'],
-    queryFn: async (): Promise<User[]> => {
+    queryFn: async (): Promise<UserWithEmployee[]> => {
       const { data, error } = await supabase
         .from('users')
-        .select(`*`);
+        .select(`*, employees(name)`);
 
       if (error) {
         throw new Error(error.message);
       }
 
-      return data as User[];
+      return data as UserWithEmployee[];
     },
   });
 };

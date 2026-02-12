@@ -41,7 +41,9 @@ const KaryawanForm: React.FC<KaryawanFormProps> = ({
     status: 'Aktif',
     namaPerusahaan: '',
     supervisorId: '',
-    fotoUrl: ''
+    fotoUrl: '',
+    userUsername: '',
+    userPassword: '12345',
   });
 
   const [previewImage, setPreviewImage] = useState<string | null>(null);
@@ -90,14 +92,23 @@ const KaryawanForm: React.FC<KaryawanFormProps> = ({
         status: 'Aktif',
         namaPerusahaan: '',
         supervisorId: '',
-        fotoUrl: ''
+        fotoUrl: '',
+        userUsername: '',
+        userPassword: '12345',
       });
       setPreviewImage(null);
     }
   }, [initialData, isOpen, companies]);
 
   const handleInputChange = (field: keyof EmployeeFormData, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+    setFormData(prev => {
+      const next = { ...prev, [field]: value };
+      // Auto-sync username with email when email changes (only in add mode)
+      if (field === 'email' && mode === 'add') {
+        next.userUsername = value;
+      }
+      return next;
+    });
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -359,7 +370,35 @@ const KaryawanForm: React.FC<KaryawanFormProps> = ({
                 </div>
               </div>
 
-              {/* Buttons */}
+              {/* Akun User - only show in add mode */}
+              {mode === 'add' && (
+                <div>
+                  <h3 className="text-lg font-semibold mb-4">Akun User</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="userUsername">Username (Email)</Label>
+                      <Input
+                        id="userUsername"
+                        value={formData.userUsername || ''}
+                        onChange={(e) => handleInputChange('userUsername', e.target.value)}
+                        placeholder="Otomatis dari email"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="userPassword">Password</Label>
+                      <Input
+                        id="userPassword"
+                        type="text"
+                        value={formData.userPassword || '12345'}
+                        onChange={(e) => handleInputChange('userPassword', e.target.value)}
+                        placeholder="Default: 12345"
+                      />
+                    </div>
+                  </div>
+                  <p className="text-sm text-gray-500 mt-2">User akan otomatis dibuat dengan role "user".</p>
+                </div>
+              )}
+
               {!isReadOnly && (
                 <div className="flex justify-end gap-3 pt-4 border-t">
                   <Button type="button" variant="outline" onClick={onClose}>

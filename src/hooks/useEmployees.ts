@@ -24,6 +24,9 @@ export interface EmployeeFormData {
   namaPerusahaan: string;
   supervisorId?: string;
   fotoUrl?: string;
+  // User account fields
+  userUsername?: string;
+  userPassword?: string;
 }
 
 export const useEmployees = () => {
@@ -102,10 +105,41 @@ export const useCreateEmployee = () => {
       }
 
       console.log('Employee created successfully:', data);
+
+      // Auto-create user account for the new employee
+      const username = employee.userUsername || employee.email;
+      const password = employee.userPassword || '12345';
+
+      // Call edge function to set password (which hashes it)
+      const userInsert = await supabase
+        .from('users')
+        .insert([{
+          email: employee.email,
+          username: username,
+          employee_id: data.id,
+          role: 'user',
+          is_active: true,
+        }])
+        .select()
+        .single();
+
+      if (userInsert.error) {
+        console.error('Error creating user account:', userInsert.error);
+      } else {
+        // Set password via edge function
+        const { error: pwError } = await supabase.functions.invoke('auth-set-password', {
+          body: { user_id: userInsert.data.id, password },
+        });
+        if (pwError) {
+          console.error('Error setting user password:', pwError);
+        }
+      }
+
       return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['employees'] });
+      queryClient.invalidateQueries({ queryKey: ['users'] });
     },
   });
 };

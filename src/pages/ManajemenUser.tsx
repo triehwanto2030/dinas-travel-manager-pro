@@ -88,7 +88,7 @@ const ManajemenUser = () => {
                     </div>
                     <div className="ml-4">
                       <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Total Users</p>
-                      <p className="text-2xl font-bold text-gray-900 dark:text-white">3</p>
+                      <p className="text-2xl font-bold text-gray-900 dark:text-white">{users.length}</p>
                     </div>
                   </div>
                 </CardContent>
@@ -102,7 +102,7 @@ const ManajemenUser = () => {
                     </div>
                     <div className="ml-4">
                       <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Active Users</p>
-                      <p className="text-2xl font-bold text-gray-900 dark:text-white">2</p>
+                      <p className="text-2xl font-bold text-gray-900 dark:text-white">{users.filter(u => u.is_active).length}</p>
                     </div>
                   </div>
                 </CardContent>
@@ -116,7 +116,7 @@ const ManajemenUser = () => {
                     </div>
                     <div className="ml-4">
                       <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Inactive Users</p>
-                      <p className="text-2xl font-bold text-gray-900 dark:text-white">1</p>
+                      <p className="text-2xl font-bold text-gray-900 dark:text-white">{users.filter(u => !u.is_active).length}</p>
                     </div>
                   </div>
                 </CardContent>
@@ -148,22 +148,26 @@ const ManajemenUser = () => {
               <CardContent>
                 <Table>
                   <TableHeader>
-                    <TableRow>
-                      <TableHead>Username</TableHead>
-                      <TableHead>Email</TableHead>
-                      <TableHead>Role</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Last Login</TableHead>
-                      <TableHead>Dibuat</TableHead>
-                      <TableHead>Aksi</TableHead>
-                    </TableRow>
+                     <TableRow>
+                       <TableHead>Nama</TableHead>
+                       <TableHead>Username</TableHead>
+                       <TableHead>Email</TableHead>
+                       <TableHead>Role</TableHead>
+                       <TableHead>Status</TableHead>
+                       <TableHead>Last Login</TableHead>
+                       <TableHead>Dibuat</TableHead>
+                       <TableHead>Aksi</TableHead>
+                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {users.map((user) => (
-                      <TableRow key={user.id}>
-                        <TableCell className="font-medium text-gray-900 dark:text-white">
-                          {user.username}
-                        </TableCell>
+                       <TableRow key={user.id}>
+                         <TableCell className="font-medium text-gray-900 dark:text-white">
+                           {user.employees?.name || '-'}
+                         </TableCell>
+                         <TableCell className="text-gray-600 dark:text-gray-400">
+                           {user.username}
+                         </TableCell>
                         <TableCell className="text-gray-600 dark:text-gray-400">
                           {user.email}
                         </TableCell>
