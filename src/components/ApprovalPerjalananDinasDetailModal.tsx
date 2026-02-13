@@ -42,14 +42,18 @@ interface BusinessTrip {
   current_approval_step: string | null;
   supervisor_approved_at: string | null;
   staff_ga_approved_at: string | null;
+  spv_ga_approved_at: string | null;
   hr_manager_approved_at: string | null;
   bod_approved_at: string | null;
   staff_fa_approved_at: string | null;
   supervisor_approved_by: string | null;
   staff_ga_approved_by: string | null;
+  spv_ga_approved_by: string | null;
   hr_manager_approved_by: string | null;
   bod_approved_by: string | null;
   staff_fa_approved_by: string | null;
+  rejected_at: string | null;
+  rejected_by: string | null;
 }
 
 interface ApprovalPerjalananDinasDetailModalProps {
@@ -71,46 +75,97 @@ const ApprovalPerjalananDinasDetailModal: React.FC<ApprovalPerjalananDinasDetail
   const { data: lineApprovals = [] } = useLineApprovals();
   const { data: allEmployees = [] } = useEmployees();
   const { employee: userEmp } = useAuth();
-  // const companyLineApproval = lineApprovals.find(la => la.company_id === trip.employees?.company_id);
+  const companyLineApproval = lineApprovals.find(la => la.company_id === trip?.employees?.company_id);
 
   useEffect(() => {
     const currentStep = trip?.current_approval_step;
-    if (!currentStep || !userEmp) {
+
+    if (!currentStep || !userEmp || !trip) {
       setApprovable(false);
       return;
     }
 
-    const approvableStepsMap: Record<string, string> = {
-      'supervisor': 'supervisor_approved_by',
-      'staff_ga': 'staff_ga_approved_by',
-      'spv_ga': 'spv_ga_approved_by',
-      'hr_manager': 'hr_manager_approved_by',
-      'bod': 'bod_approved_by',
-      'staff_fa': 'staff_fa_approved_by',
+    const approvableStepsMap: Record<string, keyof BusinessTrip> = {
+      supervisor: 'supervisor_approved_by',
+      staff_ga: 'staff_ga_approved_by',
+      spv_ga: 'spv_ga_approved_by',
+      hr_manager: 'hr_manager_approved_by',
+      bod: 'bod_approved_by',
+      staff_fa: 'staff_fa_approved_by',
     };
-    const requiredField = approvableStepsMap[currentStep];
-    // Check if the current approval field is null
-    const tripApproval = trip?.[requiredField as keyof BusinessTrip] as string | null;
 
-    if (tripApproval === null) {
-      if (currentStep !== "supervisor") {
-        if (companyLineApproval?.[requiredField].id === userEmp.id) {
-          setApprovable(true);
-        } else {
-          setApprovable(false);
-        }
-      } else {
-        // For supervisor step, check if the user is the supervisor of the employee
-        if (trip.employees?.supervisor_id === userEmp.id) {
-          setApprovable(true);
-        } else {
-          setApprovable(false);
-        }
-      }
+    const roleMap: Record<string, keyof typeof companyLineApproval> = {
+      staff_ga: 'staff_ga',
+      spv_ga: 'spv_ga',
+      hr_manager: 'hr_manager',
+      bod: 'bod',
+      staff_fa: 'staff_fa',
+    };
+
+    const requiredField = approvableStepsMap[currentStep];
+
+    if (!requiredField) {
+      setApprovable(false);
+      return;
     }
-  }, [trip, userEmp]);
+
+    // Already approved?
+    const tripApproval = trip[requiredField];
+
+    if (tripApproval !== null) {
+      setApprovable(false);
+      return;
+    }
+
+    // Supervisor case (special logic)
+    if (currentStep === 'supervisor') {
+      setApprovable(trip.employees?.supervisor_id === userEmp.id);
+      return;
+    }
+
+    // Other roles
+    if (!companyLineApproval) {
+      setApprovable(false);
+      return;
+    }
+
+    const roleKey = roleMap[currentStep];
+    const assignedEmployee = roleKey && companyLineApproval
+      ? companyLineApproval[roleKey] as { id: string } || null
+      : null;
+
+    setApprovable(assignedEmployee?.id === userEmp.id);
+
+  }, [trip, userEmp, companyLineApproval]);
 
   if (!trip) return null;
+
+  const roleMap: Record<string, keyof typeof companyLineApproval> = {
+    staff_ga: 'staff_ga',
+    spv_ga: 'spv_ga',
+    hr_manager: 'hr_manager',
+    bod: 'bod',
+    staff_fa: 'staff_fa',
+  };
+  
+  const approvalFlow = [
+    'supervisor',
+    'staff_ga',
+    'spv_ga',
+    'hr_manager',
+    'bod',
+    'staff_fa',
+  ] as const;
+
+  type Role = typeof approvalFlow[number];
+
+  const nextRoleMap: Record<Role, Role> = {} as Record<Role, Role>;
+  const previousRoleMap: Record<Role, Role> = {} as Record<Role, Role>;
+
+  approvalFlow.forEach((role, index) => {
+    nextRoleMap[role] = approvalFlow[index + 1] ?? role;      // clamp at end
+    previousRoleMap[role] = approvalFlow[index - 1] ?? role;  // clamp at start
+  });
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('id-ID', {
@@ -128,6 +183,13 @@ const ApprovalPerjalananDinasDetailModal: React.FC<ApprovalPerjalananDinasDetail
       year: 'numeric'
     });
   };
+  
+  const formatLocalDate = (date: Date) => {
+    const year = date.getFullYear();
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const day = date.getDate().toString().padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
 
   const getStatusBadge = (status: string) => {
     const statusConfig: Record<string, { class: string; label: string }> = {
@@ -142,15 +204,38 @@ const ApprovalPerjalananDinasDetailModal: React.FC<ApprovalPerjalananDinasDetail
     return <Badge className={config.class}>{config.label}</Badge>;
   };
 
-  const getApprovalStatusBadge = (status: string) => {
+  const getApprovalStatus = (step: string) => {
+    const currStep = trip?.current_approval_step;
+    // const reject = trip.
     const statusConfig: Record<string, { class: string; label: string }> = {
-      'Pending': { class: 'bg-yellow-100 text-yellow-800', label: 'Menunggu' },
-      'Approved': { class: 'bg-green-100 text-green-800', label: 'Disetujui' },
-      'Rejected': { class: 'bg-red-100 text-red-800', label: 'Ditolak' }
+      'Pending': { class: 'bg-yellow-100', label: 'Pending' },
+      'Approved': { class: 'bg-green-100', label: 'Approved' },
+      'Rejected': { class: 'bg-red-100', label: 'Rejected' }
     };
 
-    const config = statusConfig[status] || statusConfig.Pending;
-    return <Badge className={config.class}>{config.label}</Badge>;
+    const approvableStepsMap: Record<string, keyof BusinessTrip> = {
+      supervisor: 'supervisor_approved_by',
+      staff_ga: 'staff_ga_approved_by',
+      spv_ga: 'spv_ga_approved_by',
+      hr_manager: 'hr_manager_approved_by',
+      bod: 'bod_approved_by',
+      staff_fa: 'staff_fa_approved_by',
+    };
+
+    if (step === currStep) {
+      return statusConfig.Pending;
+    }
+
+    return statusConfig[status] || statusConfig.Pending;
+  };
+
+  const approvalFieldMap: Record<Role, { approvedAt: keyof BusinessTrip; approvedBy: keyof BusinessTrip }> = {
+    supervisor: { approvedAt: 'supervisor_approved_at', approvedBy: 'supervisor_approved_by' },
+    staff_ga: { approvedAt: 'staff_ga_approved_at', approvedBy: 'staff_ga_approved_by' },
+    spv_ga: { approvedAt: 'spv_ga_approved_at', approvedBy: 'spv_ga_approved_by' },
+    hr_manager: { approvedAt: 'hr_manager_approved_at', approvedBy: 'hr_manager_approved_by' },
+    bod: { approvedAt: 'bod_approved_at', approvedBy: 'bod_approved_by' },
+    staff_fa: { approvedAt: 'staff_fa_approved_at', approvedBy: 'staff_fa_approved_by' },
   };
 
   const calculateDuration = (startDate: string, endDate: string) => {
@@ -163,9 +248,26 @@ const ApprovalPerjalananDinasDetailModal: React.FC<ApprovalPerjalananDinasDetail
 
   const handleApprove = async () => {
     try {
+      const step = trip.current_approval_step as Role;
+      if (!step) return;
+      
+      const fields = approvalFieldMap[step];
+      if (!fields) return;
+      
+      console.log('Approving trip with data:', {
+        id: trip.id,
+        status: step !== "staff_fa" ? 'Submitted' : 'Approved',
+        current_approval_step: nextRoleMap[step],
+        [fields.approvedAt]: new Date().toISOString(),
+        [fields.approvedBy]: userEmp?.id,
+      });
+
       await updateBusinessTrip.mutateAsync({
         id: trip.id,
-        status: 'Approved'
+        status: step !== "staff_fa" ? 'Submitted' : 'Approved',
+        current_approval_step: nextRoleMap[step],
+        [fields.approvedAt]: new Date().toISOString(),
+        [fields.approvedBy]: userEmp?.id,
       });
       toast({
         title: "Berhasil!",
@@ -182,6 +284,7 @@ const ApprovalPerjalananDinasDetailModal: React.FC<ApprovalPerjalananDinasDetail
     }
   };
 
+
   const handleReject = async () => {
     if (!rejectReason.trim()) {
       toast({
@@ -195,6 +298,8 @@ const ApprovalPerjalananDinasDetailModal: React.FC<ApprovalPerjalananDinasDetail
       await updateBusinessTrip.mutateAsync({
         id: trip.id,
         status: 'Rejected',
+        rejected_at: new Date().toISOString(),
+        rejected_by: userEmp?.id,
         rejection_reason: rejectReason
       } as any);
       toast({
@@ -350,7 +455,6 @@ const ApprovalPerjalananDinasDetailModal: React.FC<ApprovalPerjalananDinasDetail
 
             {/* Line Approval */}
             {(() => {
-              const companyLineApproval = lineApprovals.find(la => la.company_id === trip.employees?.company_id);
               const supervisor = trip.employees?.supervisor_id ? allEmployees.find(e => e.id === trip.employees?.supervisor_id) : null;
               if (!companyLineApproval) return null;
               return (
@@ -361,7 +465,7 @@ const ApprovalPerjalananDinasDetailModal: React.FC<ApprovalPerjalananDinasDetail
                   </h3>
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                     {supervisor && (
-                      <div className="p-3 bg-muted/30 rounded-lg">
+                      <div className={`p-3 rounded-lg ${trip.supervisor_approved_at ? getApprovalStatus("Approved").class : 'bg-muted/30'}`}>
                         <p className="text-xs text-muted-foreground">Atasan</p>
                         <div className="flex items-center gap-2 mt-1">
                           <UserAvatarCell employeeUsed={supervisor} classname="w-8 h-8">
@@ -371,8 +475,8 @@ const ApprovalPerjalananDinasDetailModal: React.FC<ApprovalPerjalananDinasDetail
                             </div>
                           </UserAvatarCell>
                         </div>
-                        <p>Approved at:</p>
-                        <p></p>
+                        <p>{getApprovalStatus("Approved").label}</p>
+                        <p>{trip.supervisor_approved_at}</p>
                       </div>
                     )}
                     {companyLineApproval.staff_ga && (
@@ -402,7 +506,7 @@ const ApprovalPerjalananDinasDetailModal: React.FC<ApprovalPerjalananDinasDetail
                           </UserAvatarCell>
                         </div>
                         <p>Approved at:</p>
-                        <p>{trip.supervisor_approved_at}</p>
+                        <p>{trip.spv_ga_approved_at}</p>
                       </div>
                     )}
                     {companyLineApproval.hr_manager && (

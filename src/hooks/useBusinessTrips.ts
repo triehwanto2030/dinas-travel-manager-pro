@@ -26,7 +26,22 @@ export interface BusinessTripFormData {
   cost_center: string;
   department: string;
   notes?: string;
+  current_approval_step?: string | null;
   rejection_reason?: string;
+  supervisor_approved_at?: string | null;
+  staff_ga_approved_at?: string | null;
+  spv_ga_approved_at?: string | null;
+  hr_manager_approved_at?: string | null;
+  bod_approved_at?: string | null;
+  staff_fa_approved_at?: string | null;
+  supervisor_approved_by?: string | null;
+  staff_ga_approved_by?: string | null;
+  spv_ga_approved_by?: string | null;
+  hr_manager_approved_by?: string | null;
+  bod_approved_by?: string | null;
+  staff_fa_approved_by?: string | null;
+  rejected_at?: string | null;
+  rejected_by?: string | null;
 }
 
 export const useBusinessTrips = () => {
@@ -142,6 +157,21 @@ export const useUpdateBusinessTrip = () => {
       if (updates.accommodation) updateData.accommodation = updates.accommodation;
       if (updates.transportation) updateData.transportation = updates.transportation;
       if (updates.notes) updateData.notes = updates.notes;
+      if (updates.current_approval_step !== undefined) updateData.current_approval_step = updates.current_approval_step;
+      if (updates.supervisor_approved_at) updateData.supervisor_approved_at = updates.supervisor_approved_at;
+      if (updates.staff_ga_approved_at) updateData.staff_ga_approved_at = updates.staff_ga_approved_at;
+      if (updates.spv_ga_approved_at) updateData.spv_ga_approved_at = updates.spv_ga_approved_at;
+      if (updates.hr_manager_approved_at) updateData.hr_manager_approved_at = updates.hr_manager_approved_at;
+      if (updates.bod_approved_at) updateData.bod_approved_at = updates.bod_approved_at;
+      if (updates.staff_fa_approved_at) updateData.staff_fa_approved_at = updates.staff_fa_approved_at;
+      if (updates.supervisor_approved_by) updateData.supervisor_approved_by = updates.supervisor_approved_by;
+      if (updates.staff_ga_approved_by) updateData.staff_ga_approved_by = updates.staff_ga_approved_by;
+      if (updates.spv_ga_approved_by) updateData.spv_ga_approved_by = updates.spv_ga_approved_by;
+      if (updates.hr_manager_approved_by) updateData.hr_manager_approved_by = updates.hr_manager_approved_by;
+      if (updates.bod_approved_by) updateData.bod_approved_by = updates.bod_approved_by;
+      if (updates.staff_fa_approved_by) updateData.staff_fa_approved_by = updates.staff_fa_approved_by;
+      if (updates.rejected_at) updateData.rejected_at = updates.rejected_at;
+      if (updates.rejected_by) updateData.rejected_by = updates.rejected_by;
       if (updates.rejection_reason) updateData.rejection_reason = updates.rejection_reason;
 
       const { data, error } = await supabase
@@ -171,64 +201,64 @@ export const useUpdateBusinessTrip = () => {
   });
 };
 
-export const useUpdateTripApproval = () => {
-  const queryClient = useQueryClient();
+// export const useUpdateTripApproval = () => {
+//   const queryClient = useQueryClient();
   
-  return useMutation({
-    mutationFn: async ({ id, status, ...updates }: { id: string; status?: string } & Partial<BusinessTripFormData>) => {
-      console.log('Updating business trip:', id, 'with status:', status, 'and data:', updates);
+//   return useMutation({
+//     mutationFn: async ({ id, status, ...updates }: { id: string; status?: string } & Partial<BusinessTripFormData>) => {
+//       console.log('Updating business trip:', id, 'with status:', status, 'and data:', updates);
 
-      const formatLocalDate = (date: Date) => {
-        const year = date.getFullYear();
-        const month = String(date.getMonth() + 1).padStart(2, '0');
-        const day = String(date.getDate()).padStart(2, '0');
-        return `${year}-${month}-${day}`;
-      };
+//       const formatLocalDate = (date: Date) => {
+//         const year = date.getFullYear();
+//         const month = String(date.getMonth() + 1).padStart(2, '0');
+//         const day = String(date.getDate()).padStart(2, '0');
+//         return `${year}-${month}-${day}`;
+//       };
       
-      const updateData: TablesUpdate<'business_trips'> = {};
+//       const updateData: TablesUpdate<'business_trips'> = {};
       
-      // Handle status update
-      if (status) {
-        updateData.status = status as any;
-      }
+//       // Handle status update
+//       if (status) {
+//         updateData.status = status as any;
+//       }
       
-      // Handle other updates
-      if (updates.destination) updateData.destination = updates.destination;
-      if (updates.start_date) updateData.start_date = formatLocalDate(updates.start_date);
-      if (updates.end_date) updateData.end_date = formatLocalDate(updates.end_date);
-      if (updates.purpose) updateData.purpose = updates.purpose;
-      if (updates.cash_advance !== undefined) updateData.cash_advance = updates.cash_advance;
-      if (updates.accommodation) updateData.accommodation = updates.accommodation;
-      if (updates.transportation) updateData.transportation = updates.transportation;
-      if (updates.notes) updateData.notes = updates.notes;
-      if (updates.rejection_reason) updateData.rejection_reason = updates.rejection_reason;
+//       // Handle other updates
+//       if (updates.destination) updateData.destination = updates.destination;
+//       if (updates.start_date) updateData.start_date = formatLocalDate(updates.start_date);
+//       if (updates.end_date) updateData.end_date = formatLocalDate(updates.end_date);
+//       if (updates.purpose) updateData.purpose = updates.purpose;
+//       if (updates.cash_advance !== undefined) updateData.cash_advance = updates.cash_advance;
+//       if (updates.accommodation) updateData.accommodation = updates.accommodation;
+//       if (updates.transportation) updateData.transportation = updates.transportation;
+//       if (updates.notes) updateData.notes = updates.notes;
+//       if (updates.rejection_reason) updateData.rejection_reason = updates.rejection_reason;
 
-      const { data, error } = await supabase
-        .from('business_trips')
-        .update(updateData)
-        .eq('id', id)
-        .select(`
-          *,
-          employees (
-            *,
-            companies (*)
-          )
-        `)
-        .single();
+//       const { data, error } = await supabase
+//         .from('business_trips')
+//         .update(updateData)
+//         .eq('id', id)
+//         .select(`
+//           *,
+//           employees (
+//             *,
+//             companies (*)
+//           )
+//         `)
+//         .single();
 
-      if (error) {
-        console.error('Error updating business trip:', error);
-        throw new Error(error.message || 'Gagal mengupdate perjalanan dinas');
-      }
+//       if (error) {
+//         console.error('Error updating business trip:', error);
+//         throw new Error(error.message || 'Gagal mengupdate perjalanan dinas');
+//       }
 
-      console.log('Business trip updated successfully:', data);
-      return data;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['business_trips'] });
-    },
-  });
-};
+//       console.log('Business trip updated successfully:', data);
+//       return data;
+//     },
+//     onSuccess: () => {
+//       queryClient.invalidateQueries({ queryKey: ['business_trips'] });
+//     },
+//   });
+// };
 
 export const useDeleteBusinessTrip = () => {
   const queryClient = useQueryClient();
