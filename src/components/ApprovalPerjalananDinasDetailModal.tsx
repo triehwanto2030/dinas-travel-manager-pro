@@ -71,6 +71,7 @@ const ApprovalPerjalananDinasDetailModal: React.FC<ApprovalPerjalananDinasDetail
   const { data: lineApprovals = [] } = useLineApprovals();
   const { data: allEmployees = [] } = useEmployees();
   const { employee: userEmp } = useAuth();
+  // const companyLineApproval = lineApprovals.find(la => la.company_id === trip.employees?.company_id);
 
   useEffect(() => {
     const currentStep = trip?.current_approval_step;
@@ -88,11 +89,24 @@ const ApprovalPerjalananDinasDetailModal: React.FC<ApprovalPerjalananDinasDetail
       'staff_fa': 'staff_fa_approved_by',
     };
     const requiredField = approvableStepsMap[currentStep];
+    // Check if the current approval field is null
+    const tripApproval = trip?.[requiredField as keyof BusinessTrip] as string | null;
 
-    if (requiredField && trip.employees && (trip.employees as any)[requiredField] === userEmp.id) {
-      setApprovable(true);
-    } else {
-      setApprovable(false);
+    if (tripApproval === null) {
+      if (currentStep !== "supervisor") {
+        if (companyLineApproval?.[requiredField].id === userEmp.id) {
+          setApprovable(true);
+        } else {
+          setApprovable(false);
+        }
+      } else {
+        // For supervisor step, check if the user is the supervisor of the employee
+        if (trip.employees?.supervisor_id === userEmp.id) {
+          setApprovable(true);
+        } else {
+          setApprovable(false);
+        }
+      }
     }
   }, [trip, userEmp]);
 
