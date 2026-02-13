@@ -171,6 +171,65 @@ export const useUpdateBusinessTrip = () => {
   });
 };
 
+export const useUpdateTripApproval = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: async ({ id, status, ...updates }: { id: string; status?: string } & Partial<BusinessTripFormData>) => {
+      console.log('Updating business trip:', id, 'with status:', status, 'and data:', updates);
+
+      const formatLocalDate = (date: Date) => {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+      };
+      
+      const updateData: TablesUpdate<'business_trips'> = {};
+      
+      // Handle status update
+      if (status) {
+        updateData.status = status as any;
+      }
+      
+      // Handle other updates
+      if (updates.destination) updateData.destination = updates.destination;
+      if (updates.start_date) updateData.start_date = formatLocalDate(updates.start_date);
+      if (updates.end_date) updateData.end_date = formatLocalDate(updates.end_date);
+      if (updates.purpose) updateData.purpose = updates.purpose;
+      if (updates.cash_advance !== undefined) updateData.cash_advance = updates.cash_advance;
+      if (updates.accommodation) updateData.accommodation = updates.accommodation;
+      if (updates.transportation) updateData.transportation = updates.transportation;
+      if (updates.notes) updateData.notes = updates.notes;
+      if (updates.rejection_reason) updateData.rejection_reason = updates.rejection_reason;
+
+      const { data, error } = await supabase
+        .from('business_trips')
+        .update(updateData)
+        .eq('id', id)
+        .select(`
+          *,
+          employees (
+            *,
+            companies (*)
+          )
+        `)
+        .single();
+
+      if (error) {
+        console.error('Error updating business trip:', error);
+        throw new Error(error.message || 'Gagal mengupdate perjalanan dinas');
+      }
+
+      console.log('Business trip updated successfully:', data);
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['business_trips'] });
+    },
+  });
+};
+
 export const useDeleteBusinessTrip = () => {
   const queryClient = useQueryClient();
 

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
@@ -11,6 +11,7 @@ import { useUpdateBusinessTrip } from '@/hooks/useBusinessTrips';
 import { useToast } from '@/hooks/use-toast';
 import { useLineApprovals } from '@/hooks/useLineApprovals';
 import { useEmployees } from '@/hooks/useEmployees';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface BusinessTrip {
   id: string;
@@ -38,6 +39,17 @@ interface BusinessTrip {
     company_id: string | null;
     supervisor_id: string | null;
   } | null;
+  current_approval_step: string | null;
+  supervisor_approved_at: string | null;
+  staff_ga_approved_at: string | null;
+  hr_manager_approved_at: string | null;
+  bod_approved_at: string | null;
+  staff_fa_approved_at: string | null;
+  supervisor_approved_by: string | null;
+  staff_ga_approved_by: string | null;
+  hr_manager_approved_by: string | null;
+  bod_approved_by: string | null;
+  staff_fa_approved_by: string | null;
 }
 
 interface ApprovalPerjalananDinasDetailModalProps {
@@ -53,10 +65,36 @@ const ApprovalPerjalananDinasDetailModal: React.FC<ApprovalPerjalananDinasDetail
 }) => {
   const [isRejectDialogOpen, setIsRejectDialogOpen] = useState(false);
   const [rejectReason, setRejectReason] = useState('');
+  const [approvable, setApprovable] = useState(false);
   const updateBusinessTrip = useUpdateBusinessTrip();
   const { toast } = useToast();
   const { data: lineApprovals = [] } = useLineApprovals();
   const { data: allEmployees = [] } = useEmployees();
+  const { employee: userEmp } = useAuth();
+
+  useEffect(() => {
+    const currentStep = trip?.current_approval_step;
+    if (!currentStep || !userEmp) {
+      setApprovable(false);
+      return;
+    }
+
+    const approvableStepsMap: Record<string, string> = {
+      'supervisor': 'supervisor_approved_by',
+      'staff_ga': 'staff_ga_approved_by',
+      'spv_ga': 'spv_ga_approved_by',
+      'hr_manager': 'hr_manager_approved_by',
+      'bod': 'bod_approved_by',
+      'staff_fa': 'staff_fa_approved_by',
+    };
+    const requiredField = approvableStepsMap[currentStep];
+
+    if (requiredField && trip.employees && (trip.employees as any)[requiredField] === userEmp.id) {
+      setApprovable(true);
+    } else {
+      setApprovable(false);
+    }
+  }, [trip, userEmp]);
 
   if (!trip) return null;
 
@@ -87,6 +125,17 @@ const ApprovalPerjalananDinasDetailModal: React.FC<ApprovalPerjalananDinasDetail
     };
     
     const config = statusConfig[status] || statusConfig.Draft;
+    return <Badge className={config.class}>{config.label}</Badge>;
+  };
+
+  const getApprovalStatusBadge = (status: string) => {
+    const statusConfig: Record<string, { class: string; label: string }> = {
+      'Pending': { class: 'bg-yellow-100 text-yellow-800', label: 'Menunggu' },
+      'Approved': { class: 'bg-green-100 text-green-800', label: 'Disetujui' },
+      'Rejected': { class: 'bg-red-100 text-red-800', label: 'Ditolak' }
+    };
+
+    const config = statusConfig[status] || statusConfig.Pending;
     return <Badge className={config.class}>{config.label}</Badge>;
   };
 
@@ -324,7 +373,7 @@ const ApprovalPerjalananDinasDetailModal: React.FC<ApprovalPerjalananDinasDetail
                           </UserAvatarCell>
                         </div>
                         <p>Approved at:</p>
-                        <p></p>
+                        <p>{trip.staff_ga_approved_at}</p>
                       </div>
                     )}
                     {companyLineApproval.spv_ga && (
@@ -339,7 +388,7 @@ const ApprovalPerjalananDinasDetailModal: React.FC<ApprovalPerjalananDinasDetail
                           </UserAvatarCell>
                         </div>
                         <p>Approved at:</p>
-                        <p></p>
+                        <p>{trip.supervisor_approved_at}</p>
                       </div>
                     )}
                     {companyLineApproval.hr_manager && (
@@ -354,7 +403,7 @@ const ApprovalPerjalananDinasDetailModal: React.FC<ApprovalPerjalananDinasDetail
                           </UserAvatarCell>
                         </div>
                         <p>Approved at:</p>
-                        <p></p>
+                        <p>{trip.hr_manager_approved_at}</p>
                       </div>
                     )}
                     {companyLineApproval.bod && (
@@ -369,7 +418,7 @@ const ApprovalPerjalananDinasDetailModal: React.FC<ApprovalPerjalananDinasDetail
                           </UserAvatarCell>
                         </div>
                         <p>Approved at:</p>
-                        <p></p>
+                        <p>{trip.bod_approved_at}</p>
                       </div>
                     )}
                     {companyLineApproval.staff_fa && (
@@ -384,7 +433,7 @@ const ApprovalPerjalananDinasDetailModal: React.FC<ApprovalPerjalananDinasDetail
                           </UserAvatarCell>
                         </div>
                         <p>Approved at:</p>
-                        <p></p>
+                        <p>{trip.staff_fa_approved_at}</p>
                       </div>
                     )}
                   </div>
@@ -396,7 +445,7 @@ const ApprovalPerjalananDinasDetailModal: React.FC<ApprovalPerjalananDinasDetail
           {/* Footer with Approve/Reject buttons */}
           <div className="flex justify-between pt-4 border-t mt-6">
             <Button variant="outline" onClick={onClose}>Tutup</Button>
-            {trip.status === 'Submitted' && (
+            {trip.status === 'Submitted' && approvable && (
               <div className="flex gap-2">
                 <Button 
                   variant="destructive" 

@@ -15,6 +15,7 @@ import { format } from 'date-fns';
 import { useCompanies } from '@/hooks/useCompanies';
 import { useLineApprovals } from '@/hooks/useLineApprovals';
 import { useEmployees } from '@/hooks/useEmployees';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface TripClaim {
   id: string;
@@ -89,6 +90,7 @@ const ApprovalClaimDinasDetailModal: React.FC<ApprovalClaimDinasDetailModalProps
   const { data: companies = [] } = useCompanies();
   const { data: lineApprovals = [] } = useLineApprovals();
   const { data: employees = [] } = useEmployees();
+  const { employee: userEmp } = useAuth();
 
   // Initialize expenses from claimExpenses
   useEffect(() => {

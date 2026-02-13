@@ -62,6 +62,8 @@ export type Database = {
           rejection_reason: string | null
           staff_fa_approved_at: string | null
           staff_fa_approved_by: string | null
+          spv_ga_approved_at: string | null
+          spv_ga_approved_by: string | null
           staff_ga_approved_at: string | null
           staff_ga_approved_by: string | null
           start_date: string
@@ -92,6 +94,8 @@ export type Database = {
           rejection_reason?: string | null
           staff_fa_approved_at?: string | null
           staff_fa_approved_by?: string | null
+          spv_ga_approved_at?: string | null
+          spv_ga_approved_by?: string | null
           staff_ga_approved_at?: string | null
           staff_ga_approved_by?: string | null
           start_date: string
@@ -122,6 +126,8 @@ export type Database = {
           rejection_reason?: string | null
           staff_fa_approved_at?: string | null
           staff_fa_approved_by?: string | null
+          spv_ga_approved_at?: string | null
+          spv_ga_approved_by?: string | null
           staff_ga_approved_at?: string | null
           staff_ga_approved_by?: string | null
           start_date?: string
