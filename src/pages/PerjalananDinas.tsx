@@ -26,7 +26,7 @@ const PerjalananDinas = () => {
   const [formMode, setFormMode] = useState<'create' | 'edit' | 'view'>('create');
   const [selectedData, setSelectedData] = useState<any>(null);
 
-  const { data: businessTrips, isLoading, error } = useBusinessTrips();
+  const { data: businessTrips, isLoading, error } = useBusinessTrips([['status', 'Submitted', 'neq']]);
   const updateBusinessTrip = useUpdateBusinessTrip();
   const deleteBusinessTrip = useDeleteBusinessTrip();
   const { toast } = useToast();

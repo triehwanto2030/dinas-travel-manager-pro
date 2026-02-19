@@ -2,6 +2,7 @@ import React from 'react';
 import { Badge } from '@/components/ui/badge';
 
 interface ApprovalTimestamps {
+  submitted_at?: string | null;
   supervisor_approved_at?: string | null;
   supervisor_approved_by?: string | null;
   staff_ga_approved_at?: string | null;
@@ -26,6 +27,7 @@ interface StatusWithApprovalProps {
 const roleLabels: Record<string, string> = {
   supervisor: 'Supervisor',
   staff_ga: 'Staff GA',
+  spv_ga: 'SPV GA',
   hr_manager: 'HR Manager',
   bod: 'BOD',
   staff_fa: 'Staff FA',
@@ -56,6 +58,7 @@ const getLatestApproval = (data: ApprovalTimestamps): { role: string; date: stri
     { role: 'staff_fa', date: data.staff_fa_approved_at },
     { role: 'bod', date: data.bod_approved_at },
     { role: 'hr_manager', date: data.hr_manager_approved_at },
+    { role: 'spv_ga', date: data.spv_ga_approved_at },
     { role: 'staff_ga', date: data.staff_ga_approved_at },
     { role: 'supervisor', date: data.supervisor_approved_at },
   ];
@@ -78,11 +81,16 @@ const StatusWithApproval: React.FC<StatusWithApprovalProps> = ({ status, approva
   return (
     <div className="flex flex-col gap-1">
       <Badge className={config.class}>{config.label}</Badge>
-      {latestApproval && (
+      {latestApproval && roleLabels[latestApproval.role] !== "Staff FA" ? (
         <p className="text-xs text-muted-foreground">
           Approved by {roleLabels[latestApproval.role]} on {formatDate(latestApproval.date)}
         </p>
-      )}
+      ) : (
+        status === 'Submitted' && (
+        <p className="text-xs text-muted-foreground">
+          Submitted by User on {formatDate(approvalData.submitted_at || '')}
+        </p>
+      ))}
       {status === 'Rejected' && approvalData.rejected_at && (
         <p className="text-xs text-destructive">
           Rejected on {formatDate(approvalData.rejected_at)}

@@ -9,8 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useBusinessTrips, useUpdateBusinessTrip } from '@/hooks/useBusinessTrips';
-import { useToast } from '@/hooks/use-toast';
+import { useBusinessTrips } from '@/hooks/useBusinessTrips';
 import MainLayout from '@/components/MainLayout';
 import UserAvatarCell from '@/components/AvatarCell';
 import StatusWithApproval from '@/components/StatusWithApproval';
@@ -24,8 +23,6 @@ const ApprovalPerjalananDinas = () => {
   const [selectedTrip, setSelectedTrip] = useState<any>(null);
 
   const { data: businessTrips, isLoading, error } = useBusinessTrips();
-  const updateBusinessTrip = useUpdateBusinessTrip();
-  const { toast } = useToast();
 
   console.log('Business trips data:', businessTrips);
   console.log('Loading state:', isLoading);
@@ -279,6 +276,7 @@ const ApprovalPerjalananDinas = () => {
                         <StatusWithApproval 
                           status={item.status} 
                           approvalData={{
+                            submitted_at: item.created_at,
                             supervisor_approved_at: item.supervisor_approved_at,
                             supervisor_approved_by: item.supervisor_approved_by,
                             staff_ga_approved_at: item.staff_ga_approved_at,

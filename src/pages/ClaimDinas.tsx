@@ -20,7 +20,7 @@ const ClaimDinas = () => {
   const [printModalOpen, setPrintModalOpen] = useState(false);
   const [selectedClaim, setSelectedClaim] = useState<any>(null);
 
-  const { data: claims = [], isLoading } = useTripClaims();
+  const { data: claims = [], isLoading } = useTripClaims([['status', 'Submitted', 'neq']]);
 
   const handleViewDetail = (claim: any) => {
     setSelectedClaim(claim);
@@ -46,7 +46,7 @@ const ClaimDinas = () => {
 
   // Calculate statistics
   const totalClaims = claims.length;
-  const pendingClaims = claims.filter(c => c.status === 'Submitted').length;
+  // const pendingClaims = claims.filter(c => c.status === 'Submitted').length;
   const approvedClaims = claims.filter(c => c.status === 'Approved').length;
   const totalAmount = claims.reduce((sum, claim) => sum + claim.total_amount, 0);
 
@@ -88,7 +88,7 @@ const ClaimDinas = () => {
           </div>
 
           {/* Statistics Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
             <Card className="bg-white dark:bg-gray-800">
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
@@ -103,7 +103,7 @@ const ClaimDinas = () => {
               </CardContent>
             </Card>
 
-            <Card className="bg-white dark:bg-gray-800">
+            {/* <Card className="bg-white dark:bg-gray-800">
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
@@ -115,7 +115,7 @@ const ClaimDinas = () => {
                   </div>
                 </div>
               </CardContent>
-            </Card>
+            </Card> */}
 
             <Card className="bg-white dark:bg-gray-800">
               <CardContent className="p-6">

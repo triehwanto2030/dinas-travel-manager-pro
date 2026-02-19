@@ -308,6 +308,7 @@ const ApprovalClaimDinas = () => {
                           <StatusWithApproval 
                             status={claim.status}
                             approvalData={{
+                              submitted_at: claim.created_at,
                               supervisor_approved_at: claim.supervisor_approved_at,
                               supervisor_approved_by: claim.supervisor_approved_by,
                               staff_ga_approved_at: claim.staff_ga_approved_at,

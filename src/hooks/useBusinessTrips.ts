@@ -6,6 +6,9 @@ import { Tables, TablesInsert, TablesUpdate } from '@/integrations/supabase/type
 type BusinessTrip = Tables<'business_trips'>;
 type Employee = Tables<'employees'>;
 type Company = Tables<'companies'>;
+type DynamicFilter = [fField: string, fVal: string, opr?: FilterOperator][];
+
+export type FilterOperator = 'eq' | 'neq' | 'gt' | 'gte' | 'lt' | 'lte' | 'like' | 'in' | 'notIn';
 
 export interface BusinessTripWithRelations extends BusinessTrip {
   employees: Employee & {
@@ -24,8 +27,10 @@ export interface BusinessTripFormData {
   transportation: string;
   cash_advance: number;
   cost_center: string;
+  status?: string;
   department: string;
   notes?: string;
+  created_at?: string;
   current_approval_step?: string | null;
   rejection_reason?: string;
   supervisor_approved_at?: string | null;
@@ -44,13 +49,13 @@ export interface BusinessTripFormData {
   rejected_by?: string | null;
 }
 
-export const useBusinessTrips = () => {
+export const useBusinessTrips = (filters?: DynamicFilter) => {
   return useQuery({
-    queryKey: ['business_trips'],
+    queryKey: ['business_trips', filters],
     queryFn: async (): Promise<BusinessTripWithRelations[]> => {
-      console.log('Fetching business trips...');
+      console.log('Fetching business trips... filter:', filters); 
       
-      const { data, error } = await supabase
+      let query: any = supabase
         .from('business_trips')
         .select(`
           *,
@@ -60,6 +65,22 @@ export const useBusinessTrips = () => {
           )
         `)
         .order('created_at', { ascending: false });
+
+      if (filters?.length) {
+        filters.forEach(([field, value, operator]) => {
+          if (operator && operator !== 'like' && operator !== 'in' && operator !== 'notIn') {
+            query = query[operator](field, value);
+          } else if (operator === 'in' || operator === 'notIn') {
+            query = query[operator](field, Array.isArray(value) ? value : [value]);
+          } else if (operator === 'like') {
+            query = query.ilike(field, `%${value}%`);
+          } else {
+            query = query.eq(field, value);
+          }
+        });
+      }
+      
+      const { data, error } = await query;
 
       if (error) {
         console.error('Error fetching business trips:', error);

@@ -12,6 +12,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useLineApprovals } from '@/hooks/useLineApprovals';
 import { useEmployees } from '@/hooks/useEmployees';
 import { useAuth } from '@/contexts/AuthContext';
+import { useQueryClient } from '@tanstack/react-query';
 
 interface BusinessTrip {
   id: string;
@@ -67,6 +68,7 @@ const ApprovalPerjalananDinasDetailModal: React.FC<ApprovalPerjalananDinasDetail
   onClose,
   trip
 }) => {
+  const queryClient = useQueryClient();
   const [isRejectDialogOpen, setIsRejectDialogOpen] = useState(false);
   const [rejectReason, setRejectReason] = useState('');
   const [approvable, setApprovable] = useState(false);
@@ -273,6 +275,7 @@ const ApprovalPerjalananDinasDetailModal: React.FC<ApprovalPerjalananDinasDetail
         title: "Berhasil!",
         description: "Perjalanan dinas telah disetujui",
       });
+      queryClient.invalidateQueries({ queryKey: ['business_trips'] });
       onClose();
     } catch (error) {
       console.error('Error approving trip:', error);
@@ -475,8 +478,8 @@ const ApprovalPerjalananDinasDetailModal: React.FC<ApprovalPerjalananDinasDetail
                             </div>
                           </UserAvatarCell>
                         </div>
-                        <p>{getApprovalStatus("Approved").label}</p>
-                        <p>{trip.supervisor_approved_at}</p>
+                        <p className="text-xs text-muted-foreground mt-2">{getApprovalStatus("Approved").label}</p>
+                        <p className="text-xs text-muted-foreground">{trip.supervisor_approved_at}</p>
                       </div>
                     )}
                     {companyLineApproval.staff_ga && (
@@ -490,8 +493,8 @@ const ApprovalPerjalananDinasDetailModal: React.FC<ApprovalPerjalananDinasDetail
                             </div>
                           </UserAvatarCell>
                         </div>
-                        <p>Approved at:</p>
-                        <p>{trip.staff_ga_approved_at}</p>
+                        <p className="text-xs text-muted-foreground mt-2">Approved at:</p>
+                        <p className="text-xs text-muted-foreground">{trip.staff_ga_approved_at}</p>
                       </div>
                     )}
                     {companyLineApproval.spv_ga && (
@@ -505,8 +508,8 @@ const ApprovalPerjalananDinasDetailModal: React.FC<ApprovalPerjalananDinasDetail
                             </div>
                           </UserAvatarCell>
                         </div>
-                        <p>Approved at:</p>
-                        <p>{trip.spv_ga_approved_at}</p>
+                        <p className="text-xs text-muted-foreground mt-2">Approved at:</p>
+                        <p className="text-xs text-muted-foreground">{trip.spv_ga_approved_at}</p>
                       </div>
                     )}
                     {companyLineApproval.hr_manager && (
@@ -520,8 +523,8 @@ const ApprovalPerjalananDinasDetailModal: React.FC<ApprovalPerjalananDinasDetail
                             </div>
                           </UserAvatarCell>
                         </div>
-                        <p>Approved at:</p>
-                        <p>{trip.hr_manager_approved_at}</p>
+                        <p className="text-xs text-muted-foreground mt-2">Approved at:</p>
+                        <p className="text-xs text-muted-foreground">{trip.hr_manager_approved_at}</p>
                       </div>
                     )}
                     {companyLineApproval.bod && (
@@ -535,8 +538,8 @@ const ApprovalPerjalananDinasDetailModal: React.FC<ApprovalPerjalananDinasDetail
                             </div>
                           </UserAvatarCell>
                         </div>
-                        <p>Approved at:</p>
-                        <p>{trip.bod_approved_at}</p>
+                        <p className="text-xs text-muted-foreground mt-2">Approved at:</p>
+                        <p className="text-xs text-muted-foreground">{trip.bod_approved_at}</p>
                       </div>
                     )}
                     {companyLineApproval.staff_fa && (
@@ -550,8 +553,8 @@ const ApprovalPerjalananDinasDetailModal: React.FC<ApprovalPerjalananDinasDetail
                             </div>
                           </UserAvatarCell>
                         </div>
-                        <p>Approved at:</p>
-                        <p>{trip.staff_fa_approved_at}</p>
+                        <p className="text-xs text-muted-foreground mt-2">Approved at:</p>
+                        <p className="text-xs text-muted-foreground">{trip.staff_fa_approved_at}</p>
                       </div>
                     )}
                   </div>

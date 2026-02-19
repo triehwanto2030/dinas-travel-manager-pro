@@ -6,18 +6,21 @@ type TripClaim = Tables<'trip_claims'>;
 type ClaimExpense = Tables<'claim_expenses'>;
 type Employee = Tables<'employees'>;
 type BusinessTrip = Tables<'business_trips'>;
+type DynamicFilter = [fField: string, fVal: string, opr?: FilterOperator][];
+
+export type FilterOperator = 'eq' | 'neq' | 'gt' | 'gte' | 'lt' | 'lte' | 'like' | 'in' | 'notIn';
 
 export interface TripClaimWithDetails extends TripClaim {
   employees: Employee;
   business_trips: BusinessTrip;
 }
 
-export const useTripClaims = () => {
+export const useTripClaims = (filters?: DynamicFilter) => {
   return useQuery({
-    queryKey: ['trip_claims'],
+    queryKey: ['trip_claims', filters],
     queryFn: async (): Promise<TripClaimWithDetails[]> => {
       console.log('Fetching trip claims...');
-      const { data, error } = await supabase
+      let query: any = supabase
         .from('trip_claims')
         .select(`
           *,
@@ -25,6 +28,22 @@ export const useTripClaims = () => {
           business_trips (*)
         `)
         .order('created_at', { ascending: false });
+
+      if (filters?.length) {
+        filters.forEach(([field, value, operator]) => {
+          if (operator && operator !== 'like' && operator !== 'in' && operator !== 'notIn') {
+            query = query[operator](field, value);
+          } else if (operator === 'in' || operator === 'notIn') {
+            query = query[operator](field, Array.isArray(value) ? value : [value]);
+          } else if (operator === 'like') {
+            query = query.ilike(field, `%${value}%`);
+          } else {
+            query = query.eq(field, value);
+          }
+        });
+      }
+
+      const { data, error } = await query;
 
       if (error) {
         console.error('Error fetching trip claims:', error);

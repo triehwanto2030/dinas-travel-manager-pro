@@ -16,6 +16,7 @@ import { useCompanies } from '@/hooks/useCompanies';
 import { useLineApprovals } from '@/hooks/useLineApprovals';
 import { useEmployees } from '@/hooks/useEmployees';
 import { useAuth } from '@/contexts/AuthContext';
+import { useUpdateBusinessTrip } from '@/hooks/useBusinessTrips';
 
 interface TripClaim {
   id: string;
@@ -95,6 +96,7 @@ const ApprovalClaimDinasDetailModal: React.FC<ApprovalClaimDinasDetailModalProps
   const updateTripClaimExpenses = useUpdateTripClaimExpenses();
   const createTripClaimExpense = useCreateTripClaimExpense();
   const deleteTripClaimExpenses = useDeleteTripClaimExpenses();
+  const updateBusinessTrip = useUpdateBusinessTrip();
   
   const [expenses, setExpenses] = useState<ExpenseItem[]>([]);
   const [isEditing, setIsEditing] = useState(false);
@@ -385,9 +387,19 @@ const ApprovalClaimDinasDetailModal: React.FC<ApprovalClaimDinasDetailModalProps
       return;
     }
     try {
-      await updateTripClaim.mutateAsync({ id: claim.id, status: 'Rejected', rejection_reason: rejectReason });
+      await updateTripClaim.mutateAsync({
+        id: claim.id, status: 'Rejected',
+        rejected_at: new Date().toISOString(),
+        rejected_by: userEmp?.id,
+        rejection_reason: rejectReason
+      });
       toast({ title: "Berhasil!", description: "Claim dinas telah ditolak" });
       queryClient.invalidateQueries({ queryKey: ['trip_claims'] });
+
+      await updateBusinessTrip.mutateAsync({
+        id: claim.business_trips.id,
+        status: 'Approved'
+      });
       setIsRejectDialogOpen(false);
       setRejectReason('');
       onClose();
@@ -641,8 +653,8 @@ const ApprovalClaimDinasDetailModal: React.FC<ApprovalClaimDinasDetailModalProps
                             </div>
                           </UserAvatarCell>
                         </div>
-                        <p>Approved at:</p>
-                        <p>{claim.supervisor_approved_at}</p>
+                        <p className="text-xs text-muted-foreground mt-2">Approved at:</p>
+                        <p className="text-xs text-muted-foreground">{claim.supervisor_approved_at}</p>
                       </div>
                     )}
                     {companyLineApproval.staff_ga && (
@@ -656,8 +668,8 @@ const ApprovalClaimDinasDetailModal: React.FC<ApprovalClaimDinasDetailModalProps
                             </div>
                           </UserAvatarCell>
                         </div>
-                        <p>Approved at:</p>
-                        <p>{claim.staff_ga_approved_at}</p>
+                        <p className="text-xs text-muted-foreground mt-2">Approved at:</p>
+                        <p className="text-xs text-muted-foreground">{claim.staff_ga_approved_at}</p>
                       </div>
                     )}
                     {companyLineApproval.spv_ga && (
@@ -671,8 +683,8 @@ const ApprovalClaimDinasDetailModal: React.FC<ApprovalClaimDinasDetailModalProps
                             </div>
                           </UserAvatarCell>
                         </div>
-                        <p>Approved at:</p>
-                        <p>{claim.spv_ga_approved_at}</p>
+                        <p className="text-xs text-muted-foreground mt-2">Approved at:</p>
+                        <p className="text-xs text-muted-foreground">{claim.spv_ga_approved_at}</p>
                       </div>
                     )}
                     {companyLineApproval.hr_manager && (
@@ -686,8 +698,8 @@ const ApprovalClaimDinasDetailModal: React.FC<ApprovalClaimDinasDetailModalProps
                             </div>
                           </UserAvatarCell>
                         </div>
-                        <p>Approved at:</p>
-                        <p>{claim.hr_manager_approved_at}</p>
+                        <p className="text-xs text-muted-foreground mt-2">Approved at:</p>
+                        <p className="text-xs text-muted-foreground">{claim.hr_manager_approved_at}</p>
                       </div>
                     )}
                     {companyLineApproval.bod && (
@@ -701,8 +713,8 @@ const ApprovalClaimDinasDetailModal: React.FC<ApprovalClaimDinasDetailModalProps
                             </div>
                           </UserAvatarCell>
                         </div>
-                        <p>Approved at:</p>
-                        <p>{claim.bod_approved_at}</p>
+                        <p className="text-xs text-muted-foreground mt-2">Approved at:</p>
+                        <p className="text-xs text-muted-foreground">{claim.bod_approved_at}</p>
                       </div>
                     )}
                     {companyLineApproval.staff_fa && (
@@ -716,8 +728,8 @@ const ApprovalClaimDinasDetailModal: React.FC<ApprovalClaimDinasDetailModalProps
                             </div>
                           </UserAvatarCell>
                         </div>
-                        <p>Approved at:</p>
-                        <p>{claim.staff_fa_approved_at}</p>
+                        <p className="text-xs text-muted-foreground mt-2">Approved at:</p>
+                        <p className="text-xs text-muted-foreground">{claim.staff_fa_approved_at}</p>
                       </div>
                     )}
                   </div>
