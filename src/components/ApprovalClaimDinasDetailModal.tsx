@@ -51,6 +51,21 @@ interface TripClaim {
     transportation: string | null;
     created_at: string;
   };
+  current_approval_step: string | null;
+  supervisor_approved_at: string | null;
+  staff_ga_approved_at: string | null;
+  spv_ga_approved_at: string | null;
+  hr_manager_approved_at: string | null;
+  bod_approved_at: string | null;
+  staff_fa_approved_at: string | null;
+  supervisor_approved_by: string | null;
+  staff_ga_approved_by: string | null;
+  spv_ga_approved_by: string | null;
+  hr_manager_approved_by: string | null;
+  bod_approved_by: string | null;
+  staff_fa_approved_by: string | null;
+  rejected_at: string | null;
+  rejected_by: string | null;
 }
 
 interface ExpenseItem {
@@ -87,10 +102,12 @@ const ApprovalClaimDinasDetailModal: React.FC<ApprovalClaimDinasDetailModalProps
   const [rejectReason, setRejectReason] = useState('');
   const [editExpenses, setEditExpenses] = useState<boolean>(false);
   const [deletedExpenseIds, setDeletedExpenseIds] = useState<string[]>([]);
+  const [approvable, setApprovable] = useState(false);
   const { data: companies = [] } = useCompanies();
   const { data: lineApprovals = [] } = useLineApprovals();
   const { data: employees = [] } = useEmployees();
   const { employee: userEmp } = useAuth();
+  const companyLineApproval = lineApprovals.find(la => la.company_id === claim?.employees?.company_id);
 
   // Initialize expenses from claimExpenses
   useEffect(() => {
@@ -106,6 +123,67 @@ const ApprovalClaimDinasDetailModal: React.FC<ApprovalClaimDinasDetailModalProps
     }
   }, [claimExpenses]);
 
+  useEffect(() => {
+    const currentStep = claim?.current_approval_step;
+
+    if (!currentStep || !userEmp || !trip) {
+      setApprovable(false);
+      return;
+    }
+
+    const approvableStepsMap: Record<string, keyof TripClaim> = {
+      supervisor: 'supervisor_approved_by',
+      staff_ga: 'staff_ga_approved_by',
+      spv_ga: 'spv_ga_approved_by',
+      hr_manager: 'hr_manager_approved_by',
+      bod: 'bod_approved_by',
+      staff_fa: 'staff_fa_approved_by',
+    };
+
+    const roleMap: Record<string, keyof typeof companyLineApproval> = {
+      staff_ga: 'staff_ga',
+      spv_ga: 'spv_ga',
+      hr_manager: 'hr_manager',
+      bod: 'bod',
+      staff_fa: 'staff_fa',
+    };
+
+    const requiredField = approvableStepsMap[currentStep];
+
+    if (!requiredField) {
+      setApprovable(false);
+      return;
+    }
+
+    // Already approved?
+    const tripApproval = trip[requiredField];
+
+    if (tripApproval !== null) {
+      setApprovable(false);
+      return;
+    }
+
+    // Supervisor case (special logic)
+    if (currentStep === 'supervisor') {
+      setApprovable(claim.employees?.supervisor_id === userEmp.id);
+      return;
+    }
+
+    // Other roles
+    if (!companyLineApproval) {
+      setApprovable(false);
+      return;
+    }
+
+    const roleKey = roleMap[currentStep];
+    const assignedEmployee = roleKey && companyLineApproval
+      ? companyLineApproval[roleKey] as { id: string } || null
+      : null;
+
+    setApprovable(assignedEmployee?.id === userEmp.id);
+
+  }, [claim, userEmp, companyLineApproval]);
+
   // Calculate live total from expenses state
   const liveTotal = useMemo(() => {
     return expenses.reduce((sum, exp) => sum + (exp.amount || 0), 0);
@@ -113,6 +191,25 @@ const ApprovalClaimDinasDetailModal: React.FC<ApprovalClaimDinasDetailModalProps
 
   if (!claim) return null;
   if (!isOpen) return null;
+  
+  const approvalFlow = [
+    'supervisor',
+    'staff_ga',
+    'spv_ga',
+    'hr_manager',
+    'bod',
+    'staff_fa',
+  ] as const;
+
+  type Role = typeof approvalFlow[number];
+
+  const nextRoleMap: Record<Role, Role> = {} as Record<Role, Role>;
+  const previousRoleMap: Record<Role, Role> = {} as Record<Role, Role>;
+
+  approvalFlow.forEach((role, index) => {
+    nextRoleMap[role] = approvalFlow[index + 1] ?? role;      // clamp at end
+    previousRoleMap[role] = approvalFlow[index - 1] ?? role;  // clamp at start
+  });
 
   const employee = claim.employees;
   const trip = claim.business_trips;
@@ -121,7 +218,6 @@ const ApprovalClaimDinasDetailModal: React.FC<ApprovalClaimDinasDetailModalProps
 
   const companyObj = companies.find(c => c.id === employee.company_id);
   const companyName = companyObj?.name || 'N/A';
-  const companyLineApproval = lineApprovals.find(la => la.company_id === employee.company_id);
   
   // Build approval hierarchy
   const supervisor = employee.supervisor_id ? employees.find(e => e.id === employee.supervisor_id) : null;
@@ -154,6 +250,15 @@ const ApprovalClaimDinasDetailModal: React.FC<ApprovalClaimDinasDetailModalProps
     
     const config = statusConfig[status] || statusConfig.Draft;
     return <Badge className={config.class}>{config.label}</Badge>;
+  };
+
+  const approvalFieldMap: Record<Role, { approvedAt: keyof TripClaim; approvedBy: keyof TripClaim }> = {
+    supervisor: { approvedAt: 'supervisor_approved_at', approvedBy: 'supervisor_approved_by' },
+    staff_ga: { approvedAt: 'staff_ga_approved_at', approvedBy: 'staff_ga_approved_by' },
+    spv_ga: { approvedAt: 'spv_ga_approved_at', approvedBy: 'spv_ga_approved_by' },
+    hr_manager: { approvedAt: 'hr_manager_approved_at', approvedBy: 'hr_manager_approved_by' },
+    bod: { approvedAt: 'bod_approved_at', approvedBy: 'bod_approved_by' },
+    staff_fa: { approvedAt: 'staff_fa_approved_at', approvedBy: 'staff_fa_approved_by' },
   };
 
   const handleExpenseUpdate = (index: number, field: string, value: any) => {
@@ -253,7 +358,19 @@ const ApprovalClaimDinasDetailModal: React.FC<ApprovalClaimDinasDetailModalProps
 
   const handleApproveClick = async () => {
     try {
-      await updateTripClaim.mutateAsync({ id: claim.id, status: 'Approved' });
+      const step = claim.current_approval_step as Role;
+      if (!step) return;
+      
+      const fields = approvalFieldMap[step];
+      if (!fields) return;
+
+      await updateTripClaim.mutateAsync({
+        id: claim.id,
+        status: step !== "staff_fa" ? 'Submitted' : 'Approved',
+        current_approval_step: nextRoleMap[step],
+        [fields.approvedAt]: new Date().toISOString(),
+        [fields.approvedBy]: userEmp?.id || null
+      });
       toast({ title: "Berhasil!", description: "Claim dinas telah disetujui" });
       queryClient.invalidateQueries({ queryKey: ['trip_claims'] });
       onClose();
@@ -525,7 +642,7 @@ const ApprovalClaimDinasDetailModal: React.FC<ApprovalClaimDinasDetailModalProps
                           </UserAvatarCell>
                         </div>
                         <p>Approved at:</p>
-                        <p></p>
+                        <p>{claim.supervisor_approved_at}</p>
                       </div>
                     )}
                     {companyLineApproval.staff_ga && (
@@ -540,7 +657,7 @@ const ApprovalClaimDinasDetailModal: React.FC<ApprovalClaimDinasDetailModalProps
                           </UserAvatarCell>
                         </div>
                         <p>Approved at:</p>
-                        <p></p>
+                        <p>{claim.staff_ga_approved_at}</p>
                       </div>
                     )}
                     {companyLineApproval.spv_ga && (
@@ -555,7 +672,7 @@ const ApprovalClaimDinasDetailModal: React.FC<ApprovalClaimDinasDetailModalProps
                           </UserAvatarCell>
                         </div>
                         <p>Approved at:</p>
-                        <p></p>
+                        <p>{claim.spv_ga_approved_at}</p>
                       </div>
                     )}
                     {companyLineApproval.hr_manager && (
@@ -570,7 +687,7 @@ const ApprovalClaimDinasDetailModal: React.FC<ApprovalClaimDinasDetailModalProps
                           </UserAvatarCell>
                         </div>
                         <p>Approved at:</p>
-                        <p></p>
+                        <p>{claim.hr_manager_approved_at}</p>
                       </div>
                     )}
                     {companyLineApproval.bod && (
@@ -585,7 +702,7 @@ const ApprovalClaimDinasDetailModal: React.FC<ApprovalClaimDinasDetailModalProps
                           </UserAvatarCell>
                         </div>
                         <p>Approved at:</p>
-                        <p></p>
+                        <p>{claim.bod_approved_at}</p>
                       </div>
                     )}
                     {companyLineApproval.staff_fa && (
@@ -600,7 +717,7 @@ const ApprovalClaimDinasDetailModal: React.FC<ApprovalClaimDinasDetailModalProps
                           </UserAvatarCell>
                         </div>
                         <p>Approved at:</p>
-                        <p></p>
+                        <p>{claim.staff_fa_approved_at}</p>
                       </div>
                     )}
                   </div>
@@ -612,7 +729,7 @@ const ApprovalClaimDinasDetailModal: React.FC<ApprovalClaimDinasDetailModalProps
           {/* Footer with Approve/Reject buttons */}
           <div className="p-6 border-t flex justify-between">
             <Button variant="outline" onClick={onClose} disabled={editExpenses}>Tutup</Button>
-            {claim.status === 'Submitted' && (
+            {claim.status === 'Submitted' && approvable && (
               <div className="flex gap-2">
                 <Button variant="destructive" onClick={() => setIsRejectDialogOpen(true)} disabled={updateTripClaim.isPending || editExpenses}>
                   Tolak

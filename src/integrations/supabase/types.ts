@@ -449,6 +449,8 @@ export type Database = {
           staff_fa_approved_by: string | null
           staff_ga_approved_at: string | null
           staff_ga_approved_by: string | null
+          spv_ga_approved_at: string | null
+          spv_ga_approved_by: string | null
           status: string
           submitted_at: string | null
           supervisor_approved_at: string | null
@@ -475,6 +477,8 @@ export type Database = {
           staff_fa_approved_by?: string | null
           staff_ga_approved_at?: string | null
           staff_ga_approved_by?: string | null
+          spv_ga_approved_at?: string | null
+          spv_ga_approved_by?: string | null
           status?: string
           submitted_at?: string | null
           supervisor_approved_at?: string | null
@@ -501,6 +505,8 @@ export type Database = {
           staff_fa_approved_by?: string | null
           staff_ga_approved_at?: string | null
           staff_ga_approved_by?: string | null
+          spv_ga_approved_at?: string | null
+          spv_ga_approved_by?: string | null
           status?: string
           submitted_at?: string | null
           supervisor_approved_at?: string | null

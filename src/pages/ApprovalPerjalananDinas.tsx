@@ -287,6 +287,8 @@ const ApprovalPerjalananDinas = () => {
                             hr_manager_approved_by: item.hr_manager_approved_by,
                             bod_approved_at: item.bod_approved_at,
                             bod_approved_by: item.bod_approved_by,
+                            spv_ga_approved_at: item.spv_ga_approved_at,
+                            spv_ga_approved_by: item.spv_ga_approved_by,
                             staff_fa_approved_at: item.staff_fa_approved_at,
                             staff_fa_approved_by: item.staff_fa_approved_by,
                             rejected_at: item.rejected_at,

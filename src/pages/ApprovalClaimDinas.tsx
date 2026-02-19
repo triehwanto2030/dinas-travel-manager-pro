@@ -316,6 +316,8 @@ const ApprovalClaimDinas = () => {
                               hr_manager_approved_by: claim.hr_manager_approved_by,
                               bod_approved_at: claim.bod_approved_at,
                               bod_approved_by: claim.bod_approved_by,
+                              spv_ga_approved_at: claim.spv_ga_approved_at,
+                              spv_ga_approved_by: claim.spv_ga_approved_by,
                               staff_fa_approved_at: claim.staff_fa_approved_at,
                               staff_fa_approved_by: claim.staff_fa_approved_by,
                               rejected_at: claim.rejected_at,

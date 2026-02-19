@@ -10,6 +10,8 @@ interface ApprovalTimestamps {
   hr_manager_approved_by?: string | null;
   bod_approved_at?: string | null;
   bod_approved_by?: string | null;
+  spv_ga_approved_at?: string | null;
+  spv_ga_approved_by?: string | null;
   staff_fa_approved_at?: string | null;
   staff_fa_approved_by?: string | null;
   rejected_at?: string | null;
