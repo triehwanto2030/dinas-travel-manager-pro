@@ -10,7 +10,7 @@ import UserAvatarCell from './AvatarCell';
 import { useUpdateBusinessTrip } from '@/hooks/useBusinessTrips';
 import { useToast } from '@/hooks/use-toast';
 import { useLineApprovals } from '@/hooks/useLineApprovals';
-import { useEmployees } from '@/hooks/useEmployees';
+import { EmployeeWithCompany, useEmployees } from '@/hooks/useEmployees';
 import { useAuth } from '@/contexts/AuthContext';
 import { useQueryClient } from '@tanstack/react-query';
 
@@ -206,29 +206,21 @@ const ApprovalPerjalananDinasDetailModal: React.FC<ApprovalPerjalananDinasDetail
     return <Badge className={config.class}>{config.label}</Badge>;
   };
 
-  const getApprovalStatus = (step: string) => {
+  const getApprovalStatus = (step: string, pic: any) => {
     const currStep = trip?.current_approval_step;
-    // const reject = trip.
-    const statusConfig: Record<string, { class: string; label: string }> = {
-      'Pending': { class: 'bg-yellow-100', label: 'Pending' },
-      'Approved': { class: 'bg-green-100', label: 'Approved' },
-      'Rejected': { class: 'bg-red-100', label: 'Rejected' }
-    };
+    const reject = trip?.rejected_by;
 
-    const approvableStepsMap: Record<string, keyof BusinessTrip> = {
-      supervisor: 'supervisor_approved_by',
-      staff_ga: 'staff_ga_approved_by',
-      spv_ga: 'spv_ga_approved_by',
-      hr_manager: 'hr_manager_approved_by',
-      bod: 'bod_approved_by',
-      staff_fa: 'staff_fa_approved_by',
-    };
-
-    if (step === currStep) {
-      return statusConfig.Pending;
+    if (currStep === step) {
+      return { class: 'bg-yellow-100', label: 'Pending' };
+    }
+    
+    if ((!reject || reject !== pic.id) && currStep && currStep !== step) {
+      return { class: 'bg-green-100', label: 'Approved' };
     }
 
-    return statusConfig[status] || statusConfig.Pending;
+    if (reject == pic.id) {
+      return { class: 'bg-red-100', label: 'Rejected' };
+    }
   };
 
   const approvalFieldMap: Record<Role, { approvedAt: keyof BusinessTrip; approvedBy: keyof BusinessTrip }> = {
@@ -468,7 +460,7 @@ const ApprovalPerjalananDinasDetailModal: React.FC<ApprovalPerjalananDinasDetail
                   </h3>
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                     {supervisor && (
-                      <div className={`p-3 rounded-lg ${trip.supervisor_approved_at ? getApprovalStatus("Approved").class : 'bg-muted/30'}`}>
+                      <div className={`p-3 rounded-lg ${trip.supervisor_approved_at ? getApprovalStatus('supervisor', supervisor).class : 'bg-muted/30'}`}>
                         <p className="text-xs text-muted-foreground">Atasan</p>
                         <div className="flex items-center gap-2 mt-1">
                           <UserAvatarCell employeeUsed={supervisor} classname="w-8 h-8">
@@ -478,12 +470,12 @@ const ApprovalPerjalananDinasDetailModal: React.FC<ApprovalPerjalananDinasDetail
                             </div>
                           </UserAvatarCell>
                         </div>
-                        <p className="text-xs text-muted-foreground mt-2">{getApprovalStatus("Approved").label}</p>
+                        <p className="text-xs text-muted-foreground mt-2">{getApprovalStatus("supervisor", supervisor).label}</p>
                         <p className="text-xs text-muted-foreground">{trip.supervisor_approved_at}</p>
                       </div>
                     )}
                     {companyLineApproval.staff_ga && (
-                      <div className="p-3 bg-muted/30 rounded-lg">
+                      <div className={`p-3 rounded-lg ${trip.staff_ga_approved_at ? getApprovalStatus('staff_ga', companyLineApproval.staff_ga).class : 'bg-muted/30'}`}>
                         <p className="text-xs text-muted-foreground">Staff GA</p>
                         <div className="flex items-center gap-2 mt-1">
                           <UserAvatarCell employeeUsed={companyLineApproval.staff_ga} classname="w-8 h-8">
@@ -493,12 +485,12 @@ const ApprovalPerjalananDinasDetailModal: React.FC<ApprovalPerjalananDinasDetail
                             </div>
                           </UserAvatarCell>
                         </div>
-                        <p className="text-xs text-muted-foreground mt-2">Approved at:</p>
+                        <p className="text-xs text-muted-foreground mt-2">{getApprovalStatus("staff_ga", companyLineApproval.staff_ga).label}</p>
                         <p className="text-xs text-muted-foreground">{trip.staff_ga_approved_at}</p>
                       </div>
                     )}
                     {companyLineApproval.spv_ga && (
-                      <div className="p-3 bg-muted/30 rounded-lg">
+                      <div className={`p-3 rounded-lg ${trip.spv_ga_approved_at ? getApprovalStatus('spv_ga', companyLineApproval.spv_ga).class : 'bg-muted/30'}`}>
                         <p className="text-xs text-muted-foreground">SPV GA</p>
                         <div className="flex items-center gap-2 mt-1">
                           <UserAvatarCell employeeUsed={companyLineApproval.spv_ga} classname="w-8 h-8">
@@ -508,12 +500,12 @@ const ApprovalPerjalananDinasDetailModal: React.FC<ApprovalPerjalananDinasDetail
                             </div>
                           </UserAvatarCell>
                         </div>
-                        <p className="text-xs text-muted-foreground mt-2">Approved at:</p>
+                        <p className="text-xs text-muted-foreground mt-2">{getApprovalStatus("spv_ga", companyLineApproval.spv_ga).label}</p>
                         <p className="text-xs text-muted-foreground">{trip.spv_ga_approved_at}</p>
                       </div>
                     )}
                     {companyLineApproval.hr_manager && (
-                      <div className="p-3 bg-muted/30 rounded-lg">
+                      <div className={`p-3 rounded-lg ${trip.hr_manager_approved_at ? getApprovalStatus('hr_manager', companyLineApproval.hr_manager).class : 'bg-muted/30'}`}>
                         <p className="text-xs text-muted-foreground">HR Manager</p>
                         <div className="flex items-center gap-2 mt-1">
                           <UserAvatarCell employeeUsed={companyLineApproval.hr_manager} classname="w-8 h-8">
@@ -523,12 +515,12 @@ const ApprovalPerjalananDinasDetailModal: React.FC<ApprovalPerjalananDinasDetail
                             </div>
                           </UserAvatarCell>
                         </div>
-                        <p className="text-xs text-muted-foreground mt-2">Approved at:</p>
+                        <p className="text-xs text-muted-foreground mt-2">{getApprovalStatus("hr_manager", companyLineApproval.hr_manager).label}</p>
                         <p className="text-xs text-muted-foreground">{trip.hr_manager_approved_at}</p>
                       </div>
                     )}
                     {companyLineApproval.bod && (
-                      <div className="p-3 bg-muted/30 rounded-lg">
+                      <div className={`p-3 rounded-lg ${trip.bod_approved_at ? getApprovalStatus('bod', companyLineApproval.bod).class : 'bg-muted/30'}`}>
                         <p className="text-xs text-muted-foreground">BOD</p>
                         <div className="flex items-center gap-2 mt-1">
                           <UserAvatarCell employeeUsed={companyLineApproval.bod} classname="w-8 h-8">
@@ -538,12 +530,12 @@ const ApprovalPerjalananDinasDetailModal: React.FC<ApprovalPerjalananDinasDetail
                             </div>
                           </UserAvatarCell>
                         </div>
-                        <p className="text-xs text-muted-foreground mt-2">Approved at:</p>
+                        <p className="text-xs text-muted-foreground mt-2">{getApprovalStatus("bod", companyLineApproval.bod).label}</p>
                         <p className="text-xs text-muted-foreground">{trip.bod_approved_at}</p>
                       </div>
                     )}
                     {companyLineApproval.staff_fa && (
-                      <div className="p-3 bg-muted/30 rounded-lg">
+                      <div className={`p-3 rounded-lg ${trip.staff_fa_approved_at ? getApprovalStatus('staff_fa', companyLineApproval.staff_fa).class : 'bg-muted/30'}`}>
                         <p className="text-xs text-muted-foreground">Staff FA</p>
                         <div className="flex items-center gap-2 mt-1">
                           <UserAvatarCell employeeUsed={companyLineApproval.staff_fa} classname="w-8 h-8">
@@ -553,7 +545,7 @@ const ApprovalPerjalananDinasDetailModal: React.FC<ApprovalPerjalananDinasDetail
                             </div>
                           </UserAvatarCell>
                         </div>
-                        <p className="text-xs text-muted-foreground mt-2">Approved at:</p>
+                        <p className="text-xs text-muted-foreground mt-2">{getApprovalStatus("staff_fa", companyLineApproval.staff_fa).label}</p>
                         <p className="text-xs text-muted-foreground">{trip.staff_fa_approved_at}</p>
                       </div>
                     )}
