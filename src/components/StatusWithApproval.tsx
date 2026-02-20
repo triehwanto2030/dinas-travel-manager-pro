@@ -81,7 +81,7 @@ const StatusWithApproval: React.FC<StatusWithApprovalProps> = ({ status, approva
   return (
     <div className="flex flex-col gap-1">
       <Badge className={config.class}>{config.label}</Badge>
-      {latestApproval && roleLabels[latestApproval.role] !== "Staff FA" ? (
+      {status !== 'Rejected' && latestApproval && roleLabels[latestApproval.role] !== "Staff FA" ? (
         <p className="text-xs text-muted-foreground">
           Approved by {roleLabels[latestApproval.role]} on {formatDate(latestApproval.date)}
         </p>
@@ -89,8 +89,8 @@ const StatusWithApproval: React.FC<StatusWithApprovalProps> = ({ status, approva
         status === 'Submitted' && (
         <p className="text-xs text-muted-foreground">
           Submitted by User on {formatDate(approvalData.submitted_at || '')}
-        </p>
-      ))}
+        </p>)
+      )}
       {status === 'Rejected' && approvalData.rejected_at && (
         <p className="text-xs text-destructive">
           Rejected on {formatDate(approvalData.rejected_at)}

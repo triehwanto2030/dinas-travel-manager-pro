@@ -6,6 +6,7 @@ import { useTripClaimExpenses } from '@/hooks/useTripClaims';
 import pjmLogo from '@/assets/pjm-logo.png';
 import { useLineApprovals } from '@/hooks/useLineApprovals';
 import { useCompanies } from '@/hooks/useCompanies';
+import { useEmployees } from '@/hooks/useEmployees';
 
 interface ClaimDinasPrintModalProps {
   isOpen: boolean;
@@ -19,6 +20,7 @@ const ClaimDinasPrintModal: React.FC<ClaimDinasPrintModalProps> = ({ isOpen, onC
   const { data: claimExpenses = [] } = useTripClaimExpenses(claimData?.id);
   const { data: lineApprovals = [] } = useLineApprovals();
   const { data: companies = [] } = useCompanies();
+  const { data: allEmployees = [] } = useEmployees();
 
   if (!isOpen || !claimData) return null;
 
@@ -69,9 +71,11 @@ const ClaimDinasPrintModal: React.FC<ClaimDinasPrintModalProps> = ({ isOpen, onC
     status: 'SUBMIT',
   });
 
+  const supervisor = allEmployees.find(emp => emp.id === claimData.employees.supervisor_id);
+
   if (companyLineApproval) {
     const steps = [
-      { key: 'supervisor', role: 'SUPERVISOR', approvedAt: claimData.supervisor_approved_at, employee: null as any },
+      { key: 'supervisor', role: 'SUPERVISOR', approvedAt: claimData.supervisor_approved_at, employee: supervisor },
       { key: 'staff_ga', role: 'GA STAFF', approvedAt: claimData.staff_ga_approved_at, employee: companyLineApproval.staff_ga },
       { key: 'hr_manager', role: 'HR MANAGER', approvedAt: claimData.hr_manager_approved_at, employee: companyLineApproval.hr_manager },
       { key: 'bod', role: 'BOD', approvedAt: claimData.bod_approved_at, employee: companyLineApproval.bod },

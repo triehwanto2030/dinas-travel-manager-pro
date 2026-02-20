@@ -260,6 +260,38 @@ const PerjalananDinasForm = ({ isOpen, onClose, mode, data }: PerjalananDinasFor
     return () => subscription.unsubscribe();
   }, [form]);
 
+  const getApprovalStatus = (step: string, pic: any) => {
+    const currStep = data?.current_approval_step;
+    const reject = data?.rejected_by;
+
+    const variableMap: Record<string, keyof BusinessTripWithRelations> = {
+      supervisor: 'supervisor_approved_by',
+      staff_ga: 'staff_ga_approved_by',
+      spv_ga: 'spv_ga_approved_by',
+      hr_manager: 'hr_manager_approved_by',
+      bod: 'bod_approved_by',
+      staff_fa: 'staff_fa_approved_by',
+    };
+
+    const approvalBy = variableMap[step] ? data[variableMap[step]] : null;
+    
+    if (!reject) {
+      if (!approvalBy) {
+        if (currStep === step) {
+          return { class: 'bg-yellow-100 dark:bg-yellow-900', label: 'Pending' };
+        }
+      } else {
+        return { class: 'bg-green-100 dark:bg-green-900', label: 'Approved' };
+      }
+    } else {
+      if (reject === pic.id) {
+        return { class: 'bg-red-100 dark:bg-red-900', label: 'Rejected' };
+      }
+    }
+
+    return { class: 'bg-gray-50 dark:bg-gray-700', label: '' };
+  };
+
   if (!isOpen) return null;
 
   return (
@@ -670,7 +702,7 @@ const PerjalananDinasForm = ({ isOpen, onClose, mode, data }: PerjalananDinasFor
                 <h3 className="text-lg font-medium text-gray-900 dark:text-white">Line Approval</h3>
                 <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
                   {approvalHierarchy.supervisor && (
-                    <div className="p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                    <div className={`p-3 rounded-lg ${mode === 'view' ? getApprovalStatus('supervisor', approvalHierarchy.supervisor).class : 'bg-gray-50 dark:bg-gray-700'}`}>
                       <p className="text-sm text-gray-600 dark:text-gray-400">Atasan</p>
                       <div className="flex items-center gap-2 mt-2">
                         <UserAvatarCell employeeUsed={approvalHierarchy.supervisor} classname="w-8 h-8">
@@ -680,10 +712,14 @@ const PerjalananDinasForm = ({ isOpen, onClose, mode, data }: PerjalananDinasFor
                           </div>
                         </UserAvatarCell>
                       </div>
+                      {mode === 'view' && (<>
+                        <p className="text-xs text-muted-foreground mt-2">{getApprovalStatus('supervisor', approvalHierarchy.supervisor).label}</p>
+                        <p className="text-xs text-muted-foreground">{data.supervisor_approved_at}</p>
+                      </>)}
                     </div>
                   )}
                   {approvalHierarchy.staff_ga && (
-                    <div className="p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                    <div className={`p-3 rounded-lg ${mode === 'view' ? getApprovalStatus('staff_ga', approvalHierarchy.staff_ga).class : 'bg-gray-50 dark:bg-gray-700'}`}>
                       <p className="text-sm text-gray-600 dark:text-gray-400">Staff GA</p>
                       <div className="flex items-center gap-2 mt-2">
                         <UserAvatarCell employeeUsed={approvalHierarchy.staff_ga} classname="w-8 h-8">
@@ -693,10 +729,14 @@ const PerjalananDinasForm = ({ isOpen, onClose, mode, data }: PerjalananDinasFor
                           </div>
                         </UserAvatarCell>
                       </div>
+                      {mode === 'view' && (<>
+                        <p className="text-xs text-muted-foreground mt-2">{getApprovalStatus('staff_ga', approvalHierarchy.staff_ga).label}</p>
+                        <p className="text-xs text-muted-foreground">{data.staff_ga_approved_at}</p>
+                      </>)}
                     </div>
                   )}
                   {approvalHierarchy.spv_ga && (
-                    <div className="p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                    <div className={`p-3 rounded-lg ${mode === 'view' ? getApprovalStatus('spv_ga', approvalHierarchy.spv_ga).class : 'bg-gray-50 dark:bg-gray-700'}`}>
                       <p className="text-sm text-gray-600 dark:text-gray-400">SPV GA</p>
                       <div className="flex items-center gap-2 mt-2">
                         <UserAvatarCell employeeUsed={approvalHierarchy.spv_ga} classname="w-8 h-8">
@@ -706,10 +746,14 @@ const PerjalananDinasForm = ({ isOpen, onClose, mode, data }: PerjalananDinasFor
                           </div>
                         </UserAvatarCell>
                       </div>
+                      {mode === 'view' && (<>
+                        <p className="text-xs text-muted-foreground mt-2">{getApprovalStatus('spv_ga', approvalHierarchy.spv_ga).label}</p>
+                        <p className="text-xs text-muted-foreground">{data.spv_ga_approved_at}</p>
+                      </>)}
                     </div>
                   )}
                   {approvalHierarchy.hr_manager && (
-                    <div className="p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                    <div className={`p-3 rounded-lg ${mode === 'view' ? getApprovalStatus('hr_manager', approvalHierarchy.hr_manager).class : 'bg-gray-50 dark:bg-gray-700'}`}>
                       <p className="text-sm text-gray-600 dark:text-gray-400">HR Manager</p>
                       <div className="flex items-center gap-2 mt-2">
                         <UserAvatarCell employeeUsed={approvalHierarchy.hr_manager} classname="w-8 h-8">
@@ -719,10 +763,14 @@ const PerjalananDinasForm = ({ isOpen, onClose, mode, data }: PerjalananDinasFor
                           </div>
                         </UserAvatarCell>
                       </div>
+                      {mode === 'view' && (<>
+                        <p className="text-xs text-muted-foreground mt-2">{getApprovalStatus('hr_manager', approvalHierarchy.hr_manager).label}</p>
+                        <p className="text-xs text-muted-foreground">{data.hr_manager_approved_at}</p>
+                      </>)}
                     </div>
                   )}
                   {approvalHierarchy.bod && (
-                    <div className="p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                    <div className={`p-3 rounded-lg ${mode === 'view' ? getApprovalStatus('bod', approvalHierarchy.bod).class : 'bg-gray-50 dark:bg-gray-700'}`}>
                       <p className="text-sm text-gray-600 dark:text-gray-400">BOD</p>
                       <div className="flex items-center gap-2 mt-2">
                         <UserAvatarCell employeeUsed={approvalHierarchy.bod} classname="w-8 h-8">
@@ -732,10 +780,14 @@ const PerjalananDinasForm = ({ isOpen, onClose, mode, data }: PerjalananDinasFor
                           </div>
                         </UserAvatarCell>
                       </div>
+                      {mode === 'view' && (<>
+                        <p className="text-xs text-muted-foreground mt-2">{getApprovalStatus('bod', approvalHierarchy.bod).label}</p>
+                        <p className="text-xs text-muted-foreground">{data.bod_approved_at}</p>
+                      </>)}
                     </div>
                   )}
                   {approvalHierarchy.staff_fa && (
-                    <div className="p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                    <div className={`p-3 rounded-lg ${mode === 'view' ? getApprovalStatus('staff_fa', approvalHierarchy.staff_fa).class : 'bg-gray-50 dark:bg-gray-700'}`}>
                       <p className="text-sm text-gray-600 dark:text-gray-400">Staff FA</p>
                       <div className="flex items-center gap-2 mt-2">
                         <UserAvatarCell employeeUsed={approvalHierarchy.staff_fa} classname="w-8 h-8">
@@ -745,6 +797,10 @@ const PerjalananDinasForm = ({ isOpen, onClose, mode, data }: PerjalananDinasFor
                           </div>
                         </UserAvatarCell>
                       </div>
+                      {mode === 'view' && (<>
+                        <p className="text-xs text-muted-foreground mt-2">{getApprovalStatus('staff_fa', approvalHierarchy.staff_fa).label}</p>
+                        <p className="text-xs text-muted-foreground">{data.staff_fa_approved_at}</p>
+                      </>)}
                     </div>
                   )}
                 </div>

@@ -68,6 +68,34 @@ const ClaimDinasDetailModal: React.FC<ClaimDinasDetailModalProps> = ({ isOpen, o
     return <Badge className={config.class}>{config.label}</Badge>;
   };
 
+  const getApprovalStatus = (step: string, pic: any) => {
+    const currStep = claimData?.current_approval_step;
+    const reject = claimData?.rejected_by;
+
+    const variableMap: Record<string, keyof any> = {
+      supervisor: 'supervisor_approved_by',
+      staff_ga: 'staff_ga_approved_by',
+      spv_ga: 'spv_ga_approved_by',
+      hr_manager: 'hr_manager_approved_by',
+      bod: 'bod_approved_by',
+      staff_fa: 'staff_fa_approved_by',
+    };
+
+    const approvalBy = variableMap[step] ? claimData[variableMap[step]] : null;
+    
+    if (!approvalBy) {
+      if (reject && reject === pic.id) {
+        return { class: 'bg-red-100 dark:bg-red-900', label: 'Rejected' };
+      } else if (currStep === step) {
+        return { class: 'bg-yellow-100 dark:bg-yellow-900', label: 'Pending' };
+      }
+    } else {
+      return { class: 'bg-green-100 dark:bg-green-900', label: 'Approved' };
+    }
+
+    return { class: 'bg-gray-50 dark:bg-gray-700', label: '' };
+  };
+
   if (isLoading) {
     return <div>Loading...</div>;
   }
@@ -270,7 +298,7 @@ const ClaimDinasDetailModal: React.FC<ClaimDinasDetailModalProps> = ({ isOpen, o
                 <h3 className="font-medium text-gray-900 dark:text-white mb-4">Line Approval</h3>
                 <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
                   {supervisor && (
-                    <div className="p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                    <div className={`p-3 rounded-lg ${getApprovalStatus('supervisor', supervisor).class}`}>
                       <p className="text-sm text-gray-600 dark:text-gray-400">Atasan</p>
                       <div className="flex items-center gap-2 mt-2">
                         <UserAvatarCell employeeUsed={supervisor} classname="w-8 h-8">
@@ -280,12 +308,12 @@ const ClaimDinasDetailModal: React.FC<ClaimDinasDetailModalProps> = ({ isOpen, o
                           </div>
                         </UserAvatarCell>
                       </div>
-                      <p className="text-xs text-muted-foreground mt-2">Approved at:</p>
+                      <p className="text-xs text-muted-foreground mt-2">{getApprovalStatus('supervisor', supervisor).label}</p>
                       <p className="text-xs text-muted-foreground">{claimData.supervisor_approved_at}</p>
                     </div>
                   )}
                   {companyLineApproval.staff_ga && (
-                    <div className="p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                    <div className={`p-3 rounded-lg ${getApprovalStatus('staff_ga', companyLineApproval.staff_ga).class}`}>
                       <p className="text-sm text-gray-600 dark:text-gray-400">Staff GA</p>
                       <div className="flex items-center gap-2 mt-2">
                         <UserAvatarCell employeeUsed={companyLineApproval.staff_ga} classname="w-8 h-8">
@@ -295,12 +323,12 @@ const ClaimDinasDetailModal: React.FC<ClaimDinasDetailModalProps> = ({ isOpen, o
                           </div>
                         </UserAvatarCell>
                       </div>
-                      <p className="text-xs text-muted-foreground mt-2">Approved at:</p>
+                      <p className="text-xs text-muted-foreground mt-2">{getApprovalStatus('staff_ga', companyLineApproval.staff_ga).label}</p>
                       <p className="text-xs text-muted-foreground">{claimData.staff_ga_approved_at}</p>
                     </div>
                   )}
                   {companyLineApproval.spv_ga && (
-                    <div className="p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                    <div className={`p-3 rounded-lg ${getApprovalStatus('spv_ga', companyLineApproval.spv_ga).class}`}>
                       <p className="text-sm text-gray-600 dark:text-gray-400">SPV GA</p>
                       <div className="flex items-center gap-2 mt-2">
                         <UserAvatarCell employeeUsed={companyLineApproval.spv_ga} classname="w-8 h-8">
@@ -310,12 +338,12 @@ const ClaimDinasDetailModal: React.FC<ClaimDinasDetailModalProps> = ({ isOpen, o
                           </div>
                         </UserAvatarCell>
                       </div>
-                      <p className="text-xs text-muted-foreground mt-2">Approved at:</p>
+                      <p className="text-xs text-muted-foreground mt-2">{getApprovalStatus('spv_ga', companyLineApproval.spv_ga).label}</p>
                       <p className="text-xs text-muted-foreground">{claimData.spv_ga_approved_at}</p>
                     </div>
                   )}
                   {companyLineApproval.hr_manager && (
-                    <div className="p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                    <div className={`p-3 rounded-lg ${getApprovalStatus('hr_manager', companyLineApproval.hr_manager).class}`}>
                       <p className="text-sm text-gray-600 dark:text-gray-400">HR Manager</p>
                       <div className="flex items-center gap-2 mt-2">
                         <UserAvatarCell employeeUsed={companyLineApproval.hr_manager} classname="w-8 h-8">
@@ -325,12 +353,12 @@ const ClaimDinasDetailModal: React.FC<ClaimDinasDetailModalProps> = ({ isOpen, o
                           </div>
                         </UserAvatarCell>
                       </div>
-                      <p className="text-xs text-muted-foreground mt-2">Approved at:</p>
+                      <p className="text-xs text-muted-foreground mt-2">{getApprovalStatus('hr_manager', companyLineApproval.hr_manager).label}</p>
                       <p className="text-xs text-muted-foreground">{claimData.hr_manager_approved_at}</p>
                     </div>
                   )}
                   {companyLineApproval.bod && (
-                    <div className="p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                    <div className={`p-3 rounded-lg ${getApprovalStatus('bod', companyLineApproval.bod).class}`}>
                       <p className="text-sm text-gray-600 dark:text-gray-400">BOD</p>
                       <div className="flex items-center gap-2 mt-2">
                         <UserAvatarCell employeeUsed={companyLineApproval.bod} classname="w-8 h-8">
@@ -340,12 +368,12 @@ const ClaimDinasDetailModal: React.FC<ClaimDinasDetailModalProps> = ({ isOpen, o
                           </div>
                         </UserAvatarCell>
                       </div>
-                      <p className="text-xs text-muted-foreground mt-2">Approved at:</p>
+                      <p className="text-xs text-muted-foreground mt-2">{getApprovalStatus('bod', companyLineApproval.bod).label}</p>
                       <p className="text-xs text-muted-foreground">{claimData.bod_approved_at}</p>
                     </div>
                   )}
                   {companyLineApproval.staff_fa && (
-                    <div className="p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                    <div className={`p-3 rounded-lg ${getApprovalStatus('staff_fa', companyLineApproval.staff_fa).class}`}>
                       <p className="text-sm text-gray-600 dark:text-gray-400">Staff FA</p>
                       <div className="flex items-center gap-2 mt-2">
                         <UserAvatarCell employeeUsed={companyLineApproval.staff_fa} classname="w-8 h-8">
@@ -355,7 +383,7 @@ const ClaimDinasDetailModal: React.FC<ClaimDinasDetailModalProps> = ({ isOpen, o
                           </div>
                         </UserAvatarCell>
                       </div>
-                      <p className="text-xs text-muted-foreground mt-2">Approved at:</p>
+                      <p className="text-xs text-muted-foreground mt-2">{getApprovalStatus('staff_fa', companyLineApproval.staff_fa).label}</p>
                       <p className="text-xs text-muted-foreground">{claimData.staff_fa_approved_at}</p>
                     </div>
                   )}
