@@ -41,7 +41,13 @@ const ClaimDinasPrintModal: React.FC<ClaimDinasPrintModalProps> = ({ isOpen, onC
 
   const formatDateShort = (dateString: string) => {
     if (!dateString) return '-';
-    return new Date(dateString).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
+    const safeString = dateString.replace(" ", "T");
+    const dateF = new Date(safeString);
+    
+    const timePart = dateF.toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit", hour12: false });
+    const tanggal = dateF.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
+    
+    return `${tanggal} (${timePart})`;
   };
 
   const getExpenseTypeLabel = (type: string) => {
@@ -292,12 +298,6 @@ const ClaimDinasPrintModal: React.FC<ClaimDinasPrintModalProps> = ({ isOpen, onC
                 <div>
                   <div style={{ color: '#6b7280', fontSize: '11px' }}>Tanggal Pengajuan:</div>
                   <div style={{ fontWeight: 600 }}>{formatDate(claimData.submitted_at || claimData.created_at)}</div>
-                </div>
-                <div style={{ textAlign: 'center' }}>
-                  <div style={{ color: '#6b7280', fontSize: '11px' }}>Status:</div>
-                  <span style={{ background: '#dcfce7', color: '#166534', padding: '2px 10px', borderRadius: '12px', fontSize: '12px', fontWeight: 500 }}>
-                    {claimData.status}
-                  </span>
                 </div>
               </div>
 

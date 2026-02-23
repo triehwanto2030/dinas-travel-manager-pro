@@ -26,8 +26,7 @@ const ClaimDinas = () => {
     setSelectedClaim(claim);
     setDetailModalOpen(true);
   };
-
-
+  
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('id-ID', {
       style: 'currency',
