@@ -275,18 +275,14 @@ const PerjalananDinasForm = ({ isOpen, onClose, mode, data }: PerjalananDinasFor
 
     const approvalBy = variableMap[step] ? data[variableMap[step]] : null;
     
-    if (!reject) {
-      if (!approvalBy) {
-        if (currStep === step) {
-          return { class: 'bg-yellow-100 dark:bg-yellow-900', label: 'Pending' };
-        }
-      } else {
-        return { class: 'bg-green-100 dark:bg-green-900', label: 'Approved' };
+    if (!approvalBy) {
+      if (reject && reject === pic.id) {
+        return { class: 'bg-red-100 dark:bg-red-900', label: 'Rejected', reasoning: data.rejection_reason || '' };
+      } else if (currStep === step) {
+        return { class: 'bg-yellow-100 dark:bg-yellow-900', label: 'Pending' };
       }
     } else {
-      if (reject === pic.id) {
-        return { class: 'bg-red-100 dark:bg-red-900', label: 'Rejected' };
-      }
+      return { class: 'bg-green-100 dark:bg-green-900', label: 'Approved' };
     }
 
     return { class: 'bg-gray-50 dark:bg-gray-700', label: '' };
@@ -714,7 +710,7 @@ const PerjalananDinasForm = ({ isOpen, onClose, mode, data }: PerjalananDinasFor
                       </div>
                       {mode === 'view' && (<>
                         <p className="text-xs text-muted-foreground mt-2">{getApprovalStatus('supervisor', approvalHierarchy.supervisor).label}</p>
-                        <p className="text-xs text-muted-foreground">{data.supervisor_approved_at}</p>
+                        <p className="text-xs text-muted-foreground mt-2">{data.supervisor_approved_at || getApprovalStatus('supervisor', approvalHierarchy.supervisor).reasoning}</p>
                       </>)}
                     </div>
                   )}
@@ -731,7 +727,7 @@ const PerjalananDinasForm = ({ isOpen, onClose, mode, data }: PerjalananDinasFor
                       </div>
                       {mode === 'view' && (<>
                         <p className="text-xs text-muted-foreground mt-2">{getApprovalStatus('staff_ga', approvalHierarchy.staff_ga).label}</p>
-                        <p className="text-xs text-muted-foreground">{data.staff_ga_approved_at}</p>
+                        <p className="text-xs text-muted-foreground mt-2">{data.staff_ga_approved_at || getApprovalStatus('staff_ga', approvalHierarchy.staff_ga).reasoning}</p>
                       </>)}
                     </div>
                   )}
@@ -748,7 +744,7 @@ const PerjalananDinasForm = ({ isOpen, onClose, mode, data }: PerjalananDinasFor
                       </div>
                       {mode === 'view' && (<>
                         <p className="text-xs text-muted-foreground mt-2">{getApprovalStatus('spv_ga', approvalHierarchy.spv_ga).label}</p>
-                        <p className="text-xs text-muted-foreground">{data.spv_ga_approved_at}</p>
+                        <p className="text-xs text-muted-foreground mt-2">{data.spv_ga_approved_at || getApprovalStatus('spv_ga', approvalHierarchy.spv_ga).reasoning}</p>
                       </>)}
                     </div>
                   )}
@@ -765,7 +761,7 @@ const PerjalananDinasForm = ({ isOpen, onClose, mode, data }: PerjalananDinasFor
                       </div>
                       {mode === 'view' && (<>
                         <p className="text-xs text-muted-foreground mt-2">{getApprovalStatus('hr_manager', approvalHierarchy.hr_manager).label}</p>
-                        <p className="text-xs text-muted-foreground">{data.hr_manager_approved_at}</p>
+                        <p className="text-xs text-muted-foreground mt-2">{data.hr_manager_approved_at || getApprovalStatus('hr_manager', approvalHierarchy.hr_manager).reasoning}</p>
                       </>)}
                     </div>
                   )}
@@ -782,7 +778,7 @@ const PerjalananDinasForm = ({ isOpen, onClose, mode, data }: PerjalananDinasFor
                       </div>
                       {mode === 'view' && (<>
                         <p className="text-xs text-muted-foreground mt-2">{getApprovalStatus('bod', approvalHierarchy.bod).label}</p>
-                        <p className="text-xs text-muted-foreground">{data.bod_approved_at}</p>
+                        <p className="text-xs text-muted-foreground mt-2">{data.bod_approved_at || getApprovalStatus('bod', approvalHierarchy.bod).reasoning}</p>
                       </>)}
                     </div>
                   )}
@@ -799,7 +795,7 @@ const PerjalananDinasForm = ({ isOpen, onClose, mode, data }: PerjalananDinasFor
                       </div>
                       {mode === 'view' && (<>
                         <p className="text-xs text-muted-foreground mt-2">{getApprovalStatus('staff_fa', approvalHierarchy.staff_fa).label}</p>
-                        <p className="text-xs text-muted-foreground">{data.staff_fa_approved_at}</p>
+                        <p className="text-xs text-muted-foreground mt-2">{data.staff_fa_approved_at || getApprovalStatus('staff_fa', approvalHierarchy.staff_fa).reasoning}</p>
                       </>)}
                     </div>
                   )}
