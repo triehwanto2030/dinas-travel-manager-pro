@@ -47,6 +47,7 @@ export type Database = {
           bod_approved_at: string | null
           bod_approved_by: string | null
           cash_advance: number | null
+          cost_center: string | null
           created_at: string
           current_approval_step: string | null
           destination: string
@@ -79,6 +80,7 @@ export type Database = {
           bod_approved_at?: string | null
           bod_approved_by?: string | null
           cash_advance?: number | null
+          cost_center?: string | null
           created_at?: string
           current_approval_step?: string | null
           destination: string
@@ -111,6 +113,7 @@ export type Database = {
           bod_approved_at?: string | null
           bod_approved_by?: string | null
           cash_advance?: number | null
+          cost_center?: string | null
           created_at?: string
           current_approval_step?: string | null
           destination?: string
