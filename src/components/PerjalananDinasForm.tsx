@@ -188,6 +188,14 @@ const PerjalananDinasForm = ({ isOpen, onClose, mode, data }: PerjalananDinasFor
       setSelectedEmployee(null);
       setSelectedSupervisor(null);
       setApprovalHierarchy(null);
+
+      if (data.id) {
+        const employee = employees?.find(emp => emp.id === data.id);
+        if (employee) {
+          setSelectedEmployee(employee);
+          form.setValue('employee_id', employee.id);
+        }
+      }
     }
   }, [isOpen, mode, form]);
 
@@ -228,6 +236,7 @@ const PerjalananDinasForm = ({ isOpen, onClose, mode, data }: PerjalananDinasFor
         cost_center: formData.cost_center,
         department: formData.department,
         notes: formData.notes,
+        staff_fa_approved_by: approvalHierarchy?.staff_fa ? approvalHierarchy.staff_fa.id : null,
       };
       
       if (mode === 'create') {

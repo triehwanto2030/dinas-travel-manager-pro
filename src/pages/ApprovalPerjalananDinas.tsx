@@ -13,6 +13,7 @@ import { useBusinessTrips } from '@/hooks/useBusinessTrips';
 import MainLayout from '@/components/MainLayout';
 import UserAvatarCell from '@/components/AvatarCell';
 import StatusWithApproval from '@/components/StatusWithApproval';
+import { useAuth } from '@/contexts/AuthContext';
 
 const ApprovalPerjalananDinas = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -23,6 +24,7 @@ const ApprovalPerjalananDinas = () => {
   const [selectedTrip, setSelectedTrip] = useState<any>(null);
 
   const { data: businessTrips, isLoading, error } = useBusinessTrips();
+  const { employee: userEmp } = useAuth();
 
   console.log('Business trips data:', businessTrips);
   console.log('Loading state:', isLoading);

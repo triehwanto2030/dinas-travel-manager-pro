@@ -275,6 +275,7 @@ export type Database = {
           id: string
           name: string
           phone: string | null
+          no_rekening: string | null
           photo_url: string | null
           position: string | null
           supervisor_id: string | null
@@ -290,6 +291,7 @@ export type Database = {
           id?: string
           name: string
           phone?: string | null
+          no_rekening?: string | null
           photo_url?: string | null
           position?: string | null
           supervisor_id?: string | null
@@ -305,6 +307,7 @@ export type Database = {
           id?: string
           name?: string
           phone?: string | null
+          no_rekening?: string | null
           photo_url?: string | null
           position?: string | null
           supervisor_id?: string | null

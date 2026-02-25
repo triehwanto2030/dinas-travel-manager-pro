@@ -120,7 +120,8 @@ export const useCreateBusinessTrip = () => {
         cash_advance: tripData.cash_advance,
         cost_center: tripData.cost_center,
         notes: tripData.notes || null,
-        status: 'Submitted'
+        status: 'Submitted',
+        staff_fa_approved_by: tripData.staff_fa_approved_by || null,
       };
 
       const { data, error } = await supabase

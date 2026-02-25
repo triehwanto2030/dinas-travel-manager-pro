@@ -15,6 +15,7 @@ import { useToast } from '@/hooks/use-toast';
 import MainLayout from '@/components/MainLayout';
 import UserAvatarCell from '@/components/AvatarCell';
 import StatusWithApproval from '@/components/StatusWithApproval';
+import { useAuth } from '@/contexts/AuthContext';
 
 const PerjalananDinas = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -26,8 +27,8 @@ const PerjalananDinas = () => {
   const [formMode, setFormMode] = useState<'create' | 'edit' | 'view'>('create');
   const [selectedData, setSelectedData] = useState<any>(null);
 
-  const { data: businessTrips, isLoading, error } = useBusinessTrips([['status', 'Submitted', 'neq']]);
-  const updateBusinessTrip = useUpdateBusinessTrip();
+  const { employee: userEmp } = useAuth();
+  const { data: businessTrips, isLoading, error } = useBusinessTrips([['status', 'Submitted', 'neq'], ['employee_id', userEmp?.id]]);
   const deleteBusinessTrip = useDeleteBusinessTrip();
   const { toast } = useToast();
 
@@ -55,7 +56,7 @@ const PerjalananDinas = () => {
 
   const handleAddNew = () => {
     setFormMode('create');
-    setSelectedData(null);
+    setSelectedData(userEmp ? userEmp : null);
     setFormOpen(true);
   };
 
