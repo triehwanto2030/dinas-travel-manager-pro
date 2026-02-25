@@ -134,12 +134,12 @@ const ApprovalClaimDinasDetailModal: React.FC<ApprovalClaimDinasDetailModalProps
     }
 
     const approvableStepsMap: Record<string, keyof TripClaim> = {
-      supervisor: 'supervisor_approved_by',
-      staff_ga: 'staff_ga_approved_by',
-      spv_ga: 'spv_ga_approved_by',
-      hr_manager: 'hr_manager_approved_by',
-      bod: 'bod_approved_by',
-      staff_fa: 'staff_fa_approved_by',
+      supervisor: 'supervisor_approved_at',
+      staff_ga: 'staff_ga_approved_at',
+      spv_ga: 'spv_ga_approved_at',
+      hr_manager: 'hr_manager_approved_at',
+      bod: 'bod_approved_at',
+      staff_fa: 'staff_fa_approved_at',
     };
 
     const roleMap: Record<string, keyof typeof companyLineApproval> = {

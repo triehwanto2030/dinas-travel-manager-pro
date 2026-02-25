@@ -415,6 +415,7 @@ export type Database = {
           description: string | null
           id: string
           name: string
+          page_access: Json | null
           permissions: Json | null
           updated_at: string
         }
@@ -423,6 +424,7 @@ export type Database = {
           description?: string | null
           id?: string
           name: string
+          page_access?: Json | null
           permissions?: Json | null
           updated_at?: string
         }
@@ -431,6 +433,7 @@ export type Database = {
           description?: string | null
           id?: string
           name?: string
+          page_access?: Json | null
           permissions?: Json | null
           updated_at?: string
         }

@@ -8,6 +8,7 @@ export interface RoleFormData {
   name: string;
   description: string;
   permissions: string[];
+  page_access: string[];
 }
 
 export const useRoles = () => {
@@ -55,6 +56,7 @@ export const useCreateRole = () => {
           name: formData.name,
           description: formData.description,
           permissions: formData.permissions,
+          page_access: formData.page_access,
         })
         .select()
         .single();
@@ -76,6 +78,7 @@ export const useUpdateRole = () => {
           name: formData.name,
           description: formData.description,
           permissions: formData.permissions,
+          page_access: formData.page_access,
         })
         .eq('id', id)
         .select()
