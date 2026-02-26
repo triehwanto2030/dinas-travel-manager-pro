@@ -27,8 +27,12 @@ const PerjalananDinas = () => {
   const [formMode, setFormMode] = useState<'create' | 'edit' | 'view'>('create');
   const [selectedData, setSelectedData] = useState<any>(null);
 
-  const { employee: userEmp } = useAuth();
-  const { data: businessTrips, isLoading, error } = useBusinessTrips([['status', 'Submitted', 'neq'], ['employee_id', userEmp?.id]]);
+  const { employee: userEmp, user: logUser } = useAuth();
+  let filterFields: any[] = [['status', 'Submitted', 'neq']];
+  if (logUser?.role !== 'admin') {
+    filterFields.push(['employee_id', userEmp.id]);
+  }
+  const { data: businessTrips, isLoading, error } = useBusinessTrips(filterFields);
   const deleteBusinessTrip = useDeleteBusinessTrip();
   const { toast } = useToast();
 
@@ -56,7 +60,7 @@ const PerjalananDinas = () => {
 
   const handleAddNew = () => {
     setFormMode('create');
-    setSelectedData(userEmp ? userEmp : null);
+    setSelectedData(userEmp && logUser.role !== "admin" ? userEmp : null);
     setFormOpen(true);
   };
 
@@ -174,10 +178,6 @@ const PerjalananDinas = () => {
               <p className="text-gray-600 dark:text-gray-400">Kelola perjalanan dinas karyawan</p>
             </div>
             <div className="flex gap-3 mt-4 md:mt-0">
-              <Button variant="outline" className="flex items-center gap-2">
-                <Upload className="w-4 h-4" />
-                Import Excel
-              </Button>
               <Button variant="outline" className="flex items-center gap-2">
                 <Download className="w-4 h-4" />
                 Export Excel

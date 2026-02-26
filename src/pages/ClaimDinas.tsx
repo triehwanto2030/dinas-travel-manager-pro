@@ -21,8 +21,12 @@ const ClaimDinas = () => {
   const [printModalOpen, setPrintModalOpen] = useState(false);
   const [selectedClaim, setSelectedClaim] = useState<any>(null);
 
-  const { employee: userEmp } = useAuth();
-  const { data: claims = [], isLoading } = useTripClaims([['status', 'Submitted', 'neq'], ['employee_id', userEmp?.id]]);
+  const { employee: userEmp, user: logUser  } = useAuth();
+  let filterFields: any[] = [['status', 'Submitted', 'neq']];
+  if (logUser?.role !== 'admin') {
+    filterFields.push(['employee_id', userEmp.id]);
+  }
+  const { data: claims = [], isLoading } = useTripClaims(filterFields);
 
   const handleViewDetail = (claim: any) => {
     setSelectedClaim(claim);
@@ -271,6 +275,7 @@ const ClaimDinas = () => {
                               rejected_at: claim.rejected_at,
                               rejected_by: claim.rejected_by,
                             }}
+                            skip={claim.total_amount === 0} // Skip approval if no expenses
                           />
                         </TableCell>
                         <TableCell>

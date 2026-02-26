@@ -154,7 +154,7 @@ const ClaimDinasForm: React.FC<ClaimDinasFormProps> = ({ isOpen, onClose, tripDa
         employee_id: String(tripData.employee_id),
         trip_id: String(tripData.id),
         total_amount: Number(totalExpenses),
-        status: 'Submitted' as const,
+        status: validExpenses.length > 0 ? 'Submitted' : 'Approved', // Auto-approve if no expenses
         submitted_at: new Date().toISOString()
       };
 

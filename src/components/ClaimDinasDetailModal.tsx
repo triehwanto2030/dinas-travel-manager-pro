@@ -86,8 +86,10 @@ const ClaimDinasDetailModal: React.FC<ClaimDinasDetailModalProps> = ({ isOpen, o
     if (!approvalBy) {
       if (reject && reject === pic.id) {
         return { class: 'bg-red-100 dark:bg-red-900', label: 'Rejected' };
-      } else if (currStep === step) {
+      } else if (claimData.status !== 'Approved' && currStep === step) {
         return { class: 'bg-yellow-100 dark:bg-yellow-900', label: 'Pending' };
+      } else if (claimData.status === 'Approved' && claimData.total_amount === 0) {
+        return { class: 'bg-green-100 dark:bg-green-900', label: 'Approved' };
       }
     } else {
       return { class: 'bg-green-100 dark:bg-green-900', label: 'Approved' };

@@ -22,6 +22,7 @@ interface ApprovalTimestamps {
 interface StatusWithApprovalProps {
   status: string;
   approvalData: ApprovalTimestamps;
+  skip?: boolean;
 }
 
 const roleLabels: Record<string, string> = {
@@ -74,9 +75,10 @@ const getLatestApproval = (data: ApprovalTimestamps): { role: string; date: stri
   return null;
 };
 
-const StatusWithApproval: React.FC<StatusWithApprovalProps> = ({ status, approvalData }) => {
+const StatusWithApproval: React.FC<StatusWithApprovalProps> = ({ status, approvalData, skip = false }) => {
   const config = getStatusConfig(status);
   const latestApproval = getLatestApproval(approvalData);
+  const noExpense: Boolean = status === 'Approved' && skip && !approvalData.supervisor_approved_at && !approvalData.staff_ga_approved_at && !approvalData.spv_ga_approved_at && !approvalData.hr_manager_approved_at && !approvalData.bod_approved_at && !approvalData.staff_fa_approved_at;
 
   return (
     <div className="flex flex-col gap-1">
@@ -94,6 +96,11 @@ const StatusWithApproval: React.FC<StatusWithApprovalProps> = ({ status, approva
       {status === 'Rejected' && approvalData.rejected_at && (
         <p className="text-xs text-destructive">
           Rejected on {formatDate(approvalData.rejected_at)}
+        </p>
+      )}
+      {noExpense && (
+        <p className="text-xs text-muted-foreground">
+          No expenses submitted, auto-approved
         </p>
       )}
     </div>
