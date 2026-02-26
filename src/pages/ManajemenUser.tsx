@@ -10,49 +10,81 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { useUsers } from '@/hooks/useUsers';
+import { useCreateUser, useDeleteUser, useToggleUserActive, useUpdateUser } from '@/hooks/useUserManagement';
+import UserFormModal from '@/components/UserFormModal';
 
 const ManajemenUser = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const [formOpen, setFormOpen] = useState(false);
+  const [formMode, setFormMode] = useState<'add' | 'edit' | 'view'>('add');
+  const [selectedUser, setSelectedUser] = useState<any>(null);
   const { toast } = useToast();
-
-  // Mock data - akan diganti dengan real data dari Supabase
+  
   const { data: users = [], isLoading } = useUsers();
+  const createUser = useCreateUser();
+  const updateUser = useUpdateUser();
+  const deleteUser = useDeleteUser();
+  const toggleActive = useToggleUserActive();
+  
+  const filteredUsers = users.filter(u => {
+    const term = searchTerm.toLowerCase();
+    return (u.employees?.name || '').toLowerCase().includes(term) ||
+      (u.username || '').toLowerCase().includes(term) ||
+      (u.email || '').toLowerCase().includes(term);
+  });
 
-  const getStatusBadge = (status: string) => {
-    const statusConfig = {
-      'Active': { class: 'bg-green-100 text-green-800', label: 'Aktif' },
-      'Inactive': { class: 'bg-red-100 text-red-800', label: 'Tidak Aktif' }
-    };
-    
-    const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.Active;
-    return <Badge className={config.class}>{config.label}</Badge>;
+  const getStatusBadge = (isActive: boolean) => {
+    return (<Badge className={isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}>{isActive ? 'Aktif' : 'Tidak Aktif'}</Badge>);
   };
 
   const getRoleBadge = (role: string) => {
-    const roleConfig = {
-      'admin': { class: 'bg-purple-100 text-purple-800', label: 'Admin' },
-      'manager': { class: 'bg-blue-100 text-blue-800', label: 'Manager' },
-      'user': { class: 'bg-gray-100 text-gray-800', label: 'User' }
+    const config: Record<string, { cls: string; label: string }> = {
+      admin: { cls: 'bg-purple-100 text-purple-800', label: 'Admin' },
+      manager: { cls: 'bg-blue-100 text-blue-800', label: 'Manager' },
+      user: { cls: 'bg-gray-100 text-gray-800', label: 'User' }
     };
     
-    const config = roleConfig[role as keyof typeof roleConfig] || roleConfig.user;
-    return <Badge className={config.class}>{config.label}</Badge>;
+    const c = config[role.toLowerCase()] || config.user;
+    return <Badge className={c.cls}>{c.label}</Badge>;
   };
 
-  const handleActivate = (id: string) => {
-    toast({
-      title: "Berhasil!",
-      description: "User berhasil diaktifkan",
-    });
+  const handleAdd = () => { setFormMode('add'); setSelectedUser(null); setFormOpen(true); };
+  const handleView = (u: any) => { setFormMode('view'); setSelectedUser(u); setFormOpen(true); };
+  const handleEdit = (u: any) => { setFormMode('edit'); setSelectedUser(u); setFormOpen(true); };
+
+  const handleFormSubmit = async (data: any) => {
+    try {
+      if (formMode === 'add') {
+        await createUser.mutateAsync({ ...data, password: data.password || '12345' });
+        toast({ title: "Berhasil!", description: "User berhasil ditambahkan" });
+      } else if (formMode === 'edit' && selectedUser) {
+        await updateUser.mutateAsync({ id: selectedUser.id, ...data });
+        toast({ title: "Berhasil!", description: "User berhasil diupdate" });
+      }
+      setFormOpen(false);
+    } catch (err: any) {
+      toast({ title: "Error!", description: err.message, variant: "destructive" });
+    }
   };
 
-  const handleDeactivate = (id: string) => {
-    toast({
-      title: "Berhasil!",
-      description: "User berhasil dinonaktifkan",
-      variant: "destructive",
-    });
+  const handleDelete = async (id: string) => {
+    if (!window.confirm('Yakin ingin menghapus user ini?')) return;
+    try {
+      await deleteUser.mutateAsync(id);
+      toast({ title: "Berhasil!", description: "User berhasil dihapus" });
+    } catch (err: any) {
+      toast({ title: "Error!", description: err.message, variant: "destructive" });
+    }
+  };
+
+  const handleToggleActive = async (id: string, currentActive: boolean) => {
+    try {
+      await toggleActive.mutateAsync({ id, is_active: !currentActive });
+      toast({ title: "Berhasil!", description: `User berhasil ${currentActive ? 'dinonaktifkan' : 'diaktifkan'}` });
+    } catch (err: any) {
+      toast({ title: "Error!", description: err.message, variant: "destructive" });
+    }
   };
 
   return (
@@ -71,9 +103,8 @@ const ManajemenUser = () => {
                   <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Manajemen User</h1>
                   <p className="text-gray-600 dark:text-gray-400">Kelola pengguna sistem</p>
                 </div>
-                <Button className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 mt-4 md:mt-0">
-                  <Plus className="w-4 h-4" />
-                  Tambah User
+                <Button onClick={handleAdd} className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 mt-4 md:mt-0">
+                  <Plus className="w-4 h-4" />Tambah User
                 </Button>
               </div>
             </div>
@@ -155,7 +186,7 @@ const ManajemenUser = () => {
                        <TableHead>Role</TableHead>
                        <TableHead>Status</TableHead>
                        <TableHead>Last Login</TableHead>
-                       <TableHead>Dibuat</TableHead>
+                       <TableHead>Waktu Bergabung</TableHead>
                        <TableHead>Aksi</TableHead>
                      </TableRow>
                   </TableHeader>
@@ -172,45 +203,34 @@ const ManajemenUser = () => {
                           {user.email}
                         </TableCell>
                         <TableCell>
-                          {getRoleBadge(user.role)}
+                          {getRoleBadge(user.role) || 'user'}
                         </TableCell>
                         <TableCell>
-                          {getStatusBadge(user.is_active ? 'Active' : 'Inactive')}
+                          {getStatusBadge(user.is_active ?? true)}
                         </TableCell>
                         <TableCell className="text-gray-600 dark:text-gray-400">
-                          {user.last_login}
+                          {user.last_login ? new Date(user.last_login).toLocaleDateString('id-ID') : '-'}
                         </TableCell>
                         <TableCell className="text-gray-600 dark:text-gray-400">
                           {user.created_at}
                         </TableCell>
                         <TableCell>
                           <div className="flex items-center gap-2">
-                            <Button variant="ghost" size="sm" className="p-2">
+                            <Button variant="ghost" size="sm" className="p-2" onClick={() => handleView(user)}>
                               <Eye className="w-4 h-4" />
                             </Button>
-                            <Button variant="ghost" size="sm" className="p-2">
+                            <Button variant="ghost" size="sm" className="p-2" onClick={() => handleEdit(user)}>
                               <Edit className="w-4 h-4" />
                             </Button>
-                            {user.is_active ? (
-                              <Button 
-                                variant="ghost" 
-                                size="sm" 
-                                className="p-2 text-red-600 hover:text-red-800"
-                                onClick={() => handleDeactivate(user.id)}
-                              >
-                                <UserX className="w-4 h-4" />
-                              </Button>
-                            ) : (
-                              <Button 
-                                variant="ghost" 
-                                size="sm" 
-                                className="p-2 text-green-600 hover:text-green-800"
-                                onClick={() => handleActivate(user.id)}
-                              >
-                                <UserCheck className="w-4 h-4" />
-                              </Button>
-                            )}
-                            <Button variant="ghost" size="sm" className="p-2 text-red-600 hover:text-red-800">
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              className="p-2 text-green-600 hover:text-green-800"
+                              onClick={() => handleToggleActive(user.id, user.is_active ?? true)}
+                            >
+                              {user.is_active ? <UserX className="w-4 h-4 text-red-600" /> : <UserCheck className="w-4 h-4 text-green-600" />}
+                            </Button>
+                            <Button variant="ghost" size="sm" className="p-2 text-red-600 hover:text-red-800" onClick={() => handleDelete(user.id)}>
                               <Trash2 className="w-4 h-4" />
                             </Button>
                           </div>
@@ -236,6 +256,8 @@ const ManajemenUser = () => {
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
         </svg>
       </button>
+
+      <UserFormModal isOpen={formOpen} onClose={() => setFormOpen(false)} onSubmit={handleFormSubmit} initialData={selectedUser} mode={formMode} />
     </div>
   );
 };

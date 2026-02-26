@@ -189,15 +189,15 @@ const PerjalananDinasForm = ({ isOpen, onClose, mode, data }: PerjalananDinasFor
       setSelectedSupervisor(null);
       setApprovalHierarchy(null);
 
-      if (data && data.id) {
-        const employee = employees?.find(emp => emp.id === data.id);
+      if (data && data.id && employees) {
+        const employee = employees.find(emp => emp.id === data.id);
         if (employee) {
           setSelectedEmployee(employee);
           form.setValue('employee_id', employee.id);
         }
       }
     }
-  }, [isOpen, mode, form]);
+  }, [isOpen, mode, form, data, employees]);
 
   const handleEmployeeChange = (employeeId: string) => {
     const employee = employees?.find(emp => emp.id === employeeId);

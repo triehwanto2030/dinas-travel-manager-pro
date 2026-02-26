@@ -1,6 +1,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
-import { Search, Bell, Sun, Moon, LogOut, User } from 'lucide-react';
+import { Search, Sun, Moon, LogOut, User } from 'lucide-react';
+import NotificationBell from '@/components/NotificationBell';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useTheme } from '@/hooks/useTheme';
@@ -63,12 +64,7 @@ const Header = () => {
             )}
           </Button>
           
-          <Button variant="ghost" size="sm" className="rounded-full relative">
-            <Bell className="w-5 h-5" />
-            <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full flex items-center justify-center">
-              <span className="text-white text-xs">3</span>
-            </span>
-          </Button>
+          <NotificationBell />
           
           {/* Profile with dropdown */}
           <div className="relative" ref={menuRef}>

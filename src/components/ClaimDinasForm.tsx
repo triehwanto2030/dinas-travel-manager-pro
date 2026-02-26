@@ -1,6 +1,6 @@
 
 import React, { useState, useRef } from 'react';
-import { X, Plus, Upload, Calendar, User, MapPin, Clock } from 'lucide-react';
+import { X, Plus, Upload, Calendar, User, MapPin, Clock, FileText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -15,8 +15,8 @@ import { useToast } from '@/hooks/use-toast';
 import { useCreateTripClaim, useCreateTripClaimExpense } from '@/hooks/useTripClaims';
 import { useUpdateBusinessTrip } from '@/hooks/useBusinessTrips';
 import { ExpenseDetail } from './ExpenseDetail';
-import { create } from 'domain';
 import UserAvatarCell from './AvatarCell';
+import { supabase } from '@/integrations/supabase/client';
 
 interface ClaimDinasFormProps {
   isOpen: boolean;
@@ -139,15 +139,6 @@ const ClaimDinasForm: React.FC<ClaimDinasFormProps> = ({ isOpen, onClose, tripDa
       
       // Validate expenses
       const validExpenses = expenses.filter(exp => exp.type && exp.description && exp.amount > 0);
-      
-      // if (validExpenses.length === 0) {
-      //   toast({
-      //     title: "Error!",
-      //     description: "Minimal harus ada satu pengeluaran yang valid",
-      //     variant: "destructive",
-      //   });
-      //   return;
-      // }
 
       // Create claim data with proper validation
       const claimData = {
@@ -172,11 +163,22 @@ const ClaimDinasForm: React.FC<ClaimDinasFormProps> = ({ isOpen, onClose, tripDa
           trip_claim_id: result.id
         }));
 
-        const expenseResult = await createExpenses.mutateAsync(claimExpenses);
-        console.log('Claim submission expense result:', expenseResult);
+        await createExpenses.mutateAsync(claimExpenses);
       }
 
-      // Update business trip status to "Completed"
+      // Upload files to storage
+      if (uploadedFiles.length > 0) {
+        for (const file of uploadedFiles) {
+          const filePath = `claims/${result.id}/${Date.now()}-${file.name}`;
+          const { error: uploadError } = await supabase.storage
+            .from('claim-attachments')
+            .upload(filePath, file);
+          if (uploadError) {
+            console.error('Error uploading file:', uploadError);
+          }
+        }
+      }
+      
       await updateBusinessTrip.mutateAsync({
         id: tripData.id,
         status: 'Completed'

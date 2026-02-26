@@ -199,11 +199,23 @@ export const useUpdateEmployee = () => {
         throw new Error(error.message);
       }
 
+      // Sync email and username to users table if email changed
+      if (updates.email && data) {
+        const { error: syncError } = await supabase
+          .from('users')
+          .update({ email: updates.email, username: updates.email })
+          .eq('employee_id', id);
+        if (syncError) {
+          console.error('Error syncing user email:', syncError);
+        }
+      }
+
       console.log('Employee updated successfully:', data);
       return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['employees'] });
+      queryClient.invalidateQueries({ queryKey: ['users'] });
     },
   });
 };

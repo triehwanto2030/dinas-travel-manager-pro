@@ -49,6 +49,36 @@ const PerjalananDinas = () => {
     }).format(amount);
   };
 
+  const handleExportCSV = () => {
+    if (!filteredTrips.length) {
+      toast({ title: "Info", description: "Tidak ada data untuk diexport" });
+      return;
+    }
+    const headers = ['No', 'ID Perjalanan', 'Nama Karyawan', 'Jabatan', 'Departemen', 'Tujuan', 'Keperluan', 'Tgl Mulai', 'Tgl Selesai', 'Status', 'Cash Advance'];
+    const rows = filteredTrips.map((item, i) => [
+      i + 1,
+      item.trip_number || '',
+      item.employees?.name || '',
+      item.employees?.position || '',
+      item.employees?.department || '',
+      item.destination || '',
+      item.purpose || '',
+      item.start_date || '',
+      item.end_date || '',
+      item.status || '',
+      item.cash_advance || 0,
+    ]);
+    const csvContent = [headers, ...rows].map(r => r.map(c => `"${String(c).replace(/"/g, '""')}"`).join(',')).join('\n');
+    const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `perjalanan-dinas-${new Date().toISOString().split('T')[0]}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast({ title: "Berhasil!", description: "Data berhasil diexport ke CSV" });
+  };
+
   const generateTripId = (date: string, index: number) => {
     const dateObj = new Date(date);
     const year = dateObj.getFullYear();
@@ -178,9 +208,9 @@ const PerjalananDinas = () => {
               <p className="text-gray-600 dark:text-gray-400">Kelola perjalanan dinas karyawan</p>
             </div>
             <div className="flex gap-3 mt-4 md:mt-0">
-              <Button variant="outline" className="flex items-center gap-2">
+              <Button variant="outline" className="flex items-center gap-2" onClick={handleExportCSV}>
                 <Download className="w-4 h-4" />
-                Export Excel
+                Export CSV
               </Button>
               <Button 
                 onClick={handleAddNew}

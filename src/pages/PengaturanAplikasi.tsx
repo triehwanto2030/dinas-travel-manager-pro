@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Save, Database, Mail, Bell, Shield, Globe, Palette } from 'lucide-react';
 import Header from '@/components/Header';
 import Sidebar from '@/components/Sidebar';
@@ -12,12 +12,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
+import { useAppSettings, useSaveAppSettings } from '@/hooks/useAppSettings';
 
 const PengaturanAplikasi = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { toast } = useToast();
+  const { data: savedSettings, isLoading } = useAppSettings();
+  const saveSettings = useSaveAppSettings();
 
-  // Mock settings state
   const [settings, setSettings] = useState({
     appName: 'Travel Pro',
     appDescription: 'Sistem Manajemen Perjalanan Dinas',
@@ -32,15 +34,73 @@ const PengaturanAplikasi = () => {
     timezone: 'Asia/Jakarta',
     theme: 'light'
   });
+  
+  // Load saved settings
+  useEffect(() => {
+    if (savedSettings) {
+      setSettings(prev => ({
+        ...prev,
+        appName: savedSettings.appName || prev.appName,
+        appDescription: savedSettings.appDescription || prev.appDescription,
+        companyName: savedSettings.companyName || prev.companyName,
+        companyAddress: savedSettings.companyAddress || prev.companyAddress,
+        emailNotifications: savedSettings.emailNotifications === 'true',
+        pushNotifications: savedSettings.pushNotifications === 'true',
+        autoApproval: savedSettings.autoApproval === 'true',
+        maxBudget: Number(savedSettings.maxBudget) || prev.maxBudget,
+        currency: savedSettings.currency || prev.currency,
+        language: savedSettings.language || prev.language,
+        timezone: savedSettings.timezone || prev.timezone,
+        theme: savedSettings.theme || prev.theme,
+      }));
+    }
+  }, [savedSettings]);
 
-  const handleSave = () => {
-    toast({
-      title: "Berhasil!",
-      description: "Pengaturan aplikasi berhasil disimpan",
-    });
+  const handleSave = async () => {
+    try {
+      await saveSettings.mutateAsync({
+        appName: settings.appName,
+        appDescription: settings.appDescription,
+        companyName: settings.companyName,
+        companyAddress: settings.companyAddress,
+        emailNotifications: String(settings.emailNotifications),
+        pushNotifications: String(settings.pushNotifications),
+        autoApproval: String(settings.autoApproval),
+        maxBudget: String(settings.maxBudget),
+        currency: settings.currency,
+        language: settings.language,
+        timezone: settings.timezone,
+        theme: settings.theme,
+      });
+      toast({
+        title: "Berhasil!",
+        description: "Pengaturan aplikasi berhasil disimpan",
+      });
+    } catch (err: any) {
+      toast({
+        title: "Error!",
+        description: err.message,
+        variant: "destructive",
+      });
+    }
   };
 
   const handleReset = () => {
+    setSettings({
+      appName: 'Travel Pro',
+      appDescription: 'Sistem Manajemen Perjalanan Dinas',
+      companyName: 'PT. Example Company',
+      companyAddress: 'Jl. Contoh No. 123, Jakarta',
+      emailNotifications: true,
+      pushNotifications: false,
+      autoApproval: false,
+      maxBudget: 5000000,
+      currency: 'IDR',
+      language: 'id',
+      timezone: 'Asia/Jakarta',
+      theme: 'light'
+    });
+
     toast({
       title: "Reset!",
       description: "Pengaturan dikembalikan ke default",
@@ -68,9 +128,9 @@ const PengaturanAplikasi = () => {
                   <Button variant="outline" onClick={handleReset}>
                     Reset Default
                   </Button>
-                  <Button onClick={handleSave} className="bg-blue-600 hover:bg-blue-700">
+                  <Button onClick={handleSave} className="bg-blue-600 hover:bg-blue-700" disabled={saveSettings.isPending}>
                     <Save className="w-4 h-4 mr-2" />
-                    Simpan Pengaturan
+                      {saveSettings.isPending ? 'Menyimpan...' : 'Simpan Pengaturan'}
                   </Button>
                 </div>
               </div>
@@ -192,25 +252,20 @@ const PengaturanAplikasi = () => {
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="flex items-center justify-between">
+                    <div><Label>In-App Notifications</Label><p className="text-sm text-gray-500">Tampilkan notifikasi di dalam aplikasi</p></div>
+                    <Switch checked={settings.pushNotifications} onCheckedChange={(v) => setSettings({...settings, pushNotifications: v})} />
+                  </div>
+                  <div className="flex items-center justify-between">
                     <div>
                       <Label>Email Notifications</Label>
-                      <p className="text-sm text-gray-500">Kirim notifikasi via email</p>
+                      <p className="text-sm text-gray-500">Kirim notifikasi via email (memerlukan integrasi email service)</p>
                     </div>
                     <Switch
                       checked={settings.emailNotifications}
                       onCheckedChange={(checked) => setSettings({...settings, emailNotifications: checked})}
                     />
                   </div>
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <Label>Push Notifications</Label>
-                      <p className="text-sm text-gray-500">Kirim notifikasi push</p>
-                    </div>
-                    <Switch
-                      checked={settings.pushNotifications}
-                      onCheckedChange={(checked) => setSettings({...settings, pushNotifications: checked})}
-                    />
-                  </div>
+                  <p className="text-xs text-muted-foreground">Catatan: Email notification memerlukan integrasi layanan email pihak ketiga (seperti Resend/SendGrid).</p>
                 </CardContent>
               </Card>
 
