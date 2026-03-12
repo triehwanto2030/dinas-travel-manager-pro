@@ -52,6 +52,7 @@ interface TripClaim {
     accommodation: string | null;
     transportation: string | null;
     created_at: string;
+    cost_center: string | null;
   };
   current_approval_step: string | null;
   supervisor_approved_at: string | null;
