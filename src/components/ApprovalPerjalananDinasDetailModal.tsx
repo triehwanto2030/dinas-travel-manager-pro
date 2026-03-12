@@ -353,6 +353,19 @@ const ApprovalPerjalananDinasDetailModal: React.FC<ApprovalPerjalananDinasDetail
         rejected_by: userEmp?.id,
         rejection_reason: rejectReason
       } as any);
+
+      // Notify submitter of rejection
+      if (trip.employees?.id) {
+        notifySubmitterRejected({
+          submitterEmployeeId: trip.employees.id,
+          entityType: 'business_trip',
+          entityId: trip.id,
+          destination: trip.destination,
+          rejectorName: userEmp?.name || '',
+          reason: rejectReason,
+        });
+      }
+
       toast({
         title: "Berhasil!",
         description: "Perjalanan dinas telah ditolak",

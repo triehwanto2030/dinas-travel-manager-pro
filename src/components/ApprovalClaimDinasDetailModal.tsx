@@ -465,6 +465,19 @@ const ApprovalClaimDinasDetailModal: React.FC<ApprovalClaimDinasDetailModalProps
         rejected_by: userEmp?.id,
         rejection_reason: rejectReason
       });
+
+      // Notify submitter of rejection
+      if (claim.employees?.id) {
+        notifySubmitterRejected({
+          submitterEmployeeId: claim.employees.id,
+          entityType: 'trip_claim',
+          entityId: claim.id,
+          destination: claim.business_trips.destination,
+          rejectorName: userEmp?.name || '',
+          reason: rejectReason,
+        });
+      }
+
       toast({ title: "Berhasil!", description: "Claim dinas telah ditolak" });
       queryClient.invalidateQueries({ queryKey: ['trip_claims'] });
 
