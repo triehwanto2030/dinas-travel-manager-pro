@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Calendar, MapPin, User, Building, Plane, Hotel, DollarSign, FileText } from 'lucide-react';
+import { useCompanies } from '@/hooks/useCompanies';
 import UserAvatarCell from './AvatarCell';
 import { useUpdateBusinessTrip } from '@/hooks/useBusinessTrips';
 import { useToast } from '@/hooks/use-toast';
@@ -28,6 +29,7 @@ interface BusinessTrip {
   notes: string | null;
   trip_number: string;
   created_at: string;
+  cost_center: string | null;
   employees: {
     id: string;
     name: string;
@@ -77,8 +79,9 @@ const ApprovalPerjalananDinasDetailModal: React.FC<ApprovalPerjalananDinasDetail
   const { toast } = useToast();
   const { data: lineApprovals = [] } = useLineApprovals();
   const { data: allEmployees = [] } = useEmployees();
+  const { data: companies = [] } = useCompanies();
   const { employee: userEmp } = useAuth();
-  const companyLineApproval = lineApprovals.find(la => la.company_id === trip?.employees?.company_id);
+  const companyLineApproval = lineApprovals.find(la => la.company_id === (trip?.cost_center || trip?.employees?.company_id));
 
   useEffect(() => {
     const currentStep = trip?.current_approval_step;
@@ -443,6 +446,14 @@ const ApprovalPerjalananDinasDetailModal: React.FC<ApprovalPerjalananDinasDetail
                   <p className="font-medium">{trip.purpose || '-'}</p>
                 </div>
               </div>
+              {trip.cost_center && (
+                <div className="mt-3 p-3 bg-muted/30 rounded-lg">
+                  <p className="text-sm text-muted-foreground">Cost Center</p>
+                  <p className="font-medium">
+                    {companies.find(c => c.id === trip.cost_center)?.name || trip.cost_center}
+                  </p>
+                </div>
+              )}
             </div>
 
             {/* Period */}

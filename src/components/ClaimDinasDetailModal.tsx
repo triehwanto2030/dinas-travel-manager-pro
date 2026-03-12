@@ -27,7 +27,7 @@ const ClaimDinasDetailModal: React.FC<ClaimDinasDetailModalProps> = ({ isOpen, o
   const trip = claimData.business_trips || {};
   const companyObj = companies.find((c: any) => c.id === employee.company_id);
   const companyName = companyObj?.name || 'N/A';
-  const companyLineApproval = lineApprovals.find(la => la.company_id === claimData?.employees?.company_id);
+  const companyLineApproval = lineApprovals.find(la => la.company_id === (trip?.cost_center || claimData?.employees?.company_id));
   
   // Build approval hierarchy
   const supervisor = employee.supervisor_id ? employees.find(e => e.id === employee.supervisor_id) : null;
@@ -168,10 +168,12 @@ const ClaimDinasDetailModal: React.FC<ClaimDinasDetailModalProps> = ({ isOpen, o
                     <p className="text-gray-500 dark:text-gray-400">Perusahaan:</p>
                     <p className="font-medium text-gray-900 dark:text-white">{companyName}</p>
                   </div>
-                  <div>
-                    <p className="text-gray-500 dark:text-gray-400">Cost Center:</p>
-                    <p className="font-medium text-gray-900 dark:text-white">{companyName}</p>
-                  </div>
+                   <div>
+                      <p className="text-gray-500 dark:text-gray-400">Cost Center:</p>
+                      <p className="font-medium text-gray-900 dark:text-white">
+                        {trip.cost_center ? (companies.find((c: any) => c.id === trip.cost_center)?.name || trip.cost_center) : companyName}
+                      </p>
+                    </div>
                 </div>
               </CardContent>
             </Card>

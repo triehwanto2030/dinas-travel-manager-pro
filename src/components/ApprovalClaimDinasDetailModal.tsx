@@ -52,6 +52,7 @@ interface TripClaim {
     accommodation: string | null;
     transportation: string | null;
     created_at: string;
+    cost_center: string | null;
   };
   current_approval_step: string | null;
   supervisor_approved_at: string | null;
@@ -110,7 +111,7 @@ const ApprovalClaimDinasDetailModal: React.FC<ApprovalClaimDinasDetailModalProps
   const { data: lineApprovals = [] } = useLineApprovals();
   const { data: employees = [] } = useEmployees();
   const { employee: userEmp } = useAuth();
-  const companyLineApproval = lineApprovals.find(la => la.company_id === claim?.employees?.company_id);
+  const companyLineApproval = lineApprovals.find(la => la.company_id === (claim?.business_trips?.cost_center || claim?.employees?.company_id));
 
   // Initialize expenses from claimExpenses
   useEffect(() => {
@@ -557,7 +558,9 @@ const ApprovalClaimDinasDetailModal: React.FC<ApprovalClaimDinasDetailModalProps
                     </div>
                     <div>
                       <p className="text-gray-500 dark:text-gray-400">Cost Center:</p>
-                      <p className="font-medium text-gray-900 dark:text-white">{companyName}</p>
+                      <p className="font-medium text-gray-900 dark:text-white">
+                        {trip.cost_center ? (companies.find(c => c.id === trip.cost_center)?.name || trip.cost_center) : companyName}
+                      </p>
                     </div>
                   </div>
                 </CardContent>
