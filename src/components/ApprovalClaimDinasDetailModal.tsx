@@ -17,6 +17,7 @@ import { useLineApprovals } from '@/hooks/useLineApprovals';
 import { useEmployees } from '@/hooks/useEmployees';
 import { useAuth } from '@/contexts/AuthContext';
 import { useUpdateBusinessTrip } from '@/hooks/useBusinessTrips';
+import { notifyNextApprover, notifySubmitterApproved, notifySubmitterRejected } from '@/lib/approvalNotifications';
 
 interface TripClaim {
   id: string;
