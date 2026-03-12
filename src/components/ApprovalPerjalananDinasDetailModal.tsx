@@ -28,6 +28,7 @@ interface BusinessTrip {
   notes: string | null;
   trip_number: string;
   created_at: string;
+  cost_center: string | null;
   employees: {
     id: string;
     name: string;
