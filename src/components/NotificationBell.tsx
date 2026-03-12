@@ -10,6 +10,7 @@ import { useNavigate } from 'react-router-dom';
 
 const NotificationBell = () => {
   const [open, setOpen] = useState(false);
+  const navigate = useNavigate();
   const { data: notifications = [] } = useNotifications();
   const { data: unreadCount = 0 } = useUnreadCount();
   const markRead = useMarkNotificationRead();
