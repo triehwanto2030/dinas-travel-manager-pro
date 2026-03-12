@@ -79,6 +79,7 @@ const ApprovalPerjalananDinasDetailModal: React.FC<ApprovalPerjalananDinasDetail
   const { toast } = useToast();
   const { data: lineApprovals = [] } = useLineApprovals();
   const { data: allEmployees = [] } = useEmployees();
+  const { data: companies = [] } = useCompanies();
   const { employee: userEmp } = useAuth();
   const companyLineApproval = lineApprovals.find(la => la.company_id === (trip?.cost_center || trip?.employees?.company_id));
 
