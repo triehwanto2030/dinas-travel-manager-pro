@@ -19,6 +19,7 @@ import { useCreateBusinessTrip, useUpdateBusinessTrip, BusinessTripWithRelations
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import UserAvatarCell from './AvatarCell';
+import { notifyNextApprover } from '@/lib/approvalNotifications';
 
 const formSchema = z.object({
   employee_id: z.string().min(1, 'Pilih karyawan'),
@@ -240,7 +241,20 @@ const PerjalananDinasForm = ({ isOpen, onClose, mode, data }: PerjalananDinasFor
       };
       
       if (mode === 'create') {
-        await createBusinessTrip.mutateAsync(businessTripData);
+        const result = await createBusinessTrip.mutateAsync(businessTripData);
+        
+        // Notify supervisor
+        if (formData.supervisor_id && selectedEmployee) {
+          notifyNextApprover({
+            nextApproverEmployeeId: formData.supervisor_id,
+            employeeName: selectedEmployee.name,
+            entityType: 'business_trip',
+            entityId: result.id,
+            destination: formData.destination,
+            stepLabel: 'Supervisor',
+          });
+        }
+        
         toast.success('Perjalanan dinas berhasil dibuat dan diajukan');
         form.reset();
       } else if (mode === 'edit' && data?.id) {

@@ -61,10 +61,10 @@ export type Database = {
           rejected_at: string | null
           rejected_by: string | null
           rejection_reason: string | null
-          staff_fa_approved_at: string | null
-          staff_fa_approved_by: string | null
           spv_ga_approved_at: string | null
           spv_ga_approved_by: string | null
+          staff_fa_approved_at: string | null
+          staff_fa_approved_by: string | null
           staff_ga_approved_at: string | null
           staff_ga_approved_by: string | null
           start_date: string
@@ -94,10 +94,10 @@ export type Database = {
           rejected_at?: string | null
           rejected_by?: string | null
           rejection_reason?: string | null
-          staff_fa_approved_at?: string | null
-          staff_fa_approved_by?: string | null
           spv_ga_approved_at?: string | null
           spv_ga_approved_by?: string | null
+          staff_fa_approved_at?: string | null
+          staff_fa_approved_by?: string | null
           staff_ga_approved_at?: string | null
           staff_ga_approved_by?: string | null
           start_date: string
@@ -127,10 +127,10 @@ export type Database = {
           rejected_at?: string | null
           rejected_by?: string | null
           rejection_reason?: string | null
-          staff_fa_approved_at?: string | null
-          staff_fa_approved_by?: string | null
           spv_ga_approved_at?: string | null
           spv_ga_approved_by?: string | null
+          staff_fa_approved_at?: string | null
+          staff_fa_approved_by?: string | null
           staff_ga_approved_at?: string | null
           staff_ga_approved_by?: string | null
           start_date?: string
@@ -274,8 +274,8 @@ export type Database = {
           grade: string | null
           id: string
           name: string
-          phone: string | null
           no_rekening: string | null
+          phone: string | null
           photo_url: string | null
           position: string | null
           supervisor_id: string | null
@@ -290,8 +290,8 @@ export type Database = {
           grade?: string | null
           id?: string
           name: string
-          phone?: string | null
           no_rekening?: string | null
+          phone?: string | null
           photo_url?: string | null
           position?: string | null
           supervisor_id?: string | null
@@ -306,8 +306,8 @@ export type Database = {
           grade?: string | null
           id?: string
           name?: string
-          phone?: string | null
           no_rekening?: string | null
+          phone?: string | null
           photo_url?: string | null
           position?: string | null
           supervisor_id?: string | null
@@ -490,12 +490,12 @@ export type Database = {
           rejected_at: string | null
           rejected_by: string | null
           rejection_reason: string | null
+          spv_ga_approved_at: string | null
+          spv_ga_approved_by: string | null
           staff_fa_approved_at: string | null
           staff_fa_approved_by: string | null
           staff_ga_approved_at: string | null
           staff_ga_approved_by: string | null
-          spv_ga_approved_at: string | null
-          spv_ga_approved_by: string | null
           status: string
           submitted_at: string | null
           supervisor_approved_at: string | null
@@ -518,12 +518,12 @@ export type Database = {
           rejected_at?: string | null
           rejected_by?: string | null
           rejection_reason?: string | null
+          spv_ga_approved_at?: string | null
+          spv_ga_approved_by?: string | null
           staff_fa_approved_at?: string | null
           staff_fa_approved_by?: string | null
           staff_ga_approved_at?: string | null
           staff_ga_approved_by?: string | null
-          spv_ga_approved_at?: string | null
-          spv_ga_approved_by?: string | null
           status?: string
           submitted_at?: string | null
           supervisor_approved_at?: string | null
@@ -546,12 +546,12 @@ export type Database = {
           rejected_at?: string | null
           rejected_by?: string | null
           rejection_reason?: string | null
+          spv_ga_approved_at?: string | null
+          spv_ga_approved_by?: string | null
           staff_fa_approved_at?: string | null
           staff_fa_approved_by?: string | null
           staff_ga_approved_at?: string | null
           staff_ga_approved_by?: string | null
-          spv_ga_approved_at?: string | null
-          spv_ga_approved_by?: string | null
           status?: string
           submitted_at?: string | null
           supervisor_approved_at?: string | null

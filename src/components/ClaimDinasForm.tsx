@@ -17,6 +17,7 @@ import { useUpdateBusinessTrip } from '@/hooks/useBusinessTrips';
 import { ExpenseDetail } from './ExpenseDetail';
 import UserAvatarCell from './AvatarCell';
 import { supabase } from '@/integrations/supabase/client';
+import { notifyNextApprover } from '@/lib/approvalNotifications';
 
 interface ClaimDinasFormProps {
   isOpen: boolean;
@@ -183,6 +184,18 @@ const ClaimDinasForm: React.FC<ClaimDinasFormProps> = ({ isOpen, onClose, tripDa
         id: tripData.id,
         status: 'Completed'
       });
+
+      // Notify supervisor for claim approval
+      if (employee.supervisor_id) {
+        notifyNextApprover({
+          nextApproverEmployeeId: employee.supervisor_id,
+          employeeName: employee.name || '',
+          entityType: 'trip_claim',
+          entityId: result.id,
+          destination: destination,
+          stepLabel: 'Supervisor',
+        });
+      }
 
       toast({
         title: "Berhasil!",

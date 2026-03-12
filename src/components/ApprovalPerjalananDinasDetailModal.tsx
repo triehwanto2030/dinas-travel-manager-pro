@@ -13,6 +13,7 @@ import { useLineApprovals } from '@/hooks/useLineApprovals';
 import { EmployeeWithCompany, useEmployees } from '@/hooks/useEmployees';
 import { useAuth } from '@/contexts/AuthContext';
 import { useQueryClient } from '@tanstack/react-query';
+import { notifyNextApprover, notifySubmitterApproved, notifySubmitterRejected } from '@/lib/approvalNotifications';
 
 interface BusinessTrip {
   id: string;
@@ -277,6 +278,47 @@ const ApprovalPerjalananDinasDetailModal: React.FC<ApprovalPerjalananDinasDetail
         [fields.approvedAt]: new Date().toISOString(),
         [fields.approvedBy]: userEmp?.id,
       });
+
+      // Send notifications
+      const isFinalApproval = statusToUpdate === 'Approved';
+      if (isFinalApproval && trip.employees?.id) {
+        // Notify submitter
+        notifySubmitterApproved({
+          submitterEmployeeId: trip.employees.id,
+          entityType: 'business_trip',
+          entityId: trip.id,
+          destination: trip.destination,
+          approverName: userEmp?.name || '',
+        });
+      } else {
+        // Notify next approver
+        const nextStep = nextRoleMap[step];
+        let nextApproverEmployeeId: string | null = null;
+        const stepLabels: Record<string, string> = {
+          supervisor: 'Supervisor', staff_ga: 'Staff GA', spv_ga: 'SPV GA',
+          hr_manager: 'HR Manager', bod: 'BOD', staff_fa: 'Staff FA',
+        };
+
+        if (nextStep === 'supervisor') {
+          nextApproverEmployeeId = trip.employees?.supervisor_id || null;
+        } else if (companyLineApproval) {
+          const roleKey = roleMap[nextStep] as keyof typeof companyLineApproval;
+          const assignedEmp = roleKey ? companyLineApproval[roleKey] as { id: string } | null : null;
+          nextApproverEmployeeId = assignedEmp?.id || null;
+        }
+
+        if (nextApproverEmployeeId) {
+          notifyNextApprover({
+            nextApproverEmployeeId,
+            employeeName: trip.employees?.name || '',
+            entityType: 'business_trip',
+            entityId: trip.id,
+            destination: trip.destination,
+            stepLabel: stepLabels[nextStep] || nextStep,
+          });
+        }
+      }
+
       toast({
         title: "Berhasil!",
         description: "Perjalanan dinas telah disetujui",
@@ -311,6 +353,19 @@ const ApprovalPerjalananDinasDetailModal: React.FC<ApprovalPerjalananDinasDetail
         rejected_by: userEmp?.id,
         rejection_reason: rejectReason
       } as any);
+
+      // Notify submitter of rejection
+      if (trip.employees?.id) {
+        notifySubmitterRejected({
+          submitterEmployeeId: trip.employees.id,
+          entityType: 'business_trip',
+          entityId: trip.id,
+          destination: trip.destination,
+          rejectorName: userEmp?.name || '',
+          reason: rejectReason,
+        });
+      }
+
       toast({
         title: "Berhasil!",
         description: "Perjalanan dinas telah ditolak",

@@ -17,6 +17,7 @@ import { useLineApprovals } from '@/hooks/useLineApprovals';
 import { useEmployees } from '@/hooks/useEmployees';
 import { useAuth } from '@/contexts/AuthContext';
 import { useUpdateBusinessTrip } from '@/hooks/useBusinessTrips';
+import { notifyNextApprover, notifySubmitterApproved, notifySubmitterRejected } from '@/lib/approvalNotifications';
 
 interface TripClaim {
   id: string;
@@ -394,13 +395,56 @@ const ApprovalClaimDinasDetailModal: React.FC<ApprovalClaimDinasDetailModalProps
       const fields = approvalFieldMap[step];
       if (!fields) return;
 
+      const statusToUpdate = step !== "staff_fa" ? 'Submitted' : 'Approved';
       await updateTripClaim.mutateAsync({
         id: claim.id,
-        status: step !== "staff_fa" ? 'Submitted' : 'Approved',
+        status: statusToUpdate,
         current_approval_step: nextRoleMap[step],
         [fields.approvedAt]: new Date().toISOString(),
         [fields.approvedBy]: userEmp?.id || null
       });
+
+      // Send notifications
+      const isFinalApproval = statusToUpdate === 'Approved';
+      if (isFinalApproval && claim.employees?.id) {
+        notifySubmitterApproved({
+          submitterEmployeeId: claim.employees.id,
+          entityType: 'trip_claim',
+          entityId: claim.id,
+          destination: claim.business_trips.destination,
+          approverName: userEmp?.name || '',
+        });
+      } else {
+        const nextStep = nextRoleMap[step];
+        let nextApproverEmployeeId: string | null = null;
+        const stepLabels: Record<string, string> = {
+          supervisor: 'Supervisor', staff_ga: 'Staff GA', spv_ga: 'SPV GA',
+          hr_manager: 'HR Manager', bod: 'BOD', staff_fa: 'Staff FA',
+        };
+
+        if (nextStep === 'supervisor') {
+          nextApproverEmployeeId = claim.employees?.supervisor_id || null;
+        } else if (companyLineApproval) {
+          const roleMap: Record<string, string> = {
+            staff_ga: 'staff_ga', spv_ga: 'spv_ga', hr_manager: 'hr_manager', bod: 'bod', staff_fa: 'staff_fa',
+          };
+          const roleKey = roleMap[nextStep] as keyof typeof companyLineApproval;
+          const assignedEmp = roleKey ? companyLineApproval[roleKey] as { id: string } | null : null;
+          nextApproverEmployeeId = assignedEmp?.id || null;
+        }
+
+        if (nextApproverEmployeeId) {
+          notifyNextApprover({
+            nextApproverEmployeeId,
+            employeeName: claim.employees?.name || '',
+            entityType: 'trip_claim',
+            entityId: claim.id,
+            destination: claim.business_trips.destination,
+            stepLabel: stepLabels[nextStep] || nextStep,
+          });
+        }
+      }
+
       toast({ title: "Berhasil!", description: "Claim dinas telah disetujui" });
       queryClient.invalidateQueries({ queryKey: ['trip_claims'] });
       onClose();
@@ -421,6 +465,19 @@ const ApprovalClaimDinasDetailModal: React.FC<ApprovalClaimDinasDetailModalProps
         rejected_by: userEmp?.id,
         rejection_reason: rejectReason
       });
+
+      // Notify submitter of rejection
+      if (claim.employees?.id) {
+        notifySubmitterRejected({
+          submitterEmployeeId: claim.employees.id,
+          entityType: 'trip_claim',
+          entityId: claim.id,
+          destination: claim.business_trips.destination,
+          rejectorName: userEmp?.name || '',
+          reason: rejectReason,
+        });
+      }
+
       toast({ title: "Berhasil!", description: "Claim dinas telah ditolak" });
       queryClient.invalidateQueries({ queryKey: ['trip_claims'] });
 
