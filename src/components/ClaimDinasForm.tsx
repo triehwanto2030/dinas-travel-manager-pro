@@ -17,6 +17,7 @@ import { useUpdateBusinessTrip } from '@/hooks/useBusinessTrips';
 import { ExpenseDetail } from './ExpenseDetail';
 import UserAvatarCell from './AvatarCell';
 import { supabase } from '@/integrations/supabase/client';
+import { notifyNextApprover } from '@/lib/approvalNotifications';
 
 interface ClaimDinasFormProps {
   isOpen: boolean;
