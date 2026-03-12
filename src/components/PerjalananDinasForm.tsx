@@ -19,6 +19,7 @@ import { useCreateBusinessTrip, useUpdateBusinessTrip, BusinessTripWithRelations
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import UserAvatarCell from './AvatarCell';
+import { notifyNextApprover } from '@/lib/approvalNotifications';
 
 const formSchema = z.object({
   employee_id: z.string().min(1, 'Pilih karyawan'),
