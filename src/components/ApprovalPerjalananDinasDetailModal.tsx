@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Calendar, MapPin, User, Building, Plane, Hotel, DollarSign, FileText } from 'lucide-react';
+import { useCompanies } from '@/hooks/useCompanies';
 import UserAvatarCell from './AvatarCell';
 import { useUpdateBusinessTrip } from '@/hooks/useBusinessTrips';
 import { useToast } from '@/hooks/use-toast';
