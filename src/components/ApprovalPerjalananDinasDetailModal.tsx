@@ -13,6 +13,7 @@ import { useLineApprovals } from '@/hooks/useLineApprovals';
 import { EmployeeWithCompany, useEmployees } from '@/hooks/useEmployees';
 import { useAuth } from '@/contexts/AuthContext';
 import { useQueryClient } from '@tanstack/react-query';
+import { notifyNextApprover, notifySubmitterApproved, notifySubmitterRejected } from '@/lib/approvalNotifications';
 
 interface BusinessTrip {
   id: string;
