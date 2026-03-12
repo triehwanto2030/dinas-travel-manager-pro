@@ -168,10 +168,12 @@ const ClaimDinasDetailModal: React.FC<ClaimDinasDetailModalProps> = ({ isOpen, o
                     <p className="text-gray-500 dark:text-gray-400">Perusahaan:</p>
                     <p className="font-medium text-gray-900 dark:text-white">{companyName}</p>
                   </div>
-                  <div>
-                    <p className="text-gray-500 dark:text-gray-400">Cost Center:</p>
-                    <p className="font-medium text-gray-900 dark:text-white">{companyName}</p>
-                  </div>
+                   <div>
+                      <p className="text-gray-500 dark:text-gray-400">Cost Center:</p>
+                      <p className="font-medium text-gray-900 dark:text-white">
+                        {trip.cost_center ? (companies.find((c: any) => c.id === trip.cost_center)?.name || trip.cost_center) : companyName}
+                      </p>
+                    </div>
                 </div>
               </CardContent>
             </Card>
