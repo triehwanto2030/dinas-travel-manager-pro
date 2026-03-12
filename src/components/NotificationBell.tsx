@@ -6,6 +6,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { useNotifications, useUnreadCount, useMarkNotificationRead, useMarkAllRead } from '@/hooks/useNotifications';
 import { formatDistanceToNow } from 'date-fns';
 import { id } from 'date-fns/locale';
+import { useNavigate } from 'react-router-dom';
 
 const NotificationBell = () => {
   const [open, setOpen] = useState(false);
