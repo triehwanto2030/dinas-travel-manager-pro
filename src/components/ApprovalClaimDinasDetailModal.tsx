@@ -111,7 +111,7 @@ const ApprovalClaimDinasDetailModal: React.FC<ApprovalClaimDinasDetailModalProps
   const { data: lineApprovals = [] } = useLineApprovals();
   const { data: employees = [] } = useEmployees();
   const { employee: userEmp } = useAuth();
-  const companyLineApproval = lineApprovals.find(la => la.company_id === claim?.employees?.company_id);
+  const companyLineApproval = lineApprovals.find(la => la.company_id === (claim?.business_trips?.cost_center || claim?.employees?.company_id));
 
   // Initialize expenses from claimExpenses
   useEffect(() => {

@@ -444,6 +444,19 @@ const ApprovalPerjalananDinasDetailModal: React.FC<ApprovalPerjalananDinasDetail
                   <p className="font-medium">{trip.purpose || '-'}</p>
                 </div>
               </div>
+              {trip.cost_center && (
+                <div className="mt-3 p-3 bg-muted/30 rounded-lg">
+                  <p className="text-sm text-muted-foreground">Cost Center</p>
+                  <p className="font-medium">
+                    {(() => {
+                      const cc = allEmployees.length > 0 ? undefined : undefined;
+                      const company = lineApprovals.find(la => la.company_id === trip.cost_center);
+                      const companyData = company ? companies?.find((c: any) => c.id === trip.cost_center) : null;
+                      return companyData?.name || trip.cost_center;
+                    })()}
+                  </p>
+                </div>
+              )}
             </div>
 
             {/* Period */}

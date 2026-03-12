@@ -85,7 +85,7 @@ const PerjalananDinasForm = ({ isOpen, onClose, mode, data }: PerjalananDinasFor
         form.setValue('start_date', new Date(data.start_date));
         form.setValue('end_date', new Date(data.end_date));
         form.setValue('purpose', data.purpose || '');
-        form.setValue('cost_center', employee.company_id || '');
+        form.setValue('cost_center', data.cost_center || employee.company_id || '');
         form.setValue('cash_advance', data.cash_advance || 0);
         
         // Set accommodation and transportation

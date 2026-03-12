@@ -27,7 +27,7 @@ const ClaimDinasDetailModal: React.FC<ClaimDinasDetailModalProps> = ({ isOpen, o
   const trip = claimData.business_trips || {};
   const companyObj = companies.find((c: any) => c.id === employee.company_id);
   const companyName = companyObj?.name || 'N/A';
-  const companyLineApproval = lineApprovals.find(la => la.company_id === claimData?.employees?.company_id);
+  const companyLineApproval = lineApprovals.find(la => la.company_id === (trip?.cost_center || claimData?.employees?.company_id));
   
   // Build approval hierarchy
   const supervisor = employee.supervisor_id ? employees.find(e => e.id === employee.supervisor_id) : null;
