@@ -59,6 +59,13 @@ const NotificationBell = () => {
                 className={`p-3 border-b last:border-b-0 cursor-pointer hover:bg-muted/50 transition-colors ${!n.is_read ? 'bg-blue-50/50 dark:bg-blue-950/20' : ''}`}
                 onClick={() => {
                   if (!n.is_read) markRead.mutate(n.id);
+                  // Navigate to related page
+                  if (n.related_type === 'business_trip') {
+                    navigate('/approval-perjalanan-dinas');
+                  } else if (n.related_type === 'trip_claim') {
+                    navigate('/approval-claim-dinas');
+                  }
+                  setOpen(false);
                 }}
               >
                 <div className="flex items-start gap-2">
