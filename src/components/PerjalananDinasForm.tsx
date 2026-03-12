@@ -241,7 +241,20 @@ const PerjalananDinasForm = ({ isOpen, onClose, mode, data }: PerjalananDinasFor
       };
       
       if (mode === 'create') {
-        await createBusinessTrip.mutateAsync(businessTripData);
+        const result = await createBusinessTrip.mutateAsync(businessTripData);
+        
+        // Notify supervisor
+        if (formData.supervisor_id && selectedEmployee) {
+          notifyNextApprover({
+            nextApproverEmployeeId: formData.supervisor_id,
+            employeeName: selectedEmployee.name,
+            entityType: 'business_trip',
+            entityId: result.id,
+            destination: formData.destination,
+            stepLabel: 'Supervisor',
+          });
+        }
+        
         toast.success('Perjalanan dinas berhasil dibuat dan diajukan');
         form.reset();
       } else if (mode === 'edit' && data?.id) {

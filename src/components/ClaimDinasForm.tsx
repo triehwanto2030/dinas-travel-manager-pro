@@ -185,6 +185,18 @@ const ClaimDinasForm: React.FC<ClaimDinasFormProps> = ({ isOpen, onClose, tripDa
         status: 'Completed'
       });
 
+      // Notify supervisor for claim approval
+      if (employee.supervisor_id) {
+        notifyNextApprover({
+          nextApproverEmployeeId: employee.supervisor_id,
+          employeeName: employee.name || '',
+          entityType: 'trip_claim',
+          entityId: result.id,
+          destination: destination,
+          stepLabel: 'Supervisor',
+        });
+      }
+
       toast({
         title: "Berhasil!",
         description: "Claim dinas berhasil diajukan dan akan masuk ke proses approval",
