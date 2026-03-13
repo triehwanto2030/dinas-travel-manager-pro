@@ -57,9 +57,47 @@ const ApprovalPerjalananDinas = () => {
     setSelectedTrip(null);
   };
 
-  // Filter business trips based on search term, status, and department
+  // Helper: check if current user is the approver for a given trip at its current step
+  const isApproverForTrip = (trip: any) => {
+    if (!userEmp) return false;
+    const isAdmin = user?.role === 'admin';
+    // Admin sees all
+    if (isAdmin) return true;
+    // Submitter sees own trips
+    if (trip.employee_id === userEmp.id) return true;
+
+    const currentStep = trip.current_approval_step;
+    if (!currentStep) return false;
+
+    // Supervisor step
+    if (currentStep === 'supervisor') {
+      return trip.employees?.supervisor_id === userEmp.id;
+    }
+
+    // Other steps - check line approval config based on cost_center
+    const costCenter = trip.cost_center || trip.employees?.company_id;
+    const companyLA = lineApprovals.find(la => la.company_id === costCenter);
+    if (!companyLA) return false;
+
+    const roleMap: Record<string, string> = {
+      staff_ga: 'staff_ga', spv_ga: 'spv_ga', hr_manager: 'hr_manager', bod: 'bod', staff_fa: 'staff_fa',
+    };
+    const roleKey = roleMap[currentStep] as keyof typeof companyLA;
+    const assignedEmp = roleKey ? companyLA[roleKey] as { id: string } | null : null;
+    return assignedEmp?.id === userEmp.id;
+  };
+
+  // Filter business trips based on search term, status, department, and approval role
   const filteredTrips = businessTrips?.filter(trip => {
     if (!trip.employees) return false;
+    
+    // Only show trips where user is the current approver, is submitter, or is admin
+    if (!isApproverForTrip(trip)) return false;
+
+    // Hide already approved/rejected items unless admin or submitter
+    const isAdmin = user?.role === 'admin';
+    const isSubmitter = trip.employee_id === userEmp?.id;
+    if ((trip.status === 'Approved' || trip.status === 'Rejected') && !isAdmin && !isSubmitter) return false;
     
     const matchesSearch = trip.employees.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          trip.destination?.toLowerCase().includes(searchTerm.toLowerCase()) ||

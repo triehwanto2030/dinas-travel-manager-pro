@@ -139,13 +139,44 @@ const ApprovalClaimDinas = () => {
     })
     .reduce((sum, claim) => sum + claim.total_amount, 0);
 
-  // Filter claims - only show submitted claims for approval
+  // Helper: check if current user is the approver for a given claim at its current step
+  const isApproverForClaim = (claim: any) => {
+    if (!userEmp) return false;
+    const isAdmin = user?.role === 'admin';
+    if (isAdmin) return true;
+    if (claim.employee_id === userEmp.id) return true;
+
+    const currentStep = claim.current_approval_step;
+    if (!currentStep) return false;
+
+    if (currentStep === 'supervisor') {
+      return claim.employees?.supervisor_id === userEmp.id;
+    }
+
+    const costCenter = claim.business_trips?.cost_center || claim.employees?.company_id;
+    const companyLA = lineApprovals.find(la => la.company_id === costCenter);
+    if (!companyLA) return false;
+
+    const roleMap: Record<string, string> = {
+      staff_ga: 'staff_ga', spv_ga: 'spv_ga', hr_manager: 'hr_manager', bod: 'bod', staff_fa: 'staff_fa',
+    };
+    const roleKey = roleMap[currentStep] as keyof typeof companyLA;
+    const assignedEmp = roleKey ? companyLA[roleKey] as { id: string } | null : null;
+    return assignedEmp?.id === userEmp.id;
+  };
+
+  // Filter claims - show based on approval role
   const filteredClaims = claims.filter(claim => {
+    if (!isApproverForClaim(claim)) return false;
+
+    const isAdmin = user?.role === 'admin';
+    const isSubmitter = claim.employee_id === userEmp?.id;
+    if ((claim.status === 'Approved' || claim.status === 'Rejected') && !isAdmin && !isSubmitter) return false;
+
     const matchesSearch = claim.employees.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          claim.business_trips.destination.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = statusFilter === 'all' || claim.status.toLowerCase() === statusFilter.toLowerCase();
-    const isSubmitted = claim.status === 'Submitted'; // Only show submitted claims
-    return matchesSearch && matchesStatus && isSubmitted;
+    return matchesSearch && matchesStatus;
   });
 
   const generateClaimId = (claim: any) => {
