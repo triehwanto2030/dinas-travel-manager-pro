@@ -31,8 +31,10 @@ const ApprovalClaimDinas = () => {
   const { toast } = useToast();
 
   const { data: claims = [], isLoading } = useTripClaims();
-  const { employee: userEmp } = useAuth();
+  const { employee: userEmp, user } = useAuth();
   const updateTripClaim = useUpdateTripClaim();
+  const { data: lineApprovals = [] } = useLineApprovals();
+  const { data: allEmployees = [] } = useEmployees();
 
   const getStatusBadge = (status: string) => {
     const statusConfig = {
