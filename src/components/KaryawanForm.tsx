@@ -388,6 +388,50 @@ const KaryawanForm: React.FC<KaryawanFormProps> = ({
                 </div>
               </div>
 
+              {/* Informasi Rekening */}
+              <div>
+                <h3 className="text-lg font-semibold mb-4">Informasi Rekening</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="namaBank">Nama Bank</Label>
+                    <Select 
+                      value={formData.namaBank || undefined} 
+                      onValueChange={(value) => handleInputChange('namaBank', value)}
+                      disabled={isReadOnly}
+                    >
+                      <SelectTrigger className={isReadOnly ? 'bg-gray-50 dark:bg-gray-700' : ''}>
+                        <SelectValue placeholder="Pilih Bank" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="BCA">BCA</SelectItem>
+                        <SelectItem value="BNI">BNI</SelectItem>
+                        <SelectItem value="BRI">BRI</SelectItem>
+                        <SelectItem value="Mandiri">Mandiri</SelectItem>
+                        <SelectItem value="CIMB Niaga">CIMB Niaga</SelectItem>
+                        <SelectItem value="Danamon">Danamon</SelectItem>
+                        <SelectItem value="Permata">Permata</SelectItem>
+                        <SelectItem value="BTN">BTN</SelectItem>
+                        <SelectItem value="OCBC NISP">OCBC NISP</SelectItem>
+                        <SelectItem value="Maybank">Maybank</SelectItem>
+                        <SelectItem value="Bank Jago">Bank Jago</SelectItem>
+                        <SelectItem value="BSI">BSI</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label htmlFor="noRekening">Nomor Rekening</Label>
+                    <Input
+                      id="noRekening"
+                      value={formData.noRekening || ''}
+                      onChange={(e) => handleInputChange('noRekening', e.target.value)}
+                      placeholder="Contoh: 1234567890"
+                      readOnly={isReadOnly}
+                      className={isReadOnly ? 'bg-gray-50 dark:bg-gray-700' : ''}
+                    />
+                  </div>
+                </div>
+              </div>
+
               {/* Akun User - only show in add mode */}
               {mode === 'add' && (
                 <div>
