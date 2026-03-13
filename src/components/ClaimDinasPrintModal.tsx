@@ -240,11 +240,17 @@ const ClaimDinasPrintModal: React.FC<ClaimDinasPrintModalProps> = ({ isOpen, onC
                   </div>
                   <div>
                     <div style={{ color: '#6b7280', fontSize: '11px' }}>Cost Center:</div>
-                    <div style={{ fontWeight: 500 }}>{trip.cost_center}</div>
+                    <div style={{ fontWeight: 500 }}>{trip.cost_center ? (companies.find(c => c.id === trip.cost_center)?.name || trip.cost_center) : companyName}</div>
                   </div>
                   <div>
                     <div style={{ color: '#6b7280', fontSize: '11px' }}>No. Rekening:</div>
-                    <div style={{ fontWeight: 500 }}>{employee.no_rekening}</div>
+                    <div style={{ fontWeight: 500 }}>
+                      {(() => {
+                        const parts = employee.no_rekening?.split('|') || [];
+                        if (parts.length === 2) return `${parts[0]} - ${parts[1]}`;
+                        return employee.no_rekening || 'N/A';
+                      })()}
+                    </div>
                   </div>
                 </div>
               </div>
