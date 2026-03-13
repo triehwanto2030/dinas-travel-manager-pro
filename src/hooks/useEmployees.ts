@@ -208,6 +208,12 @@ export const useUpdateEmployee = () => {
       if (company_id) updateData.company_id = company_id;
       if (updates.supervisorId !== undefined) updateData.supervisor_id = updates.supervisorId || null;
       if (updates.fotoUrl !== undefined) updateData.photo_url = updates.fotoUrl || null;
+      if (updates.namaBank !== undefined || updates.noRekening !== undefined) {
+        const noRekening = updates.namaBank && updates.noRekening
+          ? `${updates.namaBank}|${updates.noRekening}`
+          : updates.noRekening || null;
+        updateData.no_rekening = noRekening;
+      }
 
       const { data, error } = await supabase
         .from('employees')
