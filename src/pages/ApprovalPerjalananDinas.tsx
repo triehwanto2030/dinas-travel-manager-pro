@@ -10,6 +10,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useBusinessTrips } from '@/hooks/useBusinessTrips';
+import { useLineApprovals } from '@/hooks/useLineApprovals';
+import { useEmployees } from '@/hooks/useEmployees';
 import MainLayout from '@/components/MainLayout';
 import UserAvatarCell from '@/components/AvatarCell';
 import StatusWithApproval from '@/components/StatusWithApproval';
