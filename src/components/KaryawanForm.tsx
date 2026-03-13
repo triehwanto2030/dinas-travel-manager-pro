@@ -42,11 +42,14 @@ const KaryawanForm: React.FC<KaryawanFormProps> = ({
     namaPerusahaan: '',
     supervisorId: '',
     fotoUrl: '',
+    namaBank: '',
+    noRekening: '',
     userUsername: '',
     userPassword: '12345',
   });
 
   const [previewImage, setPreviewImage] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const { data: gradeOptions = [] } = useEmployeeGrades();
   const { data: departemenOptions = [] } = useEmployeeDepartments();
