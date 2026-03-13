@@ -57,6 +57,28 @@ export const useCreateEmployee = () => {
     mutationFn: async (employee: EmployeeFormData) => {
       console.log('Creating employee with data:', employee);
       
+      // Check for duplicate email first
+      const { data: existingEmail } = await supabase
+        .from('employees')
+        .select('id')
+        .eq('email', employee.email)
+        .maybeSingle();
+
+      if (existingEmail) {
+        throw new Error('Email sudah digunakan oleh karyawan lain');
+      }
+
+      // Check for duplicate employee_id
+      const { data: existingEmpId } = await supabase
+        .from('employees')
+        .select('id')
+        .eq('employee_id', employee.employeeId)
+        .maybeSingle();
+
+      if (existingEmpId) {
+        throw new Error('ID Karyawan sudah digunakan');
+      }
+      
       // Find company_id based on company name
       const { data: companies, error: companyError } = await supabase
         .from('companies')
