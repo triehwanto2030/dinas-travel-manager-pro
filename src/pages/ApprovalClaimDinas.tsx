@@ -12,6 +12,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { useTripClaims, useUpdateTripClaim } from '@/hooks/useTripClaims';
+import { useLineApprovals } from '@/hooks/useLineApprovals';
+import { useEmployees } from '@/hooks/useEmployees';
 import MainLayout from '@/components/MainLayout';
 import UserAvatarCell from '@/components/AvatarCell';
 import StatusWithApproval from '@/components/StatusWithApproval';
