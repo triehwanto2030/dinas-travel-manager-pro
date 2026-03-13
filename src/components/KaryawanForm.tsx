@@ -67,19 +67,26 @@ const KaryawanForm: React.FC<KaryawanFormProps> = ({
       // Find company name from companies data
       const company = companies.find(c => c.id === initialData.company_id);
 
+      // Parse no_rekening (format: "BankName|AccountNumber")
+      const noRekeningParts = initialData.no_rekening?.split('|') || [];
+      const namaBank = noRekeningParts.length === 2 ? noRekeningParts[0] : '';
+      const noRekening = noRekeningParts.length === 2 ? noRekeningParts[1] : (initialData.no_rekening || '');
+
       setFormData({
         employeeId: initialData.employee_id || '',
         nama: initialData.name || '',
         email: initialData.email || '',
         phone: initialData.phone || '',
-        tanggalBergabung: formatDate(initialData.created_at), // Format the date here
+        tanggalBergabung: formatDate(initialData.created_at),
         departemen: initialData.department || '',
         posisi: initialData.position || '',
         grade: initialData.grade || '',
         status: 'Aktif',
         namaPerusahaan: company?.name || '',
         supervisorId: initialData.supervisor_id || '',
-        fotoUrl: initialData.photo_url || ''
+        fotoUrl: initialData.photo_url || '',
+        namaBank,
+        noRekening,
       });
       setPreviewImage(initialData.photo_url || null);
     } else if (!initialData && isOpen) {
@@ -88,7 +95,7 @@ const KaryawanForm: React.FC<KaryawanFormProps> = ({
         nama: '',
         email: '',
         phone: '',
-        tanggalBergabung: formatDate(null), // Default to current date
+        tanggalBergabung: formatDate(null),
         departemen: '',
         posisi: '',
         grade: '',
@@ -96,6 +103,8 @@ const KaryawanForm: React.FC<KaryawanFormProps> = ({
         namaPerusahaan: '',
         supervisorId: '',
         fotoUrl: '',
+        namaBank: '',
+        noRekening: '',
         userUsername: '',
         userPassword: '12345',
       });
