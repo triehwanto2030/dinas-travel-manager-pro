@@ -24,6 +24,8 @@ export interface EmployeeFormData {
   namaPerusahaan: string;
   supervisorId?: string;
   fotoUrl?: string;
+  namaBank?: string;
+  noRekening?: string;
   // User account fields
   userUsername?: string;
   userPassword?: string;
@@ -57,6 +59,28 @@ export const useCreateEmployee = () => {
     mutationFn: async (employee: EmployeeFormData) => {
       console.log('Creating employee with data:', employee);
       
+      // Check for duplicate email first
+      const { data: existingEmail } = await supabase
+        .from('employees')
+        .select('id')
+        .eq('email', employee.email)
+        .maybeSingle();
+
+      if (existingEmail) {
+        throw new Error('Email sudah digunakan oleh karyawan lain');
+      }
+
+      // Check for duplicate employee_id
+      const { data: existingEmpId } = await supabase
+        .from('employees')
+        .select('id')
+        .eq('employee_id', employee.employeeId)
+        .maybeSingle();
+
+      if (existingEmpId) {
+        throw new Error('ID Karyawan sudah digunakan');
+      }
+      
       // Find company_id based on company name
       const { data: companies, error: companyError } = await supabase
         .from('companies')
@@ -69,6 +93,11 @@ export const useCreateEmployee = () => {
         throw new Error('Perusahaan tidak ditemukan');
       }
 
+      // Combine bank name + account number into no_rekening
+      const noRekening = employee.namaBank && employee.noRekening
+        ? `${employee.namaBank}|${employee.noRekening}`
+        : employee.noRekening || null;
+
       // Map form data to database schema
       const employeeData: TablesInsert<'employees'> = {
         employee_id: employee.employeeId,
@@ -80,7 +109,8 @@ export const useCreateEmployee = () => {
         grade: employee.grade,
         company_id: companies.id,
         supervisor_id: employee.supervisorId || null,
-        photo_url: employee.fotoUrl || null
+        photo_url: employee.fotoUrl || null,
+        no_rekening: noRekening,
       };
 
       const { data, error } = await supabase
@@ -178,6 +208,12 @@ export const useUpdateEmployee = () => {
       if (company_id) updateData.company_id = company_id;
       if (updates.supervisorId !== undefined) updateData.supervisor_id = updates.supervisorId || null;
       if (updates.fotoUrl !== undefined) updateData.photo_url = updates.fotoUrl || null;
+      if (updates.namaBank !== undefined || updates.noRekening !== undefined) {
+        const noRekening = updates.namaBank && updates.noRekening
+          ? `${updates.namaBank}|${updates.noRekening}`
+          : updates.noRekening || null;
+        updateData.no_rekening = noRekening;
+      }
 
       const { data, error } = await supabase
         .from('employees')

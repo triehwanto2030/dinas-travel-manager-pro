@@ -160,7 +160,7 @@ const ApprovalClaimDinasDetailModal: React.FC<ApprovalClaimDinasDetailModalProps
     }
 
     // Already approved?
-    const tripApproval = trip[requiredField];
+    const tripApproval = claim[requiredField];
 
     if (tripApproval !== null) {
       setApprovable(false);

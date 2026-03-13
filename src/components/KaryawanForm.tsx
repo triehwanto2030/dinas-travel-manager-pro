@@ -14,7 +14,7 @@ import { useEmployeeDepartments } from '@/hooks/useEmployeeDepartments';
 interface KaryawanFormProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (data: EmployeeFormData) => void;
+  onSubmit: (data: EmployeeFormData) => void | Promise<void>;
   initialData?: any;
   mode: 'add' | 'edit' | 'view';
 }
@@ -42,11 +42,14 @@ const KaryawanForm: React.FC<KaryawanFormProps> = ({
     namaPerusahaan: '',
     supervisorId: '',
     fotoUrl: '',
+    namaBank: '',
+    noRekening: '',
     userUsername: '',
     userPassword: '12345',
   });
 
   const [previewImage, setPreviewImage] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const { data: gradeOptions = [] } = useEmployeeGrades();
   const { data: departemenOptions = [] } = useEmployeeDepartments();
@@ -64,19 +67,26 @@ const KaryawanForm: React.FC<KaryawanFormProps> = ({
       // Find company name from companies data
       const company = companies.find(c => c.id === initialData.company_id);
 
+      // Parse no_rekening (format: "BankName|AccountNumber")
+      const noRekeningParts = initialData.no_rekening?.split('|') || [];
+      const namaBank = noRekeningParts.length === 2 ? noRekeningParts[0] : '';
+      const noRekening = noRekeningParts.length === 2 ? noRekeningParts[1] : (initialData.no_rekening || '');
+
       setFormData({
         employeeId: initialData.employee_id || '',
         nama: initialData.name || '',
         email: initialData.email || '',
         phone: initialData.phone || '',
-        tanggalBergabung: formatDate(initialData.created_at), // Format the date here
+        tanggalBergabung: formatDate(initialData.created_at),
         departemen: initialData.department || '',
         posisi: initialData.position || '',
         grade: initialData.grade || '',
         status: 'Aktif',
         namaPerusahaan: company?.name || '',
         supervisorId: initialData.supervisor_id || '',
-        fotoUrl: initialData.photo_url || ''
+        fotoUrl: initialData.photo_url || '',
+        namaBank,
+        noRekening,
       });
       setPreviewImage(initialData.photo_url || null);
     } else if (!initialData && isOpen) {
@@ -85,7 +95,7 @@ const KaryawanForm: React.FC<KaryawanFormProps> = ({
         nama: '',
         email: '',
         phone: '',
-        tanggalBergabung: formatDate(null), // Default to current date
+        tanggalBergabung: formatDate(null),
         departemen: '',
         posisi: '',
         grade: '',
@@ -93,6 +103,8 @@ const KaryawanForm: React.FC<KaryawanFormProps> = ({
         namaPerusahaan: '',
         supervisorId: '',
         fotoUrl: '',
+        namaBank: '',
+        noRekening: '',
         userUsername: '',
         userPassword: '12345',
       });
@@ -124,9 +136,15 @@ const KaryawanForm: React.FC<KaryawanFormProps> = ({
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit(formData);
+    if (isSubmitting) return;
+    setIsSubmitting(true);
+    try {
+      await onSubmit(formData);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   if (!isOpen) return null;
@@ -370,6 +388,50 @@ const KaryawanForm: React.FC<KaryawanFormProps> = ({
                 </div>
               </div>
 
+              {/* Informasi Rekening */}
+              <div>
+                <h3 className="text-lg font-semibold mb-4">Informasi Rekening</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="namaBank">Nama Bank</Label>
+                    <Select 
+                      value={formData.namaBank || undefined} 
+                      onValueChange={(value) => handleInputChange('namaBank', value)}
+                      disabled={isReadOnly}
+                    >
+                      <SelectTrigger className={isReadOnly ? 'bg-gray-50 dark:bg-gray-700' : ''}>
+                        <SelectValue placeholder="Pilih Bank" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="BCA">BCA</SelectItem>
+                        <SelectItem value="BNI">BNI</SelectItem>
+                        <SelectItem value="BRI">BRI</SelectItem>
+                        <SelectItem value="Mandiri">Mandiri</SelectItem>
+                        <SelectItem value="CIMB Niaga">CIMB Niaga</SelectItem>
+                        <SelectItem value="Danamon">Danamon</SelectItem>
+                        <SelectItem value="Permata">Permata</SelectItem>
+                        <SelectItem value="BTN">BTN</SelectItem>
+                        <SelectItem value="OCBC NISP">OCBC NISP</SelectItem>
+                        <SelectItem value="Maybank">Maybank</SelectItem>
+                        <SelectItem value="Bank Jago">Bank Jago</SelectItem>
+                        <SelectItem value="BSI">BSI</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label htmlFor="noRekening">Nomor Rekening</Label>
+                    <Input
+                      id="noRekening"
+                      value={formData.noRekening || ''}
+                      onChange={(e) => handleInputChange('noRekening', e.target.value)}
+                      placeholder="Contoh: 1234567890"
+                      readOnly={isReadOnly}
+                      className={isReadOnly ? 'bg-gray-50 dark:bg-gray-700' : ''}
+                    />
+                  </div>
+                </div>
+              </div>
+
               {/* Akun User - only show in add mode */}
               {mode === 'add' && (
                 <div>
@@ -401,11 +463,11 @@ const KaryawanForm: React.FC<KaryawanFormProps> = ({
 
               {!isReadOnly && (
                 <div className="flex justify-end gap-3 pt-4 border-t">
-                  <Button type="button" variant="outline" onClick={onClose}>
+                  <Button type="button" variant="outline" onClick={onClose} disabled={isSubmitting}>
                     Batal
                   </Button>
-                  <Button type="submit" className="bg-green-600 hover:bg-green-700">
-                    {mode === 'add' ? 'Tambah Karyawan' : 'Simpan Perubahan'}
+                  <Button type="submit" className="bg-green-600 hover:bg-green-700" disabled={isSubmitting}>
+                    {isSubmitting ? 'Menyimpan...' : (mode === 'add' ? 'Tambah Karyawan' : 'Simpan Perubahan')}
                   </Button>
                 </div>
               )}
