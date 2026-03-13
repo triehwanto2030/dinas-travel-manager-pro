@@ -24,6 +24,8 @@ export interface EmployeeFormData {
   namaPerusahaan: string;
   supervisorId?: string;
   fotoUrl?: string;
+  namaBank?: string;
+  noRekening?: string;
   // User account fields
   userUsername?: string;
   userPassword?: string;
