@@ -463,11 +463,11 @@ const KaryawanForm: React.FC<KaryawanFormProps> = ({
 
               {!isReadOnly && (
                 <div className="flex justify-end gap-3 pt-4 border-t">
-                  <Button type="button" variant="outline" onClick={onClose}>
+                  <Button type="button" variant="outline" onClick={onClose} disabled={isSubmitting}>
                     Batal
                   </Button>
-                  <Button type="submit" className="bg-green-600 hover:bg-green-700">
-                    {mode === 'add' ? 'Tambah Karyawan' : 'Simpan Perubahan'}
+                  <Button type="submit" className="bg-green-600 hover:bg-green-700" disabled={isSubmitting}>
+                    {isSubmitting ? 'Menyimpan...' : (mode === 'add' ? 'Tambah Karyawan' : 'Simpan Perubahan')}
                   </Button>
                 </div>
               )}
