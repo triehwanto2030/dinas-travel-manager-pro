@@ -14,7 +14,7 @@ import { useEmployeeDepartments } from '@/hooks/useEmployeeDepartments';
 interface KaryawanFormProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (data: EmployeeFormData) => void;
+  onSubmit: (data: EmployeeFormData) => void | Promise<void>;
   initialData?: any;
   mode: 'add' | 'edit' | 'view';
 }
