@@ -93,6 +93,11 @@ export const useCreateEmployee = () => {
         throw new Error('Perusahaan tidak ditemukan');
       }
 
+      // Combine bank name + account number into no_rekening
+      const noRekening = employee.namaBank && employee.noRekening
+        ? `${employee.namaBank}|${employee.noRekening}`
+        : employee.noRekening || null;
+
       // Map form data to database schema
       const employeeData: TablesInsert<'employees'> = {
         employee_id: employee.employeeId,
@@ -104,7 +109,8 @@ export const useCreateEmployee = () => {
         grade: employee.grade,
         company_id: companies.id,
         supervisor_id: employee.supervisorId || null,
-        photo_url: employee.fotoUrl || null
+        photo_url: employee.fotoUrl || null,
+        no_rekening: noRekening,
       };
 
       const { data, error } = await supabase
