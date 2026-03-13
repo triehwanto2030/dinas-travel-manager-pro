@@ -24,12 +24,9 @@ const ApprovalPerjalananDinas = () => {
   const [selectedTrip, setSelectedTrip] = useState<any>(null);
 
   const { data: businessTrips, isLoading, error } = useBusinessTrips();
-  const { employee: userEmp } = useAuth();
-
-  console.log('Business trips data:', businessTrips);
-  console.log('Loading state:', isLoading);
-  console.log('Error state:', error);
-
+  const { employee: userEmp, user } = useAuth();
+  const { data: lineApprovals = [] } = useLineApprovals();
+  const { data: allEmployees = [] } = useEmployees();
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('id-ID', {
       style: 'currency',
