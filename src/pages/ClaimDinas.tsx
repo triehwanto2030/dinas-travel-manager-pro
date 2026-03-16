@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { Search, Plus, Eye, Edit, Trash2, Download, Upload, Filter, TrendingDown, TrendingUp, Printer } from 'lucide-react';
 import ClaimDinasDetailModal from '@/components/ClaimDinasDetailModal';
 import ClaimDinasPrintModal from '@/components/ClaimDinasPrintModal';
@@ -12,6 +12,7 @@ import MainLayout from '@/components/MainLayout';
 import UserAvatarCell from '@/components/AvatarCell';
 import StatusWithApproval from '@/components/StatusWithApproval';
 import { useAuth } from '@/contexts/AuthContext';
+import { exportToExcel } from '@/lib/excelUtils';
 
 const ClaimDinas = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
