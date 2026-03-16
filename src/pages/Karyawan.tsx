@@ -199,10 +199,23 @@ const Karyawan = () => {
               {/* <p className="text-gray-600 dark:text-gray-400">Kelola data karyawan perusahaan</p> */}
             </div>
             <div className="flex gap-3 mt-4 md:mt-0">
-              <Button variant="outline" className="flex items-center gap-2">
-                <Download className="w-4 h-4" />
-                Export
-              </Button>
+              {isAdminOrHrd && (
+                <>
+                  <input type="file" ref={fileInputRef} accept=".xlsx,.xls" className="hidden" onChange={handleImport} />
+                  <Button variant="outline" className="flex items-center gap-2" onClick={() => fileInputRef.current?.click()}>
+                    <Upload className="w-4 h-4" />
+                    Import Excel
+                  </Button>
+                  <Button variant="outline" className="flex items-center gap-2" onClick={handleDownloadTemplate}>
+                    <Download className="w-4 h-4" />
+                    Template
+                  </Button>
+                  <Button variant="outline" className="flex items-center gap-2" onClick={handleExport}>
+                    <Download className="w-4 h-4" />
+                    Export Excel
+                  </Button>
+                </>
+              )}
               <Button 
                 className="flex items-center gap-2 bg-green-600 hover:bg-green-700"
                 onClick={() => openForm('add')}
