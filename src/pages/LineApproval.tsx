@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { Search, Plus, Eye, Edit, Trash2, Download, Upload } from 'lucide-react';
 import Header from '@/components/Header';
 import Sidebar from '@/components/Sidebar';
@@ -13,6 +13,11 @@ import { useToast } from '@/hooks/use-toast';
 import Swal from 'sweetalert2';
 import UserAvatarCell from '@/components/AvatarCell';
 import MainLayout from '@/components/MainLayout';
+import { useAuth } from '@/contexts/AuthContext';
+import { exportToExcel, importFromExcel, downloadTemplate } from '@/lib/excelUtils';
+import { supabase } from '@/integrations/supabase/client';
+import { useCompanies } from '@/hooks/useCompanies';
+import { useEmployees } from '@/hooks/useEmployees';
 
 const LineApproval = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
