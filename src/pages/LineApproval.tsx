@@ -29,10 +29,66 @@ const LineApproval = () => {
   });
 
   const { data: approvalData = [], isLoading } = useLineApprovals();
+  const { data: companies = [] } = useCompanies();
+  const { data: allEmployees = [] } = useEmployees();
   const createLineApproval = useCreateLineApproval();
   const updateLineApproval = useUpdateLineApproval();
   const deleteLineApproval = useDeleteLineApproval();
   const { toast } = useToast();
+  const { user: logUser } = useAuth();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const isAdminOrHrd = logUser?.role === 'admin' || logUser?.role === 'hrd';
+
+  const lineApprovalExportColumns = [
+    { header: 'Perusahaan', key: 'companies.name' },
+    { header: 'Staff GA', key: 'staff_ga.name' },
+    { header: 'Staff GA ID', key: 'staff_ga.employee_id' },
+    { header: 'SPV GA', key: 'spv_ga.name' },
+    { header: 'SPV GA ID', key: 'spv_ga.employee_id' },
+    { header: 'HR Manager', key: 'hr_manager.name' },
+    { header: 'HR Manager ID', key: 'hr_manager.employee_id' },
+    { header: 'BOD', key: 'bod.name' },
+    { header: 'BOD ID', key: 'bod.employee_id' },
+    { header: 'Staff FA', key: 'staff_fa.name' },
+    { header: 'Staff FA ID', key: 'staff_fa.employee_id' },
+  ];
+
+  const handleExport = () => {
+    exportToExcel(approvalData, lineApprovalExportColumns, 'Line_Approval');
+    toast({ title: 'Berhasil', description: 'Data line approval berhasil diexport' });
+  };
+
+  const handleImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      const rows = await importFromExcel(file);
+      let successCount = 0;
+      for (const row of rows) {
+        const companyMatch = companies.find(c => c.name === row['Perusahaan']);
+        const findEmpByEmpId = (empId: string) => allEmployees.find(e => e.employee_id === empId)?.id || null;
+
+        const { error } = await supabase.from('line_approvals').insert({
+          company_id: companyMatch?.id || null,
+          staff_ga_id: findEmpByEmpId(String(row['Staff GA ID'] || '')),
+          spv_ga_id: findEmpByEmpId(String(row['SPV GA ID'] || '')),
+          hr_manager_id: findEmpByEmpId(String(row['HR Manager ID'] || '')),
+          bod_id: findEmpByEmpId(String(row['BOD ID'] || '')),
+          staff_fa_id: findEmpByEmpId(String(row['Staff FA ID'] || '')),
+        });
+        if (!error) successCount++;
+      }
+      toast({ title: 'Import Selesai', description: `${successCount} dari ${rows.length} data berhasil diimport` });
+      window.location.reload();
+    } catch (err) {
+      toast({ title: 'Error', description: 'Gagal mengimport file', variant: 'destructive' });
+    }
+    e.target.value = '';
+  };
+
+  const handleDownloadTemplate = () => {
+    downloadTemplate(lineApprovalExportColumns, 'Line_Approval');
+  };
 
   const openForm = (mode: 'add' | 'edit' | 'view', data?: any) => {
     setFormState({
