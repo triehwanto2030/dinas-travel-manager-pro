@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Search, Plus, Eye, Edit, Trash2, Download, ArrowUpDown } from 'lucide-react';
+import React, { useState, useRef } from 'react';
+import { Search, Plus, Eye, Edit, Trash2, Download, Upload, ArrowUpDown } from 'lucide-react';
 import KaryawanForm from '@/components/KaryawanForm';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -11,6 +11,9 @@ import { useToast } from '@/hooks/use-toast';
 import Swal from 'sweetalert2';
 import UserAvatarCell from '@/components/AvatarCell';
 import MainLayout from '@/components/MainLayout';
+import { useAuth } from '@/contexts/AuthContext';
+import { exportToExcel, importFromExcel, downloadTemplate } from '@/lib/excelUtils';
+import { supabase } from '@/integrations/supabase/client';
 
 const Karyawan = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -29,6 +32,65 @@ const Karyawan = () => {
   const updateEmployee = useUpdateEmployee();
   const deleteEmployee = useDeleteEmployee();
   const { toast } = useToast();
+  const { user: logUser } = useAuth();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const isAdminOrHrd = logUser?.role === 'admin' || logUser?.role === 'hrd';
+
+  const employeeExportColumns = [
+    { header: 'ID Karyawan', key: 'employee_id' },
+    { header: 'Nama', key: 'name' },
+    { header: 'Email', key: 'email' },
+    { header: 'Telepon', key: 'phone' },
+    { header: 'Jabatan', key: 'position' },
+    { header: 'Departemen', key: 'department' },
+    { header: 'Grade', key: 'grade' },
+    { header: 'Perusahaan', key: 'companies.name' },
+    { header: 'Nama Bank', key: 'no_rekening', transform: (val: string) => val?.split('|')[0] || '' },
+    { header: 'No Rekening', key: 'no_rekening', transform: (val: string) => val?.split('|')[1] || '' },
+    { header: 'Atasan', key: 'supervisor_id', transform: (_val: string, row: any) => employees.find(e => e.id === row.supervisor_id)?.name || '' },
+  ];
+
+  const handleExport = () => {
+    exportToExcel(employees, employeeExportColumns, 'Data_Karyawan');
+    toast({ title: 'Berhasil', description: 'Data karyawan berhasil diexport' });
+  };
+
+  const handleImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      const rows = await importFromExcel(file);
+      let successCount = 0;
+      for (const row of rows) {
+        const companyMatch = companies.find(c => c.name === row['Perusahaan']);
+        const bankName = row['Nama Bank'] || '';
+        const bankNo = row['No Rekening'] || '';
+        const noRek = bankName && bankNo ? `${bankName}|${bankNo}` : (bankName || bankNo || null);
+        
+        const { error } = await supabase.from('employees').insert({
+          employee_id: String(row['ID Karyawan'] || ''),
+          name: String(row['Nama'] || ''),
+          email: row['Email'] ? String(row['Email']) : null,
+          phone: row['Telepon'] ? String(row['Telepon']) : null,
+          position: row['Jabatan'] ? String(row['Jabatan']) : null,
+          department: row['Departemen'] ? String(row['Departemen']) : null,
+          grade: row['Grade'] ? String(row['Grade']) : null,
+          company_id: companyMatch?.id || null,
+          no_rekening: noRek,
+        });
+        if (!error) successCount++;
+      }
+      toast({ title: 'Import Selesai', description: `${successCount} dari ${rows.length} data berhasil diimport` });
+      window.location.reload();
+    } catch (err) {
+      toast({ title: 'Error', description: 'Gagal mengimport file', variant: 'destructive' });
+    }
+    e.target.value = '';
+  };
+
+  const handleDownloadTemplate = () => {
+    downloadTemplate(employeeExportColumns, 'Karyawan');
+  };
 
   const stats = [
     { title: 'Total Karyawan', value: employees.length.toString(), color: 'bg-blue-500' },
@@ -137,10 +199,23 @@ const Karyawan = () => {
               {/* <p className="text-gray-600 dark:text-gray-400">Kelola data karyawan perusahaan</p> */}
             </div>
             <div className="flex gap-3 mt-4 md:mt-0">
-              <Button variant="outline" className="flex items-center gap-2">
-                <Download className="w-4 h-4" />
-                Export
-              </Button>
+              {isAdminOrHrd && (
+                <>
+                  <input type="file" ref={fileInputRef} accept=".xlsx,.xls" className="hidden" onChange={handleImport} />
+                  <Button variant="outline" className="flex items-center gap-2" onClick={() => fileInputRef.current?.click()}>
+                    <Upload className="w-4 h-4" />
+                    Import Excel
+                  </Button>
+                  <Button variant="outline" className="flex items-center gap-2" onClick={handleDownloadTemplate}>
+                    <Download className="w-4 h-4" />
+                    Template
+                  </Button>
+                  <Button variant="outline" className="flex items-center gap-2" onClick={handleExport}>
+                    <Download className="w-4 h-4" />
+                    Export Excel
+                  </Button>
+                </>
+              )}
               <Button 
                 className="flex items-center gap-2 bg-green-600 hover:bg-green-700"
                 onClick={() => openForm('add')}

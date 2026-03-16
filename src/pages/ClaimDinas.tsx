@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { Search, Plus, Eye, Edit, Trash2, Download, Upload, Filter, TrendingDown, TrendingUp, Printer } from 'lucide-react';
 import ClaimDinasDetailModal from '@/components/ClaimDinasDetailModal';
 import ClaimDinasPrintModal from '@/components/ClaimDinasPrintModal';
@@ -12,6 +12,7 @@ import MainLayout from '@/components/MainLayout';
 import UserAvatarCell from '@/components/AvatarCell';
 import StatusWithApproval from '@/components/StatusWithApproval';
 import { useAuth } from '@/contexts/AuthContext';
+import { exportToExcel } from '@/lib/excelUtils';
 
 const ClaimDinas = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -22,11 +23,33 @@ const ClaimDinas = () => {
   const [selectedClaim, setSelectedClaim] = useState<any>(null);
 
   const { employee: userEmp, user: logUser  } = useAuth();
+  const isAdminOrHrd = logUser?.role === 'admin' || logUser?.role === 'hrd';
+
   let filterFields: any[] = [['status', 'Submitted', 'neq']];
-  if (logUser?.role !== 'admin') {
+  if (!isAdminOrHrd) {
     filterFields.push(['employee_id', userEmp.id]);
   }
   const { data: claims = [], isLoading } = useTripClaims(filterFields);
+
+  const formatCurrencyVal = (amount: number) => {
+    return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(amount).replace('IDR', 'Rp');
+  };
+
+  const claimExportColumns = [
+    { header: 'No Claim', key: 'claim_number' },
+    { header: 'Nama Karyawan', key: 'employees.name' },
+    { header: 'ID Karyawan', key: 'employees.employee_id' },
+    { header: 'Tujuan', key: 'business_trips.destination' },
+    { header: 'Alasan', key: 'business_trips.purpose' },
+    { header: 'Tanggal Claim', key: 'created_at', transform: (val: string) => val ? new Date(val).toLocaleDateString('id-ID') : '' },
+    { header: 'Total Amount', key: 'total_amount' },
+    { header: 'Status', key: 'status' },
+    { header: 'Current Step', key: 'current_approval_step' },
+  ];
+
+  const handleExport = () => {
+    exportToExcel(claims, claimExportColumns, 'Claim_Dinas');
+  };
 
   const handleViewDetail = (claim: any) => {
     setSelectedClaim(claim);
@@ -85,10 +108,12 @@ const ClaimDinas = () => {
               <p className="text-gray-600 dark:text-gray-400">Kelola pengajuan claim perjalanan dinas</p>
             </div>
             <div className="flex gap-3 mt-4 md:mt-0">
-              <Button variant="outline" className="flex items-center gap-2">
-                <Download className="w-4 h-4" />
-                Export
-              </Button>
+              {isAdminOrHrd && (
+                <Button variant="outline" className="flex items-center gap-2" onClick={handleExport}>
+                  <Download className="w-4 h-4" />
+                  Export Excel
+                </Button>
+              )}
             </div>
           </div>
 

@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { Search, Plus, Eye, Edit, Trash2, Download, Upload } from 'lucide-react';
 import Header from '@/components/Header';
 import Sidebar from '@/components/Sidebar';
@@ -13,6 +13,11 @@ import { useToast } from '@/hooks/use-toast';
 import Swal from 'sweetalert2';
 import UserAvatarCell from '@/components/AvatarCell';
 import MainLayout from '@/components/MainLayout';
+import { useAuth } from '@/contexts/AuthContext';
+import { exportToExcel, importFromExcel, downloadTemplate } from '@/lib/excelUtils';
+import { supabase } from '@/integrations/supabase/client';
+import { useCompanies } from '@/hooks/useCompanies';
+import { useEmployees } from '@/hooks/useEmployees';
 
 const LineApproval = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -24,10 +29,66 @@ const LineApproval = () => {
   });
 
   const { data: approvalData = [], isLoading } = useLineApprovals();
+  const { data: companies = [] } = useCompanies();
+  const { data: allEmployees = [] } = useEmployees();
   const createLineApproval = useCreateLineApproval();
   const updateLineApproval = useUpdateLineApproval();
   const deleteLineApproval = useDeleteLineApproval();
   const { toast } = useToast();
+  const { user: logUser } = useAuth();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const isAdminOrHrd = logUser?.role === 'admin' || logUser?.role === 'hrd';
+
+  const lineApprovalExportColumns = [
+    { header: 'Perusahaan', key: 'companies.name' },
+    { header: 'Staff GA', key: 'staff_ga.name' },
+    { header: 'Staff GA ID', key: 'staff_ga.employee_id' },
+    { header: 'SPV GA', key: 'spv_ga.name' },
+    { header: 'SPV GA ID', key: 'spv_ga.employee_id' },
+    { header: 'HR Manager', key: 'hr_manager.name' },
+    { header: 'HR Manager ID', key: 'hr_manager.employee_id' },
+    { header: 'BOD', key: 'bod.name' },
+    { header: 'BOD ID', key: 'bod.employee_id' },
+    { header: 'Staff FA', key: 'staff_fa.name' },
+    { header: 'Staff FA ID', key: 'staff_fa.employee_id' },
+  ];
+
+  const handleExport = () => {
+    exportToExcel(approvalData, lineApprovalExportColumns, 'Line_Approval');
+    toast({ title: 'Berhasil', description: 'Data line approval berhasil diexport' });
+  };
+
+  const handleImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      const rows = await importFromExcel(file);
+      let successCount = 0;
+      for (const row of rows) {
+        const companyMatch = companies.find(c => c.name === row['Perusahaan']);
+        const findEmpByEmpId = (empId: string) => allEmployees.find(e => e.employee_id === empId)?.id || null;
+
+        const { error } = await supabase.from('line_approvals').insert({
+          company_id: companyMatch?.id || null,
+          staff_ga_id: findEmpByEmpId(String(row['Staff GA ID'] || '')),
+          spv_ga_id: findEmpByEmpId(String(row['SPV GA ID'] || '')),
+          hr_manager_id: findEmpByEmpId(String(row['HR Manager ID'] || '')),
+          bod_id: findEmpByEmpId(String(row['BOD ID'] || '')),
+          staff_fa_id: findEmpByEmpId(String(row['Staff FA ID'] || '')),
+        });
+        if (!error) successCount++;
+      }
+      toast({ title: 'Import Selesai', description: `${successCount} dari ${rows.length} data berhasil diimport` });
+      window.location.reload();
+    } catch (err) {
+      toast({ title: 'Error', description: 'Gagal mengimport file', variant: 'destructive' });
+    }
+    e.target.value = '';
+  };
+
+  const handleDownloadTemplate = () => {
+    downloadTemplate(lineApprovalExportColumns, 'Line_Approval');
+  };
 
   const openForm = (mode: 'add' | 'edit' | 'view', data?: any) => {
     setFormState({
@@ -123,14 +184,23 @@ const LineApproval = () => {
               <p className="text-gray-600 dark:text-gray-400">Kelola alur persetujuan berdasarkan perusahaan</p>
             </div>
             <div className="flex gap-3 mt-4 md:mt-0">
-              <Button variant="outline" className="flex items-center gap-2">
-                <Upload className="w-4 h-4" />
-                Import Excel
-              </Button>
-              <Button variant="outline" className="flex items-center gap-2">
-                <Download className="w-4 h-4" />
-                Export Excel
-              </Button>
+              {isAdminOrHrd && (
+                <>
+                  <input type="file" ref={fileInputRef} accept=".xlsx,.xls" className="hidden" onChange={handleImport} />
+                  <Button variant="outline" className="flex items-center gap-2" onClick={() => fileInputRef.current?.click()}>
+                    <Upload className="w-4 h-4" />
+                    Import Excel
+                  </Button>
+                  <Button variant="outline" className="flex items-center gap-2" onClick={handleDownloadTemplate}>
+                    <Download className="w-4 h-4" />
+                    Template
+                  </Button>
+                  <Button variant="outline" className="flex items-center gap-2" onClick={handleExport}>
+                    <Download className="w-4 h-4" />
+                    Export Excel
+                  </Button>
+                </>
+              )}
               <Button 
                 className="flex items-center gap-2 bg-purple-600 hover:bg-purple-700"
                 onClick={() => openForm('add')}
