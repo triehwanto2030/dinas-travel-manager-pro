@@ -108,10 +108,12 @@ const ClaimDinas = () => {
               <p className="text-gray-600 dark:text-gray-400">Kelola pengajuan claim perjalanan dinas</p>
             </div>
             <div className="flex gap-3 mt-4 md:mt-0">
-              <Button variant="outline" className="flex items-center gap-2">
-                <Download className="w-4 h-4" />
-                Export
-              </Button>
+              {isAdminOrHrd && (
+                <Button variant="outline" className="flex items-center gap-2" onClick={handleExport}>
+                  <Download className="w-4 h-4" />
+                  Export Excel
+                </Button>
+              )}
             </div>
           </div>
 
