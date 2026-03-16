@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Search, Plus, Eye, Edit, Trash2, Download, ArrowUpDown } from 'lucide-react';
+import React, { useState, useRef } from 'react';
+import { Search, Plus, Eye, Edit, Trash2, Download, Upload, ArrowUpDown } from 'lucide-react';
 import KaryawanForm from '@/components/KaryawanForm';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -11,6 +11,9 @@ import { useToast } from '@/hooks/use-toast';
 import Swal from 'sweetalert2';
 import UserAvatarCell from '@/components/AvatarCell';
 import MainLayout from '@/components/MainLayout';
+import { useAuth } from '@/contexts/AuthContext';
+import { exportToExcel, importFromExcel, downloadTemplate } from '@/lib/excelUtils';
+import { supabase } from '@/integrations/supabase/client';
 
 const Karyawan = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
