@@ -32,6 +32,65 @@ const Karyawan = () => {
   const updateEmployee = useUpdateEmployee();
   const deleteEmployee = useDeleteEmployee();
   const { toast } = useToast();
+  const { user: logUser } = useAuth();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const isAdminOrHrd = logUser?.role === 'admin' || logUser?.role === 'hrd';
+
+  const employeeExportColumns = [
+    { header: 'ID Karyawan', key: 'employee_id' },
+    { header: 'Nama', key: 'name' },
+    { header: 'Email', key: 'email' },
+    { header: 'Telepon', key: 'phone' },
+    { header: 'Jabatan', key: 'position' },
+    { header: 'Departemen', key: 'department' },
+    { header: 'Grade', key: 'grade' },
+    { header: 'Perusahaan', key: 'companies.name' },
+    { header: 'Nama Bank', key: 'no_rekening', transform: (val: string) => val?.split('|')[0] || '' },
+    { header: 'No Rekening', key: 'no_rekening', transform: (val: string) => val?.split('|')[1] || '' },
+    { header: 'Atasan', key: 'supervisor_id', transform: (_val: string, row: any) => employees.find(e => e.id === row.supervisor_id)?.name || '' },
+  ];
+
+  const handleExport = () => {
+    exportToExcel(employees, employeeExportColumns, 'Data_Karyawan');
+    toast({ title: 'Berhasil', description: 'Data karyawan berhasil diexport' });
+  };
+
+  const handleImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      const rows = await importFromExcel(file);
+      let successCount = 0;
+      for (const row of rows) {
+        const companyMatch = companies.find(c => c.name === row['Perusahaan']);
+        const bankName = row['Nama Bank'] || '';
+        const bankNo = row['No Rekening'] || '';
+        const noRek = bankName && bankNo ? `${bankName}|${bankNo}` : (bankName || bankNo || null);
+        
+        const { error } = await supabase.from('employees').insert({
+          employee_id: String(row['ID Karyawan'] || ''),
+          name: String(row['Nama'] || ''),
+          email: row['Email'] ? String(row['Email']) : null,
+          phone: row['Telepon'] ? String(row['Telepon']) : null,
+          position: row['Jabatan'] ? String(row['Jabatan']) : null,
+          department: row['Departemen'] ? String(row['Departemen']) : null,
+          grade: row['Grade'] ? String(row['Grade']) : null,
+          company_id: companyMatch?.id || null,
+          no_rekening: noRek,
+        });
+        if (!error) successCount++;
+      }
+      toast({ title: 'Import Selesai', description: `${successCount} dari ${rows.length} data berhasil diimport` });
+      window.location.reload();
+    } catch (err) {
+      toast({ title: 'Error', description: 'Gagal mengimport file', variant: 'destructive' });
+    }
+    e.target.value = '';
+  };
+
+  const handleDownloadTemplate = () => {
+    downloadTemplate(employeeExportColumns, 'Karyawan');
+  };
 
   const stats = [
     { title: 'Total Karyawan', value: employees.length.toString(), color: 'bg-blue-500' },
