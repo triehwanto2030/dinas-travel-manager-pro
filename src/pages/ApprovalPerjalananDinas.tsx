@@ -91,13 +91,31 @@ const ApprovalPerjalananDinas = () => {
   const filteredTrips = businessTrips?.filter(trip => {
     if (!trip.employees) return false;
     
-    // Only show trips where user is the current approver, is submitter, or is admin
-    if (!isApproverForTrip(trip)) return false;
-
-    // Hide already approved/rejected items unless admin or submitter
+    // Only show trips where user is the current approver at the current step
+    // Hide approved/rejected items completely - approval page only shows pending items
     const isAdmin = user?.role === 'admin';
-    const isSubmitter = trip.employee_id === userEmp?.id;
-    if ((trip.status === 'Approved' || trip.status === 'Rejected') && !isAdmin && !isSubmitter) return false;
+    
+    if (!isAdmin) {
+      // Non-admin: only show items that need their approval action NOW
+      if (trip.status === 'Approved' || trip.status === 'Rejected') return false;
+      // Must be the approver for current step
+      const currentStep = trip.current_approval_step;
+      if (!currentStep) return false;
+      
+      if (currentStep === 'supervisor') {
+        if (trip.employees?.supervisor_id !== userEmp?.id) return false;
+      } else {
+        const costCenter = trip.cost_center || trip.employees?.company_id;
+        const companyLA = lineApprovals.find(la => la.company_id === costCenter);
+        if (!companyLA) return false;
+        const roleMap: Record<string, string> = {
+          staff_ga: 'staff_ga', spv_ga: 'spv_ga', hr_manager: 'hr_manager', bod: 'bod', staff_fa: 'staff_fa',
+        };
+        const roleKey = roleMap[currentStep] as keyof typeof companyLA;
+        const assignedEmp = roleKey ? companyLA[roleKey] as { id: string } | null : null;
+        if (assignedEmp?.id !== userEmp?.id) return false;
+      }
+    }
     
     const matchesSearch = trip.employees.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          trip.destination?.toLowerCase().includes(searchTerm.toLowerCase()) ||

@@ -167,11 +167,28 @@ const ApprovalClaimDinas = () => {
 
   // Filter claims - show based on approval role
   const filteredClaims = claims.filter(claim => {
-    if (!isApproverForClaim(claim)) return false;
-
     const isAdmin = user?.role === 'admin';
-    const isSubmitter = claim.employee_id === userEmp?.id;
-    if ((claim.status === 'Approved' || claim.status === 'Rejected') && !isAdmin && !isSubmitter) return false;
+    
+    if (!isAdmin) {
+      // Non-admin: only show items that need their approval action NOW
+      if (claim.status === 'Approved' || claim.status === 'Rejected') return false;
+      const currentStep = claim.current_approval_step;
+      if (!currentStep) return false;
+      
+      if (currentStep === 'supervisor') {
+        if (claim.employees?.supervisor_id !== userEmp?.id) return false;
+      } else {
+        const costCenter = claim.business_trips?.cost_center || claim.employees?.company_id;
+        const companyLA = lineApprovals.find(la => la.company_id === costCenter);
+        if (!companyLA) return false;
+        const roleMap: Record<string, string> = {
+          staff_ga: 'staff_ga', spv_ga: 'spv_ga', hr_manager: 'hr_manager', bod: 'bod', staff_fa: 'staff_fa',
+        };
+        const roleKey = roleMap[currentStep] as keyof typeof companyLA;
+        const assignedEmp = roleKey ? companyLA[roleKey] as { id: string } | null : null;
+        if (assignedEmp?.id !== userEmp?.id) return false;
+      }
+    }
 
     const matchesSearch = claim.employees.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          claim.business_trips.destination.toLowerCase().includes(searchTerm.toLowerCase());

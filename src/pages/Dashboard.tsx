@@ -1,86 +1,58 @@
 import React, { useState } from 'react';
-import { Plane, FileText, Users, TrendingUp } from 'lucide-react';
+import { Plane, FileText, Users, TrendingUp, ClipboardCheck } from 'lucide-react';
 import StatCard from '@/components/StatCard';
 import TripCard from '@/components/TripCard';
 import BudgetOverview from '@/components/BudgetOverview';
-import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import Swal from 'sweetalert2';
 import { useDashboardStats, useRecentTrips } from '@/hooks/useDashboardStats';
 import MainLayout from '@/components/MainLayout';
+import { useAuth } from '@/contexts/AuthContext';
 
 const Dashboard = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { data: dashboardStats, isLoading: statsLoading } = useDashboardStats();
   const { data: recentTrips, isLoading: tripsLoading } = useRecentTrips();
+  const { user } = useAuth();
+  const isAdmin = user?.role === 'admin';
 
   const stats = [
     {
-      title: 'Total Perjalanan Dinas',
+      title: isAdmin ? 'Total Perjalanan Dinas' : 'Perjalanan Dinas Saya',
       value: statsLoading ? '-' : String(dashboardStats?.totalTrips || 0),
-      change: 'Data real-time',
+      change: isAdmin ? 'Data real-time' : 'Total pengajuan Anda',
       changeType: 'increase' as const,
       icon: Plane,
       iconColor: 'bg-gradient-to-r from-blue-500 to-blue-600'
     },
     {
-      title: 'Claim Pending',
-      value: statsLoading ? '-' : String(dashboardStats?.pendingClaims || 0),
-      change: 'Menunggu persetujuan',
-      changeType: dashboardStats?.pendingClaims && dashboardStats.pendingClaims > 0 ? 'increase' as const : 'decrease' as const,
+      title: isAdmin ? 'Total Claim' : 'Total Claim Saya',
+      value: statsLoading ? '-' : String(dashboardStats?.totalClaims || 0),
+      change: isAdmin ? 'Semua claim' : 'Claim perjalanan Anda',
+      changeType: 'increase' as const,
       icon: FileText,
-      iconColor: 'bg-gradient-to-r from-orange-500 to-red-500'
+      iconColor: 'bg-gradient-to-r from-green-500 to-green-600'
     },
     {
-      title: 'Karyawan Aktif',
-      value: statsLoading ? '-' : String(dashboardStats?.activeEmployees || 0),
-      change: 'Total karyawan terdaftar',
-      changeType: 'increase' as const,
-      icon: Users,
-      iconColor: 'bg-gradient-to-r from-green-500 to-green-600'
+      title: 'Claim Pending',
+      value: statsLoading ? '-' : String(dashboardStats?.pendingClaims || 0),
+      change: isAdmin ? 'Menunggu persetujuan' : 'Claim Anda menunggu',
+      changeType: dashboardStats?.pendingClaims && dashboardStats.pendingClaims > 0 ? 'increase' as const : 'decrease' as const,
+      icon: ClipboardCheck,
+      iconColor: 'bg-gradient-to-r from-orange-500 to-red-500'
     },
     {
       title: 'Budget Terpakai',
       value: statsLoading ? '-' : `${dashboardStats?.budgetUsed || 0}%`,
-      change: 'Dari budget bulanan',
+      change: isAdmin ? 'Dari budget bulanan' : 'Budget perjalanan Anda',
       changeType: (dashboardStats?.budgetUsed || 0) > 80 ? 'increase' as const : 'decrease' as const,
       icon: TrendingUp,
       iconColor: 'bg-gradient-to-r from-purple-500 to-purple-600'
     }
   ];
 
-  const showWelcomeMessage = () => {
-    Swal.fire({
-      title: 'Selamat Datang di Travel Pro!',
-      text: 'Kelola perjalanan dinas perusahaan dengan mudah dan efisien',
-      icon: 'success',
-      confirmButtonText: 'Mulai Sekarang',
-      confirmButtonColor: '#3b82f6'
-    });
-  };
-
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors w-full">
       <MainLayout sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen}>
-        {/* Welcome Section */}
-        {/* <div className="bg-gradient-to-r from-blue-600 via-purple-600 to-pink-500 rounded-2xl p-8 mb-8 text-white w-full">
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center">
-            <div>
-              <h1 className="text-3xl font-bold mb-2">Selamat Datang di Travel Pro</h1>
-              <p className="text-blue-100 mb-4">Kelola perjalanan dinas perusahaan dengan mudah dan efisien</p>
-              <Button 
-                onClick={showWelcomeMessage}
-                className="bg-white text-blue-600 hover:bg-gray-100"
-              >
-                Mulai Sekarang
-              </Button>
-            </div>
-            <div className="hidden md:block">
-              <div className="text-6xl">✈️</div>
-            </div>
-          </div>
-        </div> */}
-
         {/* Stats Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8 w-full">
           {stats.map((stat, index) => (
@@ -94,7 +66,7 @@ const Dashboard = () => {
           <div className="lg:col-span-2">
             <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700">
               <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-6 flex items-center">
-                ✈️ Perjalanan Dinas Terbaru
+                ✈️ {isAdmin ? 'Perjalanan Dinas Terbaru' : 'Perjalanan Dinas Saya'}
               </h3>
               <div className="space-y-4">
                 {tripsLoading ? (
