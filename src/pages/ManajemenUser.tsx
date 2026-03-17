@@ -10,6 +10,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { useUsers } from '@/hooks/useUsers';
+import { useRoles } from '@/hooks/useRoles';
 import { useCreateUser, useDeleteUser, useToggleUserActive, useUpdateUser } from '@/hooks/useUserManagement';
 import UserFormModal from '@/components/UserFormModal';
 

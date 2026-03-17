@@ -32,5 +32,6 @@ export function usePageAccess() {
     return hasAccess(page.key);
   };
 
-  return { pageAccess, hasAccess, hasPathAccess, isLoaded: roles.length > 0 };
+  const isLoaded = roles.length > 0 || user?.role === 'admin';
+  return { pageAccess, hasAccess, hasPathAccess, isLoaded };
 }
