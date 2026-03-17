@@ -25,9 +25,9 @@ const ClaimDinas = () => {
   const { employee: userEmp, user: logUser  } = useAuth();
   const isAdminOrHrd = logUser?.role === 'admin' || logUser?.role === 'hrd';
 
-  let filterFields: any[] = [['status', 'Submitted', 'neq']];
+  let filterFields: any[] = [];
   if (!isAdminOrHrd) {
-    filterFields.push(['employee_id', userEmp.id]);
+    filterFields.push(['employee_id', userEmp?.id]);
   }
   const { data: claims = [], isLoading } = useTripClaims(filterFields);
 
