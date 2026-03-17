@@ -208,8 +208,8 @@ const ClaimDinas = () => {
                     <SelectItem value="all">Semua</SelectItem>
                     <SelectItem value="submitted">Submitted</SelectItem>
                     <SelectItem value="approved">Approved</SelectItem>
+                    <SelectItem value="dibayarkan">Dibayarkan</SelectItem>
                     <SelectItem value="rejected">Rejected</SelectItem>
-                    <SelectItem value="paid">Paid</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
