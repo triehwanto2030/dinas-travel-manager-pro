@@ -166,12 +166,15 @@ const ApprovalClaimDinas = () => {
   };
 
   // Filter claims - show based on approval role
+  // Only show claims still in process (not Approved, Rejected, or Dibayarkan)
   const filteredClaims = claims.filter(claim => {
     const isAdmin = user?.role === 'admin';
     
+    // For ALL users (including admin): only show claims still in process
+    if (claim.status === 'Approved' || claim.status === 'Rejected' || claim.status === 'Dibayarkan') return false;
+    
     if (!isAdmin) {
       // Non-admin: only show items that need their approval action NOW
-      if (claim.status === 'Approved' || claim.status === 'Rejected') return false;
       const currentStep = claim.current_approval_step;
       if (!currentStep) return false;
       
