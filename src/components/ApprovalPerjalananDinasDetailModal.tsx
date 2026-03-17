@@ -271,8 +271,10 @@ const ApprovalPerjalananDinasDetailModal: React.FC<ApprovalPerjalananDinasDetail
         [fields.approvedBy]: userEmp?.id,
       });
 
-      const statusToUpdate = step == "staff_ga" && (!trip.cash_advance || trip.cash_advance <= 0) ? 'Approved' :
-        step !== "staff_fa" ? 'Submitted' : 'Approved';
+      const statusToUpdate = step === "staff_fa" ? 'Dibayarkan' :
+        step === "bod" ? 'Approved' :
+        (step === "staff_ga" && (!trip.cash_advance || trip.cash_advance <= 0)) ? 'Approved' :
+        'Submitted';
 
       await updateBusinessTrip.mutateAsync({
         id: trip.id,

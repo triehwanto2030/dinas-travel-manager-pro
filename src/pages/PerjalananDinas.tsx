@@ -28,9 +28,10 @@ const PerjalananDinas = () => {
   const [selectedData, setSelectedData] = useState<any>(null);
 
   const { employee: userEmp, user: logUser } = useAuth();
-  let filterFields: any[] = [['status', 'Submitted', 'neq']];
-  if (logUser?.role !== 'admin') {
-    filterFields.push(['employee_id', userEmp.id]);
+  const isAdminOrHrd = logUser?.role === 'admin' || logUser?.role === 'hrd';
+  let filterFields: any[] = [];
+  if (!isAdminOrHrd) {
+    filterFields.push(['employee_id', userEmp?.id]);
   }
   const { data: businessTrips, isLoading, error } = useBusinessTrips(filterFields);
   const deleteBusinessTrip = useDeleteBusinessTrip();

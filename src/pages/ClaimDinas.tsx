@@ -25,9 +25,9 @@ const ClaimDinas = () => {
   const { employee: userEmp, user: logUser  } = useAuth();
   const isAdminOrHrd = logUser?.role === 'admin' || logUser?.role === 'hrd';
 
-  let filterFields: any[] = [['status', 'Submitted', 'neq']];
+  let filterFields: any[] = [];
   if (!isAdminOrHrd) {
-    filterFields.push(['employee_id', userEmp.id]);
+    filterFields.push(['employee_id', userEmp?.id]);
   }
   const { data: claims = [], isLoading } = useTripClaims(filterFields);
 
@@ -208,8 +208,8 @@ const ClaimDinas = () => {
                     <SelectItem value="all">Semua</SelectItem>
                     <SelectItem value="submitted">Submitted</SelectItem>
                     <SelectItem value="approved">Approved</SelectItem>
+                    <SelectItem value="dibayarkan">Dibayarkan</SelectItem>
                     <SelectItem value="rejected">Rejected</SelectItem>
-                    <SelectItem value="paid">Paid</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -325,7 +325,7 @@ const ClaimDinas = () => {
                             <Button variant="ghost" size="sm" className="p-2 h-8 w-8 text-red-600 hover:text-red-800">
                               <Trash2 className="w-4 h-4" />
                             </Button>
-                            {(claim.status === 'Approved' || claim.hr_manager_approved_at) && (
+                            {(claim.status === 'Approved' || claim.status === 'Dibayarkan' || claim.bod_approved_at) && (
                               <Button 
                                 variant="ghost" 
                                 size="sm" 

@@ -10,6 +10,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { useUsers } from '@/hooks/useUsers';
+import { useRoles } from '@/hooks/useRoles';
 import { useCreateUser, useDeleteUser, useToggleUserActive, useUpdateUser } from '@/hooks/useUserManagement';
 import UserFormModal from '@/components/UserFormModal';
 
@@ -38,15 +39,13 @@ const ManajemenUser = () => {
     return (<Badge className={isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}>{isActive ? 'Aktif' : 'Tidak Aktif'}</Badge>);
   };
 
+  const { data: roles = [] } = useRoles();
+
   const getRoleBadge = (role: string) => {
-    const config: Record<string, { cls: string; label: string }> = {
-      admin: { cls: 'bg-purple-100 text-purple-800', label: 'Admin' },
-      manager: { cls: 'bg-blue-100 text-blue-800', label: 'Manager' },
-      user: { cls: 'bg-gray-100 text-gray-800', label: 'User' }
-    };
-    
-    const c = config[role.toLowerCase()] || config.user;
-    return <Badge className={c.cls}>{c.label}</Badge>;
+    const colors = ['bg-purple-100 text-purple-800', 'bg-blue-100 text-blue-800', 'bg-green-100 text-green-800', 'bg-orange-100 text-orange-800', 'bg-pink-100 text-pink-800'];
+    const roleObj = roles.find(r => r.name.toLowerCase() === role.toLowerCase());
+    const idx = roleObj ? roles.indexOf(roleObj) % colors.length : 0;
+    return <Badge className={colors[idx]}>{roleObj?.name || role}</Badge>;
   };
 
   const handleAdd = () => { setFormMode('add'); setSelectedUser(null); setFormOpen(true); };

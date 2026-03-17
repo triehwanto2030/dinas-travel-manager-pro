@@ -396,7 +396,8 @@ const ApprovalClaimDinasDetailModal: React.FC<ApprovalClaimDinasDetailModalProps
       const fields = approvalFieldMap[step];
       if (!fields) return;
 
-      const statusToUpdate = step !== "staff_fa" ? 'Submitted' : 'Approved';
+      const statusToUpdate = step === "staff_fa" ? 'Dibayarkan' :
+        step === "bod" ? 'Approved' : 'Submitted';
       await updateTripClaim.mutateAsync({
         id: claim.id,
         status: statusToUpdate,
