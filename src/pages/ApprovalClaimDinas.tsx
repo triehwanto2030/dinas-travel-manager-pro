@@ -311,6 +311,7 @@ const ApprovalClaimDinas = () => {
                 <SelectContent>
                   <SelectItem value="all">Semua</SelectItem>
                   <SelectItem value="submitted">Submitted</SelectItem>
+                  <SelectItem value="approved">Approved</SelectItem>
                 </SelectContent>
               </Select>
             </div>
