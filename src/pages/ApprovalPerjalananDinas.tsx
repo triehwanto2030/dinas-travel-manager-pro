@@ -87,18 +87,32 @@ const ApprovalPerjalananDinas = () => {
     return assignedEmp?.id === userEmp.id;
   };
 
+  // Helper: check if current user is Staff FA for a trip
+  const isStaffFAForTrip = (trip: any) => {
+    if (!userEmp) return false;
+    const costCenter = trip.cost_center || trip.employees?.company_id;
+    const companyLA = lineApprovals.find(la => la.company_id === costCenter);
+    if (!companyLA) return false;
+    const staffFa = companyLA.staff_fa as { id: string } | null;
+    return staffFa?.id === userEmp.id;
+  };
+
   // Filter business trips based on search term, status, department, and approval role
   const filteredTrips = businessTrips?.filter(trip => {
     if (!trip.employees) return false;
     
-    // Only show trips where user is the current approver at the current step
-    // Hide approved/rejected items completely - approval page only shows pending items
     const isAdmin = user?.role === 'admin';
     
-    if (!isAdmin) {
+    // Always hide rejected and paid
+    if (trip.status === 'Rejected' || trip.status === 'Dibayarkan') return false;
+    
+    // Show "Approved" trips only for Staff FA and Admin to process payment
+    if (trip.status === 'Approved') {
+      if (!isAdmin && !isStaffFAForTrip(trip)) return false;
+    }
+    
+    if (!isAdmin && trip.status !== 'Approved') {
       // Non-admin: only show items that need their approval action NOW
-      if (trip.status === 'Approved' || trip.status === 'Rejected') return false;
-      // Must be the approver for current step
       const currentStep = trip.current_approval_step;
       if (!currentStep) return false;
       
