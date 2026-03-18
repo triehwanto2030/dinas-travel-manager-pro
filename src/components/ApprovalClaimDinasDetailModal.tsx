@@ -669,14 +669,16 @@ const ApprovalClaimDinasDetailModal: React.FC<ApprovalClaimDinasDetailModalProps
                           </Button>
                         </>
                       ) : (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => {setIsEditing(true); setEditExpenses(true);}}
-                        >
-                          <Edit2 className="w-4 h-4 mr-1" />
-                          Edit
-                        </Button>
+                        userEmp && companyLineApproval?.staff_ga && (companyLineApproval.staff_ga as any).id === userEmp.id && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {setIsEditing(true); setEditExpenses(true);}}
+                          >
+                            <Edit2 className="w-4 h-4 mr-1" />
+                            Edit
+                          </Button>
+                        )
                       )}
                     </div>
                   </div>
