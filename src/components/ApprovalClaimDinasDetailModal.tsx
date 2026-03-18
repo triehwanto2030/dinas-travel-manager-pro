@@ -669,14 +669,16 @@ const ApprovalClaimDinasDetailModal: React.FC<ApprovalClaimDinasDetailModalProps
                           </Button>
                         </>
                       ) : (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => {setIsEditing(true); setEditExpenses(true);}}
-                        >
-                          <Edit2 className="w-4 h-4 mr-1" />
-                          Edit
-                        </Button>
+                        userEmp && companyLineApproval?.staff_ga && (companyLineApproval.staff_ga as any).id === userEmp.id && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {setIsEditing(true); setEditExpenses(true);}}
+                          >
+                            <Edit2 className="w-4 h-4 mr-1" />
+                            Edit
+                          </Button>
+                        )
                       )}
                     </div>
                   </div>
@@ -830,13 +832,13 @@ const ApprovalClaimDinasDetailModal: React.FC<ApprovalClaimDinasDetailModalProps
           {/* Footer with Approve/Reject buttons */}
           <div className="p-6 border-t flex justify-between">
             <Button variant="outline" onClick={onClose} disabled={editExpenses}>Tutup</Button>
-            {claim.status === 'Submitted' && approvable && (
+            {(claim.status === 'Submitted' || claim.status === 'Approved') && approvable && (
               <div className="flex gap-2">
                 <Button variant="destructive" onClick={() => setIsRejectDialogOpen(true)} disabled={updateTripClaim.isPending || editExpenses}>
                   Tolak
                 </Button>
                 <Button onClick={handleApproveClick} disabled={updateTripClaim.isPending || editExpenses} className="bg-green-600 hover:bg-green-700">
-                  {updateTripClaim.isPending ? 'Menyetujui...' : 'Setuju'}
+                  {updateTripClaim.isPending ? 'Memproses...' : (claim.current_approval_step === 'staff_fa' ? 'Bayar' : 'Setuju')}
                 </Button>
               </div>
             )}
