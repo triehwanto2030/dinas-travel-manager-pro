@@ -238,52 +238,6 @@ const ApprovalClaimDinas = () => {
           </div>
         </div>
 
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center">
-                <div className="p-2 bg-yellow-100 rounded-lg">
-                  <Receipt className="w-6 h-6 text-yellow-600" />
-                </div>
-                <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Menunggu Approval</p>
-                  <p className="text-2xl font-bold text-gray-900 dark:text-white">{pendingClaims}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center">
-                <div className="p-2 bg-green-100 rounded-lg">
-                  <Check className="w-6 h-6 text-green-600" />
-                </div>
-                <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Disetujui Hari Ini</p>
-                  <p className="text-2xl font-bold text-gray-900 dark:text-white">{approvedToday}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center">
-                <div className="p-2 bg-blue-100 rounded-lg">
-                  <DollarSign className="w-6 h-6 text-blue-600" />
-                </div>
-                <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Total Claim Bulan Ini</p>
-                  <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                    {formatCurrency(totalAmountThisMonth).replace('IDR', 'Rp')}
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
 
         {/* Table Section */}
         <Card className="bg-white dark:bg-gray-800">
