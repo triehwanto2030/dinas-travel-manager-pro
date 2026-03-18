@@ -99,6 +99,11 @@ const StatusWithApproval: React.FC<StatusWithApprovalProps> = ({ status, approva
           Rejected on {formatDate(approvalData.rejected_at)}
         </p>
       )}
+      {status === 'Dibayarkan' && approvalData.staff_fa_approved_at && (
+        <p className="text-xs text-muted-foreground">
+          Paid by Finance on {formatDate(approvalData.staff_fa_approved_at)}
+        </p>
+      )}
       {noExpense && (
         <p className="text-xs text-muted-foreground">
           No expenses submitted, auto-approved
