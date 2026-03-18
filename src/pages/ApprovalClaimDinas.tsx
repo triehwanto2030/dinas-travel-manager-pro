@@ -165,13 +165,28 @@ const ApprovalClaimDinas = () => {
     return assignedEmp?.id === userEmp.id;
   };
 
+  // Helper: check if current user is Staff FA for a claim
+  const isStaffFAForClaim = (claim: any) => {
+    if (!userEmp) return false;
+    const costCenter = claim.business_trips?.cost_center || claim.employees?.company_id;
+    const companyLA = lineApprovals.find(la => la.company_id === costCenter);
+    if (!companyLA) return false;
+    const staffFa = companyLA.staff_fa as { id: string } | null;
+    return staffFa?.id === userEmp.id;
+  };
+
   // Filter claims - show based on approval role
-  // Only show claims still in process (not Approved, Rejected, or Dibayarkan)
   const filteredClaims = claims.filter(claim => {
     const isAdmin = user?.role === 'admin';
     
-    // For ALL users (including admin): only show claims still in process
-    if (claim.status === 'Approved' || claim.status === 'Rejected' || claim.status === 'Dibayarkan') return false;
+    // Always hide rejected and paid claims
+    if (claim.status === 'Rejected' || claim.status === 'Dibayarkan') return false;
+    
+    // Show "Approved" claims (after BOD) only for Staff FA and Admin to process payment
+    if (claim.status === 'Approved') {
+      if (!isAdmin && !isStaffFAForClaim(claim)) return false;
+      // For approved claims, they should have current_approval_step = 'staff_fa'
+    }
     
     if (!isAdmin) {
       // Non-admin: only show items that need their approval action NOW
@@ -296,6 +311,7 @@ const ApprovalClaimDinas = () => {
                 <SelectContent>
                   <SelectItem value="all">Semua</SelectItem>
                   <SelectItem value="submitted">Submitted</SelectItem>
+                  <SelectItem value="approved">Approved</SelectItem>
                 </SelectContent>
               </Select>
             </div>
