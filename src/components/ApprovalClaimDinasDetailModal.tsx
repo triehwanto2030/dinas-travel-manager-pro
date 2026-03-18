@@ -830,13 +830,13 @@ const ApprovalClaimDinasDetailModal: React.FC<ApprovalClaimDinasDetailModalProps
           {/* Footer with Approve/Reject buttons */}
           <div className="p-6 border-t flex justify-between">
             <Button variant="outline" onClick={onClose} disabled={editExpenses}>Tutup</Button>
-            {claim.status === 'Submitted' && approvable && (
+            {(claim.status === 'Submitted' || claim.status === 'Approved') && approvable && (
               <div className="flex gap-2">
                 <Button variant="destructive" onClick={() => setIsRejectDialogOpen(true)} disabled={updateTripClaim.isPending || editExpenses}>
                   Tolak
                 </Button>
                 <Button onClick={handleApproveClick} disabled={updateTripClaim.isPending || editExpenses} className="bg-green-600 hover:bg-green-700">
-                  {updateTripClaim.isPending ? 'Menyetujui...' : 'Setuju'}
+                  {updateTripClaim.isPending ? 'Memproses...' : (claim.current_approval_step === 'staff_fa' ? 'Bayar' : 'Setuju')}
                 </Button>
               </div>
             )}
