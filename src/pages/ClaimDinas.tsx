@@ -265,7 +265,7 @@ const ClaimDinas = () => {
                             <Button variant="ghost" size="sm" className="p-2 h-8 w-8 text-red-600 hover:text-red-800">
                               <Trash2 className="w-4 h-4" />
                             </Button>
-                            {(claim.status === 'Approved' || claim.status === 'Dibayarkan' || claim.bod_approved_at) && (
+                            {(claim.hr_manager_approved_at || claim.status === 'Approved' || claim.status === 'Dibayarkan') && (
                               <Button 
                                 variant="ghost" 
                                 size="sm" 

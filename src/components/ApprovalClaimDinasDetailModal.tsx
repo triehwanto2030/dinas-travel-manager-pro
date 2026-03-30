@@ -461,12 +461,39 @@ const ApprovalClaimDinasDetailModal: React.FC<ApprovalClaimDinasDetailModalProps
       return;
     }
     try {
-      await updateTripClaim.mutateAsync({
-        id: claim.id, status: 'Rejected',
-        rejected_at: new Date().toISOString(),
-        rejected_by: userEmp?.id,
-        rejection_reason: rejectReason
-      });
+      const currentStep = claim.current_approval_step as string;
+      // Determine where rejection should route back to
+      const isRejectedBySupervisorOrStaffGA = currentStep === 'supervisor' || currentStep === 'staff_ga';
+      
+      if (isRejectedBySupervisorOrStaffGA) {
+        // Rejected by Supervisor or Staff GA → status Rejected, user must re-submit
+        await updateTripClaim.mutateAsync({
+          id: claim.id, 
+          status: 'Rejected',
+          rejected_at: new Date().toISOString(),
+          rejected_by: userEmp?.id,
+          rejection_reason: rejectReason
+        });
+      } else {
+        // Rejected by SPV GA, HR Manager, or BOD → return to Staff GA
+        await updateTripClaim.mutateAsync({
+          id: claim.id, 
+          status: 'Submitted',
+          current_approval_step: 'staff_ga',
+          rejected_at: new Date().toISOString(),
+          rejected_by: userEmp?.id,
+          rejection_reason: rejectReason,
+          // Clear approvals from spv_ga onwards
+          spv_ga_approved_at: null,
+          spv_ga_approved_by: null,
+          hr_manager_approved_at: null,
+          hr_manager_approved_by: null,
+          bod_approved_at: null,
+          bod_approved_by: null,
+          staff_fa_approved_at: null,
+          staff_fa_approved_by: null,
+        });
+      }
 
       // Notify submitter of rejection
       if (claim.employees?.id) {

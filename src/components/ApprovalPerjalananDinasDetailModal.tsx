@@ -351,13 +351,35 @@ const ApprovalPerjalananDinasDetailModal: React.FC<ApprovalPerjalananDinasDetail
       return;
     }
     try {
-      await updateBusinessTrip.mutateAsync({
-        id: trip.id,
-        status: 'Rejected',
-        rejected_at: new Date().toISOString(),
-        rejected_by: userEmp?.id,
-        rejection_reason: rejectReason
-      } as any);
+      const currentStep = trip.current_approval_step as string;
+      const isRejectedBySupervisorOrStaffGA = currentStep === 'supervisor' || currentStep === 'staff_ga';
+      
+      if (isRejectedBySupervisorOrStaffGA) {
+        await updateBusinessTrip.mutateAsync({
+          id: trip.id,
+          status: 'Rejected',
+          rejected_at: new Date().toISOString(),
+          rejected_by: userEmp?.id,
+          rejection_reason: rejectReason
+        } as any);
+      } else {
+        await updateBusinessTrip.mutateAsync({
+          id: trip.id,
+          status: 'Submitted',
+          current_approval_step: 'staff_ga',
+          rejected_at: new Date().toISOString(),
+          rejected_by: userEmp?.id,
+          rejection_reason: rejectReason,
+          spv_ga_approved_at: null,
+          spv_ga_approved_by: null,
+          hr_manager_approved_at: null,
+          hr_manager_approved_by: null,
+          bod_approved_at: null,
+          bod_approved_by: null,
+          staff_fa_approved_at: null,
+          staff_fa_approved_by: null,
+        } as any);
+      }
 
       // Notify submitter of rejection
       if (trip.employees?.id) {
