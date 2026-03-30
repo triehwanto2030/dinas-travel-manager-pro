@@ -14,7 +14,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, sidebarOpen, setSideb
     <div className="h-screen flex flex-col bg-gray-50 dark:bg-gray-900 transition-colors">
       {/* Header */}
       <div className="fixed top-0 left-0 right-0 z-50 bg-gray-50 dark:bg-gray-900 shadow-md">
-        <Header />
+        <Header onToggleSidebar={() => setSidebarOpen(!sidebarOpen)} />
       </div>
 
       <div className="flex flex-1 pt-[64px]">
@@ -24,8 +24,8 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, sidebarOpen, setSideb
         </div>
 
         {/* Main Content */}
-        <div className="flex-1 flex flex-col">
-          <main className="flex-1 overflow-y-auto p-6">{children}</main>
+        <div className="flex-1 flex flex-col min-w-0">
+          <main className="flex-1 overflow-y-auto p-4 md:p-6">{children}</main>
 
           {/* Footer */}
           <div className="sticky bottom-0 z-50 bg-gray-50 dark:bg-gray-900">

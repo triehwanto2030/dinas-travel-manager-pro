@@ -1,6 +1,6 @@
 
 import React, { useState, useRef, useEffect } from 'react';
-import { Search, Sun, Moon, LogOut, User } from 'lucide-react';
+import { Search, Sun, Moon, LogOut, Menu } from 'lucide-react';
 import NotificationBell from '@/components/NotificationBell';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -8,7 +8,11 @@ import { useTheme } from '@/hooks/useTheme';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 
-const Header = () => {
+interface HeaderProps {
+  onToggleSidebar?: () => void;
+}
+
+const Header: React.FC<HeaderProps> = ({ onToggleSidebar }) => {
   const { theme, toggleTheme } = useTheme();
   const { user, employee, logout } = useAuth();
   const navigate = useNavigate();
@@ -34,13 +38,23 @@ const Header = () => {
   const initials = displayName.split(' ').map((n: string) => n[0]).join('').substring(0, 2).toUpperCase();
 
   return (
-    <header className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 py-4">
+    <header className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-4 md:px-6 py-3 md:py-4">
       <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-4">
-          <h1 className="text-xl font-bold text-gray-900 dark:text-white">Dashboard</h1>
+        <div className="flex items-center space-x-3">
+          {onToggleSidebar && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onToggleSidebar}
+              className="lg:hidden p-2"
+            >
+              <Menu className="w-5 h-5" />
+            </Button>
+          )}
+          <h1 className="text-lg md:text-xl font-bold text-gray-900 dark:text-white">Dashboard</h1>
         </div>
 
-        <div className="flex-1 max-w-md mx-8">
+        <div className="hidden md:block flex-1 max-w-md mx-8">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
             <Input
@@ -50,7 +64,7 @@ const Header = () => {
           </div>
         </div>
 
-        <div className="flex items-center space-x-4">
+        <div className="flex items-center space-x-2 md:space-x-4">
           <Button
             variant="ghost"
             size="sm"
@@ -79,7 +93,7 @@ const Header = () => {
                   <span className="text-white text-xs font-semibold">{initials}</span>
                 )}
               </div>
-              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">{displayName}</span>
+              <span className="hidden md:inline text-sm font-medium text-gray-700 dark:text-gray-300">{displayName}</span>
             </button>
 
             {showProfileMenu && (
