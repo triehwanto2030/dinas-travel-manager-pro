@@ -39,6 +39,21 @@ const PerjalananDinas = () => {
   const deleteBusinessTrip = useDeleteBusinessTrip();
   const { toast } = useToast();
 
+  // Open detail modal when navigated with ?detail=<id>
+  useEffect(() => {
+    const detailId = searchParams.get('detail');
+    if (detailId && businessTrips) {
+      const trip = businessTrips.find(t => t.id === detailId);
+      if (trip) {
+        setSelectedData(trip);
+        setFormMode('view');
+        setFormOpen(true);
+        // Clear the query param
+        setSearchParams({}, { replace: true });
+      }
+    }
+  }, [searchParams, businessTrips]);
+
   console.log('Business trips data in PerjalananDinas:', businessTrips);
   console.log('Loading state:', isLoading);
   console.log('Error state:', error);
