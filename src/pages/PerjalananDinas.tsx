@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Search, Plus, Eye, Edit, Trash2, Download, Upload, Receipt } from 'lucide-react';
 import Header from '@/components/Header';
 import Sidebar from '@/components/Sidebar';
@@ -16,6 +16,7 @@ import MainLayout from '@/components/MainLayout';
 import UserAvatarCell from '@/components/AvatarCell';
 import StatusWithApproval from '@/components/StatusWithApproval';
 import { useAuth } from '@/contexts/AuthContext';
+import { useSearchParams } from 'react-router-dom';
 
 const PerjalananDinas = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -26,6 +27,7 @@ const PerjalananDinas = () => {
   const [claimFormOpen, setClaimFormOpen] = useState(false);
   const [formMode, setFormMode] = useState<'create' | 'edit' | 'view'>('create');
   const [selectedData, setSelectedData] = useState<any>(null);
+  const [searchParams, setSearchParams] = useSearchParams();
 
   const { employee: userEmp, user: logUser } = useAuth();
   const isAdminOrHrd = logUser?.role === 'admin' || logUser?.role === 'hrd';
@@ -36,6 +38,21 @@ const PerjalananDinas = () => {
   const { data: businessTrips, isLoading, error } = useBusinessTrips(filterFields);
   const deleteBusinessTrip = useDeleteBusinessTrip();
   const { toast } = useToast();
+
+  // Open detail modal when navigated with ?detail=<id>
+  useEffect(() => {
+    const detailId = searchParams.get('detail');
+    if (detailId && businessTrips) {
+      const trip = businessTrips.find(t => t.id === detailId);
+      if (trip) {
+        setSelectedData(trip);
+        setFormMode('view');
+        setFormOpen(true);
+        // Clear the query param
+        setSearchParams({}, { replace: true });
+      }
+    }
+  }, [searchParams, businessTrips]);
 
   console.log('Business trips data in PerjalananDinas:', businessTrips);
   console.log('Loading state:', isLoading);
@@ -415,15 +432,6 @@ const PerjalananDinas = () => {
         </Card>
       </MainLayout>
 
-      {/* Mobile menu button */}
-      <button
-        onClick={() => setSidebarOpen(!sidebarOpen)}
-        className="lg:hidden fixed bottom-4 right-4 bg-blue-600 text-white p-3 rounded-full shadow-lg z-40"
-      >
-        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-        </svg>
-      </button>
 
       {/* Form Modal */}
       <PerjalananDinasForm
