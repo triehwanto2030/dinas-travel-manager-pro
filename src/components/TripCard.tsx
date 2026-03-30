@@ -2,9 +2,10 @@
 import React from 'react';
 import { MapPin, Calendar } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import Swal from 'sweetalert2';
+import { useNavigate } from 'react-router-dom';
 
 interface TripCardProps {
+  id?: string;
   name: string;
   destination: string;
   date: string;
@@ -12,7 +13,9 @@ interface TripCardProps {
   status: 'approved' | 'pending' | 'submitted' | 'rejected' | 'completed';
 }
 
-const TripCard: React.FC<TripCardProps> = ({ name, destination, date, amount, status }) => {
+const TripCard: React.FC<TripCardProps> = ({ id, name, destination, date, amount, status }) => {
+  const navigate = useNavigate();
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'approved':
@@ -48,41 +51,31 @@ const TripCard: React.FC<TripCardProps> = ({ name, destination, date, amount, st
   };
 
   const handleViewDetails = () => {
-    Swal.fire({
-      title: 'Detail Perjalanan Dinas',
-      html: `
-        <div class="text-left">
-          <p><strong>Nama:</strong> ${name}</p>
-          <p><strong>Tujuan:</strong> ${destination}</p>
-          <p><strong>Tanggal:</strong> ${date}</p>
-          <p><strong>Jumlah:</strong> ${amount}</p>
-          <p><strong>Status:</strong> ${getStatusText(status)}</p>
-        </div>
-      `,
-      icon: 'info',
-      confirmButtonText: 'Tutup',
-      confirmButtonColor: '#3b82f6'
-    });
+    if (id) {
+      navigate(`/perjalanan-dinas?detail=${id}`);
+    } else {
+      navigate('/perjalanan-dinas');
+    }
   };
 
   return (
     <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700 hover:shadow-md transition-shadow">
       <div className="flex items-start justify-between">
         <div className="flex items-start space-x-3">
-          <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+          <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center flex-shrink-0">
             <MapPin className="w-5 h-5 text-white" />
           </div>
-          <div>
-            <h3 className="font-semibold text-gray-900 dark:text-white">{name}</h3>
-            <p className="text-sm text-gray-600 dark:text-gray-400">{destination}</p>
+          <div className="min-w-0">
+            <h3 className="font-semibold text-gray-900 dark:text-white truncate">{name}</h3>
+            <p className="text-sm text-gray-600 dark:text-gray-400 truncate">{destination}</p>
             <div className="flex items-center mt-1 text-xs text-gray-500 dark:text-gray-400">
               <Calendar className="w-3 h-3 mr-1" />
               {date}
             </div>
           </div>
         </div>
-        <div className="text-right">
-          <p className="font-semibold text-gray-900 dark:text-white">{amount}</p>
+        <div className="text-right flex-shrink-0 ml-2">
+          <p className="font-semibold text-gray-900 dark:text-white text-sm">{amount}</p>
           <span className={`inline-block px-2 py-1 rounded-full text-xs font-medium mt-1 ${getStatusColor(status)}`}>
             {getStatusText(status)}
           </span>
