@@ -27,6 +27,7 @@ const PerjalananDinas = () => {
   const [claimFormOpen, setClaimFormOpen] = useState(false);
   const [formMode, setFormMode] = useState<'create' | 'edit' | 'view'>('create');
   const [selectedData, setSelectedData] = useState<any>(null);
+  const [searchParams, setSearchParams] = useSearchParams();
 
   const { employee: userEmp, user: logUser } = useAuth();
   const isAdminOrHrd = logUser?.role === 'admin' || logUser?.role === 'hrd';
