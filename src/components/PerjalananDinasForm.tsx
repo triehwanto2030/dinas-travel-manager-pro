@@ -480,7 +480,7 @@ const PerjalananDinasForm = ({ isOpen, onClose, mode, data }: PerjalananDinasFor
                               mode="single"
                               selected={field.value}
                               onSelect={field.onChange}
-                              disabled={(date) => date < new Date()}
+                              disabled={() => false}
                               initialFocus
                               className="p-3 pointer-events-auto"
                             />
