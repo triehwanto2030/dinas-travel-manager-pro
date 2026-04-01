@@ -197,12 +197,7 @@ const ManajemenKaryawan = () => {
   const filteredDepartments = departments.filter((d) => d.name.toLowerCase().includes(deptSearch.toLowerCase()));
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors w-full">
-      <Header />
-      <div className="flex w-full">
-        <Sidebar isOpen={sidebarOpen} onToggle={() => setSidebarOpen(!sidebarOpen)} />
-        <div className="flex-1 w-full">
-          <main className="p-6 w-full">
+    <MainLayout sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen}>
             <div className="mb-8">
               <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Manajemen Karyawan</h1>
               <p className="text-gray-600 dark:text-gray-400">Kelola data master Perusahaan, Grade, dan Departemen</p>
