@@ -409,8 +409,6 @@ const PerjalananDinas = () => {
             </Table>
           </CardContent>
         </Card>
-      </MainLayout>
-
 
       {/* Form Modal */}
       <PerjalananDinasForm
@@ -426,4 +424,8 @@ const PerjalananDinas = () => {
         onClose={() => setClaimFormOpen(false)}
         tripData={selectedData}
       />
-      </MainLayout>
+    </MainLayout>
+  );
+};
+
+export default PerjalananDinas;
