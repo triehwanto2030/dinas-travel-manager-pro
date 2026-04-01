@@ -426,8 +426,4 @@ const PerjalananDinas = () => {
         onClose={() => setClaimFormOpen(false)}
         tripData={selectedData}
       />
-    </div>
-  );
-};
-
-export default PerjalananDinas;
+      </MainLayout>
