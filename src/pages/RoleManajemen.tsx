@@ -223,11 +223,6 @@ const RoleManajemen = () => {
                 )}
               </CardContent>
             </Card>
-          </main>
-          <Footer />
-        </div>
-      </div>
-
 
       <RoleForm
         open={formOpen}
@@ -236,7 +231,7 @@ const RoleManajemen = () => {
         initialData={editingRole}
         isLoading={createRole.isPending || updateRole.isPending}
       />
-    </div>
+    </MainLayout>
   );
 };
 

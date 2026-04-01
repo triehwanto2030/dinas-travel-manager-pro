@@ -233,14 +233,9 @@ const ManajemenUser = () => {
                 </Table>
               </CardContent>
             </Card>
-          </main>
-          
-          <Footer />
-        </div>
-      </div>
 
       <UserFormModal isOpen={formOpen} onClose={() => setFormOpen(false)} onSubmit={handleFormSubmit} initialData={selectedUser} mode={formMode} />
-    </div>
+    </MainLayout>
   );
 };
 

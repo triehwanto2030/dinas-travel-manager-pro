@@ -309,12 +309,7 @@ const PengaturanAplikasi = () => {
                 </CardContent>
               </Card>
             </div>
-          </main>
-          
-          <Footer />
-        </div>
-      </div>
-    </div>
+    </MainLayout>
   );
 };
 
