@@ -344,7 +344,6 @@ const ApprovalPerjalananDinas = () => {
             )}
           </CardContent>
         </Card>
-      </MainLayout>
 
       {/* Detail Modal */}
       <ApprovalPerjalananDinasDetailModal
@@ -352,7 +351,7 @@ const ApprovalPerjalananDinas = () => {
         onClose={handleCloseModal}
         trip={selectedTrip}
       />
-    </div>
+    </MainLayout>
   );
 };
 
