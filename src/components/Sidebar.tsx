@@ -1,10 +1,9 @@
-
-import React from 'react';
-import { Home, Plane, Users, Building, ChevronDown, ChevronRight, FileText, UserCheck, Settings, CheckSquare, Receipt } from 'lucide-react';
+import React, { useState } from 'react';
+import { Home, Plane, Users, Building, ChevronDown, ChevronRight, FileText, UserCheck, Settings, CheckSquare, Receipt, X, Briefcase } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { useState } from 'react';
 import { usePageAccess } from '@/hooks/usePageAccess';
+import pjmLogo from '@/assets/pjm-logo.png';
 
 interface SidebarProps {
   isOpen: boolean;
@@ -15,17 +14,18 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle }) => {
   const location = useLocation();
   const [isDinasOpen, setIsDinasOpen] = useState(true);
   const [isMasterDataOpen, setIsMasterDataOpen] = useState(true);
+  const [isPengaturanOpen, setIsPengaturanOpen] = useState(false);
   const { hasAccess } = usePageAccess();
 
   const menuItems = [
-    {icon: Home, label: 'Dashboard', path: '/', pageKey: 'dashboard' }
+    { icon: Home, label: 'Dashboard', path: '/', pageKey: 'dashboard' }
   ].filter(item => hasAccess(item.pageKey));
 
   const dinasSubmenu = [
     { icon: Plane, label: 'Perjalanan Dinas', path: '/perjalanan-dinas', pageKey: 'perjalanan-dinas' },
-    { icon: CheckSquare, label: 'Approval Perjalanan Dinas', path: '/approval-perjalanan-dinas', pageKey: 'approval-perjalanan-dinas' },
+    { icon: CheckSquare, label: 'Approval Perjalanan', path: '/approval-perjalanan-dinas', pageKey: 'approval-perjalanan-dinas' },
     { icon: Receipt, label: 'Claim Dinas', path: '/claim-dinas', pageKey: 'claim-dinas' },
-    { icon: UserCheck, label: 'Approval Claim Dinas', path: '/approval-claim-dinas', pageKey: 'approval-claim-dinas'}
+    { icon: UserCheck, label: 'Approval Claim', path: '/approval-claim-dinas', pageKey: 'approval-claim-dinas' }
   ].filter(item => hasAccess(item.pageKey));
 
   const masterDataSubmenu = [
@@ -39,23 +39,58 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle }) => {
   const pengaturanSubmenu = [
     { icon: Settings, label: 'Pengaturan Aplikasi', path: '/pengaturan-aplikasi', pageKey: 'pengaturan-aplikasi' }
   ].filter(item => hasAccess(item.pageKey));
-  
+
+  const isPathActive = (path: string) => location.pathname === path;
+  const isGroupActive = (items: { path: string }[]) => items.some(item => location.pathname === item.path);
+
   const renderLink = (item: { icon: any; label: string; path: string }, isSubmenu = false) => {
-    const isActive = location.pathname === item.path;
+    const isActive = isPathActive(item.path);
     return (
       <Link
         key={item.path}
         to={item.path}
-        className={`flex items-center ${isSubmenu ? 'px-4 py-2 text-sm' : 'px-4 py-3 text-sm font-medium'} rounded-lg transition-colors ${
+        className={`group flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ${
           isActive
-            ? 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-200'
-            : `${isSubmenu ? 'text-gray-600 dark:text-gray-300' : 'text-gray-700 dark:text-gray-200'} hover:bg-gray-100 dark:hover:bg-gray-700`
+            ? 'bg-[hsl(var(--sidebar-primary))] text-[hsl(var(--sidebar-primary-foreground))] shadow-lg shadow-[hsl(var(--sidebar-primary))/20]'
+            : 'text-[hsl(var(--sidebar-foreground))] hover:bg-[hsl(var(--sidebar-accent))] hover:text-[hsl(var(--sidebar-accent-foreground))]'
         }`}
         onClick={() => window.innerWidth < 1024 && onToggle()}
       >
-        <item.icon className={`${isSubmenu ? 'w-4 h-4' : 'w-5 h-5'} mr-3`} />
-        {item.label}
+        <item.icon className={`w-4 h-4 flex-shrink-0 ${isActive ? '' : 'opacity-70 group-hover:opacity-100'}`} />
+        <span className="truncate">{item.label}</span>
+        {isActive && <span className="ml-auto w-1.5 h-1.5 rounded-full bg-current opacity-80" />}
       </Link>
+    );
+  };
+
+  const renderCollapsibleGroup = (
+    label: string,
+    icon: any,
+    items: any[],
+    isOpen: boolean,
+    setIsOpen: (v: boolean) => void
+  ) => {
+    if (items.length === 0) return null;
+    const Icon = icon;
+    const groupActive = isGroupActive(items);
+
+    return (
+      <Collapsible open={isOpen} onOpenChange={setIsOpen}>
+        <CollapsibleTrigger className={`flex items-center justify-between w-full px-3 py-2.5 text-sm font-semibold rounded-lg transition-all duration-200 ${
+          groupActive
+            ? 'text-[hsl(var(--sidebar-primary))]'
+            : 'text-[hsl(var(--sidebar-foreground))] hover:bg-[hsl(var(--sidebar-accent))]'
+        }`}>
+          <div className="flex items-center gap-3">
+            <Icon className="w-4 h-4 opacity-70" />
+            <span>{label}</span>
+          </div>
+          <ChevronDown className={`w-4 h-4 opacity-50 transition-transform duration-200 ${isOpen ? '' : '-rotate-90'}`} />
+        </CollapsibleTrigger>
+        <CollapsibleContent className="mt-1 ml-4 pl-3 border-l-2 border-[hsl(var(--sidebar-border))] space-y-1">
+          {items.map(item => renderLink(item, true))}
+        </CollapsibleContent>
+      </Collapsible>
     );
   };
 
@@ -63,82 +98,86 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle }) => {
     <>
       {/* Backdrop */}
       {isOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-20 lg:hidden" onClick={onToggle} />
+        <div
+          className="fixed inset-0 bg-foreground/40 backdrop-blur-sm z-40 lg:hidden transition-opacity duration-300"
+          onClick={onToggle}
+        />
       )}
-      
+
       {/* Sidebar */}
-      <div className={`
-        fixed lg:relative inset-y-0 left-0 z-30 w-64 bg-white dark:bg-gray-800 
-        transform transition-transform duration-300 ease-in-out border-r border-gray-200 dark:border-gray-700
+      <aside className={`
+        fixed lg:relative inset-y-0 left-0 z-50 w-[270px] flex flex-col
+        bg-[hsl(var(--sidebar-background))] border-r border-[hsl(var(--sidebar-border))]
+        transform transition-transform duration-300 ease-out
         ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
       `}>
-        <div className="flex flex-col h-full">
-
-          {/* Navigation */}
-          <nav className="flex-1 px-4 py-6 overflow-y-auto">
-            <ul className="space-y-2">
-              {/* Dashboard */}
-              {menuItems.map((item) => (
-                <li key={item.path}>{renderLink(item)}</li>
-              ))}
-
-              {/* Dinas */}
-              {dinasSubmenu.length > 0 && (
-                <li>
-                  <Collapsible open={isDinasOpen} onOpenChange={setIsDinasOpen}>
-                    <CollapsibleTrigger className="flex items-center justify-between w-full px-4 py-3 text-sm font-medium text-gray-700 rounded-lg hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700 transition-colors">
-                      <div className="flex items-center">
-                        <Plane className="w-5 h-5 mr-3" />
-                        Dinas
-                      </div>
-                      {isDinasOpen ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
-                    </CollapsibleTrigger>
-                    <CollapsibleContent className="ml-8 mt-2 space-y-2">
-                      {dinasSubmenu.map(item => renderLink(item, true))}
-                    </CollapsibleContent>
-                  </Collapsible>
-                </li>
-              )}
-
-              {/* Master Data */}
-              {masterDataSubmenu.length > 0 && (
-                <li>
-                  <Collapsible open={isMasterDataOpen} onOpenChange={setIsMasterDataOpen}>
-                    <CollapsibleTrigger className="flex items-center justify-between w-full px-4 py-3 text-sm font-medium text-gray-700 rounded-lg hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700 transition-colors">
-                      <div className="flex items-center">
-                        <Building className="w-5 h-5 mr-3" />
-                        Master Data
-                      </div>
-                      {isMasterDataOpen ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
-                    </CollapsibleTrigger>
-                    <CollapsibleContent className="ml-8 mt-2 space-y-2">
-                      {masterDataSubmenu.map(item => renderLink(item, true))}
-                    </CollapsibleContent>
-                  </Collapsible>
-                </li>
-              )}
-
-              {/* Pengaturan */}
-              {pengaturanSubmenu.length > 0 && (
-                <li>
-                  <Collapsible>
-                    <CollapsibleTrigger className="flex items-center justify-between w-full px-4 py-3 text-sm font-medium text-gray-700 rounded-lg hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700 transition-colors">
-                      <div className="flex items-center">
-                        <Settings className="w-5 h-5 mr-3" />
-                        Pengaturan
-                      </div>
-                      <ChevronRight className="w-4 h-4" />
-                    </CollapsibleTrigger>
-                    <CollapsibleContent className="ml-8 mt-2 space-y-2">
-                      {pengaturanSubmenu.map(item => renderLink(item, true))}
-                    </CollapsibleContent>
-                  </Collapsible>
-                </li>
-              )}
-            </ul>
-          </nav>
+        {/* Logo / Brand */}
+        <div className="flex items-center justify-between px-5 py-5 border-b border-[hsl(var(--sidebar-border))]">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-[hsl(var(--sidebar-primary))] flex items-center justify-center shadow-lg">
+              <Briefcase className="w-5 h-5 text-white" />
+            </div>
+            <div>
+              <h1 className="text-sm font-bold text-[hsl(var(--sidebar-primary-foreground))]">Travel Pro</h1>
+              <p className="text-[10px] text-[hsl(var(--sidebar-foreground))] opacity-60">Perjalanan Dinas</p>
+            </div>
+          </div>
+          <button
+            onClick={onToggle}
+            className="lg:hidden p-1.5 rounded-lg hover:bg-[hsl(var(--sidebar-accent))] text-[hsl(var(--sidebar-foreground))] transition-colors"
+          >
+            <X className="w-4 h-4" />
+          </button>
         </div>
-      </div>
+
+        {/* Navigation */}
+        <nav className="flex-1 px-3 py-4 overflow-y-auto space-y-6">
+          {/* Main */}
+          <div className="space-y-1">
+            <p className="px-3 mb-2 text-[10px] font-bold uppercase tracking-wider text-[hsl(var(--sidebar-foreground))] opacity-40">
+              Menu Utama
+            </p>
+            {menuItems.map(item => renderLink(item))}
+          </div>
+
+          {/* Dinas */}
+          {dinasSubmenu.length > 0 && (
+            <div className="space-y-1">
+              <p className="px-3 mb-2 text-[10px] font-bold uppercase tracking-wider text-[hsl(var(--sidebar-foreground))] opacity-40">
+                Dinas
+              </p>
+              {renderCollapsibleGroup('Perjalanan & Claim', Plane, dinasSubmenu, isDinasOpen, setIsDinasOpen)}
+            </div>
+          )}
+
+          {/* Master Data */}
+          {masterDataSubmenu.length > 0 && (
+            <div className="space-y-1">
+              <p className="px-3 mb-2 text-[10px] font-bold uppercase tracking-wider text-[hsl(var(--sidebar-foreground))] opacity-40">
+                Master Data
+              </p>
+              {renderCollapsibleGroup('Data & Pengguna', Building, masterDataSubmenu, isMasterDataOpen, setIsMasterDataOpen)}
+            </div>
+          )}
+
+          {/* Pengaturan */}
+          {pengaturanSubmenu.length > 0 && (
+            <div className="space-y-1">
+              <p className="px-3 mb-2 text-[10px] font-bold uppercase tracking-wider text-[hsl(var(--sidebar-foreground))] opacity-40">
+                Sistem
+              </p>
+              {renderCollapsibleGroup('Pengaturan', Settings, pengaturanSubmenu, isPengaturanOpen, setIsPengaturanOpen)}
+            </div>
+          )}
+        </nav>
+
+        {/* Footer */}
+        <div className="px-4 py-3 border-t border-[hsl(var(--sidebar-border))]">
+          <p className="text-[10px] text-[hsl(var(--sidebar-foreground))] opacity-40 text-center">
+            © 2024 Travel Pro v2.0
+          </p>
+        </div>
+      </aside>
     </>
   );
 };

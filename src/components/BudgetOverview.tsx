@@ -1,28 +1,33 @@
-
 import React from 'react';
 import { Progress } from '@/components/ui/progress';
 
 const BudgetOverview = () => {
   const budgetItems = [
-    { label: 'Budget Transportasi', percentage: 75, color: 'bg-blue-500' },
-    { label: 'Budget Akomodasi', percentage: 60, color: 'bg-green-500' },
-    { label: 'Budget Konsumsi', percentage: 45, color: 'bg-yellow-500' },
-    { label: 'Budget Lain-lain', percentage: 30, color: 'bg-purple-500' }
+    { label: 'Transportasi', percentage: 75, color: 'from-primary to-primary/70' },
+    { label: 'Akomodasi', percentage: 60, color: 'from-[hsl(142,71%,45%)] to-[hsl(142,71%,35%)]' },
+    { label: 'Konsumsi', percentage: 45, color: 'from-[hsl(38,92%,50%)] to-[hsl(38,80%,40%)]' },
+    { label: 'Lain-lain', percentage: 30, color: 'from-[hsl(280,70%,50%)] to-[hsl(280,60%,40%)]' }
   ];
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700">
-      <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
-        📊 Overview Budget
+    <div className="glass rounded-2xl p-6">
+      <h3 className="text-base font-bold text-foreground mb-5 flex items-center gap-2">
+        <span className="w-2 h-2 rounded-full bg-primary" />
+        Overview Budget
       </h3>
-      <div className="space-y-4">
+      <div className="space-y-5">
         {budgetItems.map((item, index) => (
           <div key={index}>
             <div className="flex justify-between items-center mb-2">
-              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">{item.label}</span>
-              <span className="text-sm font-semibold text-gray-900 dark:text-white">{item.percentage}%</span>
+              <span className="text-sm font-medium text-foreground">{item.label}</span>
+              <span className="text-sm font-bold text-foreground">{item.percentage}%</span>
             </div>
-            <Progress value={item.percentage} className="h-2" />
+            <div className="h-2 bg-muted rounded-full overflow-hidden">
+              <div
+                className={`h-full rounded-full bg-gradient-to-r ${item.color} transition-all duration-500`}
+                style={{ width: `${item.percentage}%` }}
+              />
+            </div>
           </div>
         ))}
       </div>

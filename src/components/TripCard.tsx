@@ -1,6 +1,5 @@
-
 import React from 'react';
-import { MapPin, Calendar } from 'lucide-react';
+import { MapPin, Calendar, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 
@@ -16,81 +15,55 @@ interface TripCardProps {
 const TripCard: React.FC<TripCardProps> = ({ id, name, destination, date, amount, status }) => {
   const navigate = useNavigate();
 
-  const getStatusColor = (status: string) => {
+  const getStatusConfig = (status: string) => {
     switch (status) {
-      case 'approved':
-        return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300';
-      case 'completed':
-        return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300';
-      case 'pending':
-        return 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-300';
-      case 'submitted':
-        return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300';
-      case 'rejected':
-        return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300';
-      default:
-        return 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300';
+      case 'approved': return { label: 'Disetujui', classes: 'bg-[hsl(142,71%,45%)]/10 text-[hsl(142,71%,45%)] border-[hsl(142,71%,45%)]/20' };
+      case 'completed': return { label: 'Selesai', classes: 'bg-primary/10 text-primary border-primary/20' };
+      case 'pending': return { label: 'Pending', classes: 'bg-[hsl(38,92%,50%)]/10 text-[hsl(38,92%,50%)] border-[hsl(38,92%,50%)]/20' };
+      case 'submitted': return { label: 'Diajukan', classes: 'bg-accent text-accent-foreground border-accent' };
+      case 'rejected': return { label: 'Ditolak', classes: 'bg-destructive/10 text-destructive border-destructive/20' };
+      default: return { label: 'Unknown', classes: 'bg-muted text-muted-foreground border-border' };
     }
   };
 
-  const getStatusText = (status: string) => {
-    switch (status) {
-      case 'approved':
-        return 'Disetujui';
-      case 'completed':
-        return 'Selesai';
-      case 'pending':
-        return 'Pending';
-      case 'submitted':
-        return 'Diajukan';
-      case 'rejected':
-        return 'Ditolak';
-      default:
-        return 'Unknown';
-    }
-  };
+  const statusConfig = getStatusConfig(status);
 
   const handleViewDetails = () => {
-    if (id) {
-      navigate(`/perjalanan-dinas?detail=${id}`);
-    } else {
-      navigate('/perjalanan-dinas');
-    }
+    navigate(id ? `/perjalanan-dinas?detail=${id}` : '/perjalanan-dinas');
   };
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700 hover:shadow-md transition-shadow">
-      <div className="flex items-start justify-between">
-        <div className="flex items-start space-x-3">
-          <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center flex-shrink-0">
-            <MapPin className="w-5 h-5 text-white" />
+    <div className="glass rounded-xl p-4 hover:shadow-md transition-all duration-300 group">
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex items-start gap-3 min-w-0">
+          <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0 group-hover:bg-primary/20 transition-colors">
+            <MapPin className="w-5 h-5 text-primary" />
           </div>
           <div className="min-w-0">
-            <h3 className="font-semibold text-gray-900 dark:text-white truncate">{name}</h3>
-            <p className="text-sm text-gray-600 dark:text-gray-400 truncate">{destination}</p>
-            <div className="flex items-center mt-1 text-xs text-gray-500 dark:text-gray-400">
+            <h3 className="font-semibold text-foreground text-sm truncate">{name}</h3>
+            <p className="text-xs text-muted-foreground truncate mt-0.5">{destination}</p>
+            <div className="flex items-center mt-1.5 text-xs text-muted-foreground">
               <Calendar className="w-3 h-3 mr-1" />
               {date}
             </div>
           </div>
         </div>
-        <div className="text-right flex-shrink-0 ml-2">
-          <p className="font-semibold text-gray-900 dark:text-white text-sm">{amount}</p>
-          <span className={`inline-block px-2 py-1 rounded-full text-xs font-medium mt-1 ${getStatusColor(status)}`}>
-            {getStatusText(status)}
+        <div className="text-right flex-shrink-0">
+          <p className="font-bold text-foreground text-sm">{amount}</p>
+          <span className={`inline-block px-2 py-0.5 rounded-full text-[10px] font-semibold mt-1.5 border ${statusConfig.classes}`}>
+            {statusConfig.label}
           </span>
         </div>
       </div>
-      <div className="mt-4">
-        <Button 
-          size="sm" 
-          variant="outline" 
-          onClick={handleViewDetails}
-          className="w-full"
-        >
-          Lihat Detail
-        </Button>
-      </div>
+      <Button
+        size="sm"
+        variant="ghost"
+        onClick={handleViewDetails}
+        className="w-full mt-3 h-8 text-xs font-medium text-primary hover:bg-primary/5 rounded-lg group/btn"
+      >
+        Lihat Detail
+        <ArrowRight className="w-3 h-3 ml-1 group-hover/btn:translate-x-0.5 transition-transform" />
+      </Button>
     </div>
   );
 };
