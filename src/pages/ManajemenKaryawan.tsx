@@ -434,7 +434,7 @@ const ManajemenKaryawan = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
+    </MainLayout>
   );
 };
 
