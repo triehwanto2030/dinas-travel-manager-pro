@@ -375,7 +375,6 @@ const ApprovalClaimDinas = () => {
             )}
           </CardContent>
         </Card>
-      </MainLayout>
 
       {/* Reject Dialog */}
       <Dialog open={isRejectDialogOpen} onOpenChange={setIsRejectDialogOpen}>

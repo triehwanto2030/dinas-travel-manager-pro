@@ -398,7 +398,6 @@ const Karyawan = () => {
             </Table>
           </CardContent>
         </Card>
-      </MainLayout>
 
       {/* Form Modal */}
       <KaryawanForm

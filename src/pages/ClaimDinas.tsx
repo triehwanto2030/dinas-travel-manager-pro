@@ -285,7 +285,6 @@ const ClaimDinas = () => {
             )}
           </CardContent>
         </Card>
-      </MainLayout>
 
       {/* Detail Modal */}
       <ClaimDinasDetailModal

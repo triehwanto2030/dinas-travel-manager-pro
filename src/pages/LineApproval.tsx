@@ -341,7 +341,6 @@ const LineApproval = () => {
             </Table>
           </CardContent>
         </Card>
-      </MainLayout>
 
       {/* Form Modal */}
       <LineApprovalForm
