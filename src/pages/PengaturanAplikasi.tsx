@@ -1,9 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Save, Database, Mail, Bell, Shield, Globe, Palette } from 'lucide-react';
-import Header from '@/components/Header';
-import Sidebar from '@/components/Sidebar';
-import Footer from '@/components/Footer';
+import MainLayout from '@/components/MainLayout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
