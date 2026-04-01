@@ -1,9 +1,6 @@
 
 import React, { useState } from 'react';
 import { Search, Eye, Check, X, Calendar } from 'lucide-react';
-import Header from '@/components/Header';
-import Sidebar from '@/components/Sidebar';
-import Footer from '@/components/Footer';
 import ApprovalPerjalananDinasDetailModal from '@/components/ApprovalPerjalananDinasDetailModal';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -159,26 +156,16 @@ const ApprovalPerjalananDinas = () => {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors w-full">
-        <Header />
-        <div className="flex w-full">
-          <Sidebar isOpen={sidebarOpen} onToggle={() => setSidebarOpen(!sidebarOpen)} />
-          <div className="flex-1 w-full">
-            <main className="p-6 w-full">
-              <div className="text-center py-8">
-                <p className="text-red-600">Error loading data: {error.message}</p>
-              </div>
-            </main>
-            <Footer />
-          </div>
+      <MainLayout sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen}>
+        <div className="text-center py-8">
+          <p className="text-destructive">Error loading data: {error.message}</p>
         </div>
-      </div>
+      </MainLayout>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors w-full">
-      <MainLayout sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen}>
+    <MainLayout sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen}>
         <div className="mb-8">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
             <div>
@@ -354,7 +341,6 @@ const ApprovalPerjalananDinas = () => {
             )}
           </CardContent>
         </Card>
-      </MainLayout>
 
       {/* Detail Modal */}
       <ApprovalPerjalananDinasDetailModal
@@ -362,7 +348,7 @@ const ApprovalPerjalananDinas = () => {
         onClose={handleCloseModal}
         trip={selectedTrip}
       />
-    </div>
+    </MainLayout>
   );
 };
 

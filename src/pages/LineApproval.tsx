@@ -1,9 +1,6 @@
 
 import React, { useState, useRef } from 'react';
 import { Search, Plus, Eye, Edit, Trash2, Download, Upload } from 'lucide-react';
-import Header from '@/components/Header';
-import Sidebar from '@/components/Sidebar';
-import Footer from '@/components/Footer';
 import LineApprovalForm from '@/components/LineApprovalForm';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -175,8 +172,7 @@ const LineApproval = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors w-full">
-      <MainLayout sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen}>
+    <MainLayout sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen}>
         <div className="mb-8">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
             <div>
@@ -342,7 +338,6 @@ const LineApproval = () => {
             </Table>
           </CardContent>
         </Card>
-      </MainLayout>
 
       {/* Form Modal */}
       <LineApprovalForm
@@ -352,7 +347,7 @@ const LineApproval = () => {
         initialData={formState.selectedData}
         mode={formState.mode}
       />
-    </div>
+    </MainLayout>
   );
 };
 

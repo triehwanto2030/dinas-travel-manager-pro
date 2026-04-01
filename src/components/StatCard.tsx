@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { LucideIcon } from 'lucide-react';
 
@@ -13,18 +12,18 @@ interface StatCardProps {
 
 const StatCard: React.FC<StatCardProps> = ({ title, value, change, changeType, icon: Icon, iconColor }) => {
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700 hover:shadow-md transition-shadow">
-      <div className="flex items-center justify-between">
-        <div>
-          <p className="text-sm font-medium text-gray-600 dark:text-gray-400">{title}</p>
-          <p className="text-2xl font-bold text-gray-900 dark:text-white mt-2">{value}</p>
-          <p className={`text-sm mt-2 ${
-            changeType === 'increase' ? 'text-green-600' : 'text-red-600'
+    <div className="glass rounded-2xl p-5 hover:shadow-lg transition-all duration-300 group">
+      <div className="flex items-start justify-between">
+        <div className="space-y-2">
+          <p className="text-sm font-medium text-muted-foreground">{title}</p>
+          <p className="text-3xl font-bold text-foreground tracking-tight">{value}</p>
+          <p className={`text-xs font-medium ${
+            changeType === 'increase' ? 'text-[hsl(142,71%,45%)]' : 'text-destructive'
           }`}>
             {change}
           </p>
         </div>
-        <div className={`w-12 h-12 rounded-full flex items-center justify-center ${iconColor}`}>
+        <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${iconColor} shadow-lg group-hover:scale-110 transition-transform duration-300`}>
           <Icon className="w-6 h-6 text-white" />
         </div>
       </div>

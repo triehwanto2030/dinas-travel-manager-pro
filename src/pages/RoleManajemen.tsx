@@ -1,8 +1,6 @@
 import React, { useState } from 'react';
 import { Search, Plus, Edit, Trash2, Shield, Users, Settings2 } from 'lucide-react';
-import Header from '@/components/Header';
-import Sidebar from '@/components/Sidebar';
-import Footer from '@/components/Footer';
+import MainLayout from '@/components/MainLayout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -88,12 +86,7 @@ const RoleManajemen = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors w-full">
-      <Header />
-      <div className="flex w-full">
-        <Sidebar isOpen={sidebarOpen} onToggle={() => setSidebarOpen(!sidebarOpen)} />
-        <div className="flex-1 w-full">
-          <main className="p-6 w-full">
+    <MainLayout sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen}>
             <div className="mb-8">
               <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
                 <div>
@@ -228,11 +221,6 @@ const RoleManajemen = () => {
                 )}
               </CardContent>
             </Card>
-          </main>
-          <Footer />
-        </div>
-      </div>
-
 
       <RoleForm
         open={formOpen}
@@ -241,7 +229,7 @@ const RoleManajemen = () => {
         initialData={editingRole}
         isLoading={createRole.isPending || updateRole.isPending}
       />
-    </div>
+    </MainLayout>
   );
 };
 

@@ -1,9 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Save, Database, Mail, Bell, Shield, Globe, Palette } from 'lucide-react';
-import Header from '@/components/Header';
-import Sidebar from '@/components/Sidebar';
-import Footer from '@/components/Footer';
+import MainLayout from '@/components/MainLayout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -109,14 +107,7 @@ const PengaturanAplikasi = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors w-full">
-      <Header />
-      
-      <div className="flex w-full">
-        <Sidebar isOpen={sidebarOpen} onToggle={() => setSidebarOpen(!sidebarOpen)} />
-        
-        <div className="flex-1 w-full">
-          <main className="p-6 w-full">
+    <MainLayout sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen}>
             {/* Header Section */}
             <div className="mb-8">
               <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
@@ -316,12 +307,7 @@ const PengaturanAplikasi = () => {
                 </CardContent>
               </Card>
             </div>
-          </main>
-          
-          <Footer />
-        </div>
-      </div>
-    </div>
+    </MainLayout>
   );
 };
 

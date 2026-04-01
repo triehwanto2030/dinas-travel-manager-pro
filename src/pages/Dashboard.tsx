@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Plane, FileText, Users, TrendingUp, ClipboardCheck } from 'lucide-react';
+import { Plane, FileText, TrendingUp, ClipboardCheck } from 'lucide-react';
 import StatCard from '@/components/StatCard';
 import TripCard from '@/components/TripCard';
 import BudgetOverview from '@/components/BudgetOverview';
@@ -22,7 +22,7 @@ const Dashboard = () => {
       change: isAdmin ? 'Data real-time' : 'Total pengajuan Anda',
       changeType: 'increase' as const,
       icon: Plane,
-      iconColor: 'bg-gradient-to-r from-blue-500 to-blue-600'
+      iconColor: 'bg-gradient-to-br from-primary to-primary/70'
     },
     {
       title: isAdmin ? 'Total Claim' : 'Total Claim Saya',
@@ -30,7 +30,7 @@ const Dashboard = () => {
       change: isAdmin ? 'Semua claim' : 'Claim perjalanan Anda',
       changeType: 'increase' as const,
       icon: FileText,
-      iconColor: 'bg-gradient-to-r from-green-500 to-green-600'
+      iconColor: 'bg-gradient-to-br from-[hsl(142,71%,45%)] to-[hsl(142,60%,35%)]'
     },
     {
       title: 'Claim Pending',
@@ -38,7 +38,7 @@ const Dashboard = () => {
       change: isAdmin ? 'Menunggu persetujuan' : 'Claim Anda menunggu',
       changeType: dashboardStats?.pendingClaims && dashboardStats.pendingClaims > 0 ? 'increase' as const : 'decrease' as const,
       icon: ClipboardCheck,
-      iconColor: 'bg-gradient-to-r from-orange-500 to-red-500'
+      iconColor: 'bg-gradient-to-br from-[hsl(38,92%,50%)] to-[hsl(25,80%,45%)]'
     },
     {
       title: 'Budget Terpakai',
@@ -46,55 +46,46 @@ const Dashboard = () => {
       change: isAdmin ? 'Dari budget bulanan' : 'Budget perjalanan Anda',
       changeType: (dashboardStats?.budgetUsed || 0) > 80 ? 'increase' as const : 'decrease' as const,
       icon: TrendingUp,
-      iconColor: 'bg-gradient-to-r from-purple-500 to-purple-600'
+      iconColor: 'bg-gradient-to-br from-[hsl(280,70%,50%)] to-[hsl(260,60%,40%)]'
     }
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors w-full">
-      <MainLayout sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen}>
-        {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8 w-full">
-          {stats.map((stat, index) => (
-            <StatCard key={index} {...stat} />
-          ))}
-        </div>
+    <MainLayout sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen}>
+      {/* Stats Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-8">
+        {stats.map((stat, index) => (
+          <StatCard key={index} {...stat} />
+        ))}
+      </div>
 
-        {/* Content Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 w-full">
-          {/* Recent Trips */}
-          <div className="lg:col-span-2">
-            <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-6 flex items-center">
-                ✈️ {isAdmin ? 'Perjalanan Dinas Terbaru' : 'Perjalanan Dinas Saya'}
-              </h3>
-              <div className="space-y-4">
-                {tripsLoading ? (
-                  <>
-                    <Skeleton className="h-24 w-full" />
-                    <Skeleton className="h-24 w-full" />
-                    <Skeleton className="h-24 w-full" />
-                  </>
-                ) : recentTrips && recentTrips.length > 0 ? (
-                  recentTrips.map((trip, index) => (
-                    <TripCard key={trip.id || index} {...trip} />
-                  ))
-                ) : (
-                  <p className="text-gray-500 dark:text-gray-400 text-center py-4">
-                    Belum ada perjalanan dinas
-                  </p>
-                )}
-              </div>
+      {/* Content Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
+        <div className="lg:col-span-2">
+          <div className="glass rounded-2xl p-6">
+            <h3 className="text-base font-bold text-foreground mb-5 flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-primary" />
+              {isAdmin ? 'Perjalanan Dinas Terbaru' : 'Perjalanan Dinas Saya'}
+            </h3>
+            <div className="space-y-3">
+              {tripsLoading ? (
+                Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-24 w-full rounded-xl" />)
+              ) : recentTrips && recentTrips.length > 0 ? (
+                recentTrips.map((trip, index) => <TripCard key={trip.id || index} {...trip} />)
+              ) : (
+                <div className="text-center py-10">
+                  <Plane className="w-10 h-10 text-muted-foreground/30 mx-auto mb-3" />
+                  <p className="text-sm text-muted-foreground">Belum ada perjalanan dinas</p>
+                </div>
+              )}
             </div>
           </div>
-
-          {/* Budget Overview */}
-          <div>
-            <BudgetOverview />
-          </div>
         </div>
-      </MainLayout>
-    </div>
+        <div>
+          <BudgetOverview />
+        </div>
+      </div>
+    </MainLayout>
   );
 };
 

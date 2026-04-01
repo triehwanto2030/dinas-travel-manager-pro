@@ -1,9 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
 import { Search, Plus, Eye, Edit, Trash2, Download, Upload, Receipt } from 'lucide-react';
-import Header from '@/components/Header';
-import Sidebar from '@/components/Sidebar';
-import Footer from '@/components/Footer';
 import PerjalananDinasForm from '@/components/PerjalananDinasForm';
 import ClaimDinasForm from '@/components/ClaimDinasForm';
 import { Button } from '@/components/ui/button';
@@ -177,48 +174,27 @@ const PerjalananDinas = () => {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors w-full">
-        <Header />
-        <div className="flex w-full">
-          <Sidebar isOpen={sidebarOpen} onToggle={() => setSidebarOpen(!sidebarOpen)} />
-          <div className="flex-1 w-full">
-            <main className="p-6 w-full">
-              <div className="text-center py-8">
-                <p className="text-red-600">Error loading data: {error.message}</p>
-                <Button onClick={() => window.location.reload()} className="mt-4">
-                  Refresh Page
-                </Button>
-              </div>
-            </main>
-            <Footer />
-          </div>
+      <MainLayout sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen}>
+        <div className="text-center py-8">
+          <p className="text-destructive">Error loading data: {error.message}</p>
+          <Button onClick={() => window.location.reload()} className="mt-4">Refresh Page</Button>
         </div>
-      </div>
+      </MainLayout>
     );
   }
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors w-full">
-        <Header />
-        <div className="flex w-full">
-          <Sidebar isOpen={sidebarOpen} onToggle={() => setSidebarOpen(!sidebarOpen)} />
-          <div className="flex-1 w-full">
-            <main className="p-6 w-full">
-              <div className="flex justify-center py-8">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-              </div>
-            </main>
-            <Footer />
-          </div>
+      <MainLayout sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen}>
+        <div className="flex justify-center py-8">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
         </div>
-      </div>
+      </MainLayout>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors w-full">
-      <MainLayout sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen}>
+    <MainLayout sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen}>
         <div className="mb-8">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
             <div>
@@ -430,8 +406,6 @@ const PerjalananDinas = () => {
             </Table>
           </CardContent>
         </Card>
-      </MainLayout>
-
 
       {/* Form Modal */}
       <PerjalananDinasForm
@@ -447,7 +421,7 @@ const PerjalananDinas = () => {
         onClose={() => setClaimFormOpen(false)}
         tripData={selectedData}
       />
-    </div>
+    </MainLayout>
   );
 };
 
