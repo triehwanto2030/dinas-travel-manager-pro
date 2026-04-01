@@ -1,9 +1,6 @@
 
 import React, { useState, useRef } from 'react';
 import { Search, Plus, Eye, Edit, Trash2, Download, Upload } from 'lucide-react';
-import Header from '@/components/Header';
-import Sidebar from '@/components/Sidebar';
-import Footer from '@/components/Footer';
 import LineApprovalForm from '@/components/LineApprovalForm';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';

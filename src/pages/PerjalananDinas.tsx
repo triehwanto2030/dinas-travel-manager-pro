@@ -1,9 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
 import { Search, Plus, Eye, Edit, Trash2, Download, Upload, Receipt } from 'lucide-react';
-import Header from '@/components/Header';
-import Sidebar from '@/components/Sidebar';
-import Footer from '@/components/Footer';
 import PerjalananDinasForm from '@/components/PerjalananDinasForm';
 import ClaimDinasForm from '@/components/ClaimDinasForm';
 import { Button } from '@/components/ui/button';

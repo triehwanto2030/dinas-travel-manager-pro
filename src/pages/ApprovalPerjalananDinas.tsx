@@ -1,9 +1,6 @@
 
 import React, { useState } from 'react';
 import { Search, Eye, Check, X, Calendar } from 'lucide-react';
-import Header from '@/components/Header';
-import Sidebar from '@/components/Sidebar';
-import Footer from '@/components/Footer';
 import ApprovalPerjalananDinasDetailModal from '@/components/ApprovalPerjalananDinasDetailModal';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
