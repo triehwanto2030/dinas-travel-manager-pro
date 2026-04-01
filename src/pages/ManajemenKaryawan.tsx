@@ -354,7 +354,6 @@ const ManajemenKaryawan = () => {
                 </Card>
               </TabsContent>
             </Tabs>
-    </MainLayout>
 
       {/* Company Dialog */}
       <Dialog open={companyDialog.open} onOpenChange={(open) => setCompanyDialog({ ...companyDialog, open })}>
