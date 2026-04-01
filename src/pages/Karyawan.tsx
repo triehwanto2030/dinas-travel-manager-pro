@@ -190,8 +190,7 @@ const Karyawan = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors flex flex-col">
-      <MainLayout sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen}>
+    <MainLayout sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen}>
         <div className="mb-8">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
             <div>
