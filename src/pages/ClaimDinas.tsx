@@ -299,7 +299,7 @@ const ClaimDinas = () => {
         onClose={() => setPrintModalOpen(false)}
         claimData={selectedClaim}
       />
-    </div>
+    </MainLayout>
   );
 };
 

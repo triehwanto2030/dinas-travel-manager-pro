@@ -426,7 +426,7 @@ const ApprovalClaimDinas = () => {
         }}
         claim={selectedClaim}
       />
-    </div>
+    </MainLayout>
   );
 };
 

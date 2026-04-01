@@ -351,7 +351,7 @@ const LineApproval = () => {
         initialData={formState.selectedData}
         mode={formState.mode}
       />
-    </div>
+    </MainLayout>
   );
 };
 

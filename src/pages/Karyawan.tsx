@@ -408,7 +408,7 @@ const Karyawan = () => {
         initialData={formState.selectedData}
         mode={formState.mode}
       />
-    </div>
+    </MainLayout>
   );
 };
 
