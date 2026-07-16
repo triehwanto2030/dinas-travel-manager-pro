@@ -114,11 +114,11 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle }) => {
         {/* Logo / Brand */}
         <div className="flex items-center justify-between px-5 py-5 border-b border-[hsl(var(--sidebar-border))]">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-[hsl(var(--sidebar-primary))] flex items-center justify-center shadow-lg">
-              <Briefcase className="w-5 h-5 text-white" />
+            <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center shadow-lg p-1.5">
+              <img src={pjmLogo} alt="PJM Group" className="w-full h-full object-contain" />
             </div>
             <div>
-              <h1 className="text-sm font-bold text-[hsl(var(--sidebar-primary-foreground))]">Travel Pro</h1>
+              <h1 className="text-sm font-bold text-[hsl(var(--sidebar-primary-foreground))]">PJM GROUP</h1>
               <p className="text-[10px] text-[hsl(var(--sidebar-foreground))] opacity-60">Perjalanan Dinas</p>
             </div>
           </div>
@@ -174,7 +174,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle }) => {
         {/* Footer */}
         <div className="px-4 py-3 border-t border-[hsl(var(--sidebar-border))]">
           <p className="text-[10px] text-[hsl(var(--sidebar-foreground))] opacity-40 text-center">
-            © 2024 Travel Pro v2.0
+            © 2024 PJM GROUP v2.0
           </p>
         </div>
       </aside>
