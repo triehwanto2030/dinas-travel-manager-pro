@@ -19,7 +19,7 @@ const PengaturanAplikasi = () => {
   const saveSettings = useSaveAppSettings();
 
   const [settings, setSettings] = useState({
-    appName: 'Travel Pro',
+    appName: 'PJM GROUP',
     appDescription: 'Sistem Manajemen Perjalanan Dinas',
     companyName: 'PT. Example Company',
     companyAddress: 'Jl. Contoh No. 123, Jakarta',
@@ -85,7 +85,7 @@ const PengaturanAplikasi = () => {
 
   const handleReset = () => {
     setSettings({
-      appName: 'Travel Pro',
+      appName: 'PJM GROUP',
       appDescription: 'Sistem Manajemen Perjalanan Dinas',
       companyName: 'PT. Example Company',
       companyAddress: 'Jl. Contoh No. 123, Jakarta',
